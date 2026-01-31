@@ -1,0 +1,123 @@
+@startuml
+title MicroLA Memory Layout & Alignment
+
+skinparam packageStyle rectangle
+
+package "Vec<T, N> Memory Layout" {
+    rectangle "Vec<float, 3>" as vec3layout #E6F3FF {
+        component "alignas(16)" as vec3align
+        storage "data[0]: x" as v3x #ADD8E6
+        storage "data[1]: y" as v3y #ADD8E6
+        storage "data[2]: z" as v3z #ADD8E6
+        storage "padding" as v3pad #DDDDDD
+
+        v3x -down-> v3y
+        v3y -down-> v3z
+        v3z -down-> v3pad
+    }
+
+    note right of vec3layout
+        **16-byte aligned**
+        12 bytes data + 4 bytes padding
+        SIMD-friendly: loads as float32x4_t
+
+        **Padding ensures:**
+        • NEON vld1q_f32 compatibility
+        • Cache line alignment
+        • DMA transfer efficiency
+    end note
+}
+
+package "Mat<T, R, C> Memory Layout" {
+    rectangle "Mat<float, 3, 3>" as mat3layout #FFE6F0 {
+        component "alignas(16)" as mat3align
+        storage "Row-major storage" as rowmajor
+        storage "data[0..2]: row 0" as row0 #FFB6C1
+        storage "data[3..5]: row 1" as row1 #FFB6C1
+        storage "data[6..8]: row 2" as row2 #FFB6C1
+
+        row0 -down-> row1
+        row1 -down-> row2
+    }
+
+    note right of mat3layout
+        **Row-major order:**
+        M(i,j) = data[i * C + j]
+
+        **Benefits:**
+        • Cache-friendly row access
+        • Natural C/C++ layout
+        • SIMD row operations
+        • Compatible with OpenGL (transpose)
+
+        **Size: 36 bytes (9 floats)**
+        Aligned to 16 bytes for SIMD
+    end note
+}
+
+package "Quaternion<T> Memory Layout" {
+    rectangle "Quaternion<float>" as quatlayout #F0FFE6 {
+        component "alignas(16)" as quatalign
+        storage "data[0]: x (i)" as qx #90EE90
+        storage "data[1]: y (j)" as qy #90EE90
+        storage "data[2]: z (k)" as qz #90EE90
+        storage "data[3]: w (real)" as qw #90EE90
+
+        qx -down-> qy
+        qy -down-> qz
+        qz -down-> qw
+    }
+
+    note right of quatlayout
+        **[x, y, z, w] layout**
+
+        **Rationale:**
+        • First 3 elements = Vec<T,3>
+        • Enables Vec3 SIMD operations
+        • Optimal for rotate(vector)
+        • Compatible with most libraries
+
+        **Size: 16 bytes (4 floats)**
+        Perfect SIMD register fit
+    end note
+}
+
+package "Alignment Benefits" {
+    rectangle "SIMD Performance" as simd #FFFACD {
+        usecase "Aligned loads\n(vld1q_f32)" as ld
+        usecase "Aligned stores\n(vst1q_f32)" as st
+        usecase "No unaligned\npenalty" as penalty
+    }
+
+    rectangle "Cache Efficiency" as cache #FFFACD {
+        usecase "Cache line\nalignment" as cacheline
+        usecase "Reduced\nmisses" as misses
+        usecase "Better\nprefetch" as prefetch
+    }
+
+    rectangle "DMA Compatibility" as dma #FFFACD {
+        usecase "Hardware\ntransfer ready" as hw
+        usecase "No alignment\nfaults" as faults
+        usecase "Embedded\nfriendly" as embedded
+    }
+}
+
+vec3layout --> simd
+mat3layout --> cache
+quatlayout --> dma
+
+note bottom
+    **Memory Guarantees:**
+    • All types: alignas(16) for SIMD
+    • Standard layout (offsetof compatible)
+    • Contiguous memory (DMA safe)
+    • No virtual functions (POD-like)
+    • Trivially copyable (memcpy safe)
+
+    **Size Validation:**
+    static_assert(sizeof(Vec<float,3>) == 16)
+    static_assert(sizeof(Mat<float,3,3>) >= 36)
+    static_assert(sizeof(Quaternion<float>) == 16)
+end note
+
+@enduml

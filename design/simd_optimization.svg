@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1728px" preserveAspectRatio="none" style="width:2238px;height:1728px;" version="1.1" viewBox="0 0 2238 1728" width="2238px" zoomAndPan="magnify"><defs><filter height="300%" id="fxq1rurxdxjqi" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="324" x="963" y="16.708">MicroLA SIMD Optimization Strategy</text><!--MD5=[cfaf222cb98d07529e3e122d570430ee]
+cluster SIMD Acceleration Tiers--><polygon fill="#FFFFFF" filter="url(#fxq1rurxdxjqi)" points="22,44.9531,215,44.9531,222,67.25,631,67.25,631,1716.9531,22,1716.9531,22,44.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="22" x2="222" y1="67.25" y2="67.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="187" x="26" y="59.9482">SIMD Acceleration Tiers</text><!--MD5=[9e476cbf698efeb0fa96f18382cb8309]
+cluster Tier 1: ARM NEON--><polygon fill="#ADD8E6" filter="url(#fxq1rurxdxjqi)" points="81,87.9531,226,87.9531,233,110.25,607,110.25,607,421.9531,81,421.9531,81,87.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="81" x2="233" y1="110.25" y2="110.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="139" x="85" y="102.9482">Tier 1: ARM NEON</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="304" y="125.2451">«Rectangle»</text><!--MD5=[db1d8decf2e940fbaa91a49bc8466e71]
+cluster Tier 2: CMSIS-DSP--><polygon fill="#90EE90" filter="url(#fxq1rurxdxjqi)" points="58,470.9531,206,470.9531,213,493.25,595,493.25,595,1016.9531,58,1016.9531,58,470.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="58" x2="213" y1="493.25" y2="493.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="142" x="62" y="485.9482">Tier 2: CMSIS-DSP</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="286.5" y="508.2451">«Rectangle»</text><!--MD5=[4a47e6431c4e1ab93b7e5de0836a65fc]
+cluster Tier 3: RISC-V V Extensions--><polygon fill="#FFFFE0" filter="url(#fxq1rurxdxjqi)" points="46,1065.9531,268,1065.9531,275,1088.25,607,1088.25,607,1384.9531,46,1384.9531,46,1065.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="46" x2="275" y1="1088.25" y2="1088.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="216" x="50" y="1080.9482">Tier 3: RISC-V V Extensions</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="286.5" y="1103.2451">«Rectangle»</text><!--MD5=[33770b49abb98e0c08734d209b3657ee]
+cluster Tier 4: Generic C++--><polygon fill="#F08080" filter="url(#fxq1rurxdxjqi)" points="80,1433.9531,245,1433.9531,252,1456.25,479,1456.25,479,1692.9531,80,1692.9531,80,1433.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="80" x2="252" y1="1456.25" y2="1456.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="159" x="84" y="1448.9482">Tier 4: Generic C++</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="239.5" y="1471.2451">«Rectangle»</text><!--MD5=[b8acbde03958a7e4abef3384c5eb0084]
+cluster Vec<float, N> Optimization--><polygon fill="#FFFFFF" filter="url(#fxq1rurxdxjqi)" points="655,708.4531,874,708.4531,881,730.75,1203,730.75,1203,1294.4531,655,1294.4531,655,708.4531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="655" x2="881" y1="730.75" y2="730.75"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="213" x="659" y="723.4482">Vec&lt;float, N&gt; Optimization</text><!--MD5=[779404b6f64c4d2b3b44bf167b68b1b2]
+cluster Quaternion<float> Optimization--><polygon fill="#FFFFFF" filter="url(#fxq1rurxdxjqi)" points="1227,708.4531,1483,708.4531,1490,730.75,1742,730.75,1742,1294.4531,1227,1294.4531,1227,708.4531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="1227" x2="1490" y1="730.75" y2="730.75"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="250" x="1231" y="723.4482">Quaternion&lt;float&gt; Optimization</text><!--MD5=[6e6eeaa8523b5869466544cebe24d860]
+cluster Matrix Operations--><polygon fill="#FFFFFF" filter="url(#fxq1rurxdxjqi)" points="1766,708.4531,1912,708.4531,1919,730.75,2216,730.75,2216,1294.4531,1766,1294.4531,1766,708.4531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="1766" x2="1919" y1="730.75" y2="730.75"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="140" x="1770" y="723.4482">Matrix Operations</text><!--MD5=[0fa3beb4cb64d99f72df76a51bc59666]
+entity neon--><rect fill="#ADD8E6" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="189" x="97.5" y="254.4531"/><rect fill="#ADD8E6" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="92.5" y="259.4531"/><rect fill="#ADD8E6" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="92.5" y="280.75"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="169" x="107.5" y="277.4482">CONFIG_MICROLA_NEON</text><path d="M321.5,138.9531 L321.5,268.4531 L286.62,272.4531 L321.5,276.4531 L321.5,406.2109 A0,0 0 0 0 321.5,406.2109 L590.5,406.2109 A0,0 0 0 0 590.5,406.2109 L590.5,148.9531 L580.5,138.9531 L321.5,138.9531 A0,0 0 0 0 321.5,138.9531 " fill="#FFFFE0" filter="url(#fxq1rurxdxjqi)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M580.5,138.9531 L580.5,148.9531 L590.5,148.9531 L580.5,138.9531 " fill="#FFFFE0" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="77" x="327.5" y="156.02">Platforms:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="248" x="327.5" y="171.1528">• ARM Cortex-A (Raspberry Pi, phones)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="172" x="327.5" y="186.2856">• Apple Silicon (M1/M2/M3)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="122" x="327.5" y="201.4185">• ARM64 (aarch64)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="331.5" y="216.5513"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="100" x="327.5" y="231.6841">Performance:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="196" x="327.5" y="246.8169">• Vec3 operations: 1.4× faster</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="217" x="327.5" y="261.9497">• Quaternion multiply: 3.5× faster</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="194" x="327.5" y="277.0825">• Matrix 3×3/4×4: 3-4× faster</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="172" x="327.5" y="292.2153">• FMA instructions enabled</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="139" x="327.5" y="307.3481">• Fast reciprocal/rsqrt</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="331.5" y="322.481"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="71" x="327.5" y="337.6138">Intrinsics:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="139" x="327.5" y="352.7466">vld1q_f32, vaddq_f32,</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="143" x="327.5" y="367.8794">vsubq_f32, vmulq_f32,</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="112" x="327.5" y="383.0122">vfmaq_f32 (FMA),</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="166" x="327.5" y="398.145">vrecpeq_f32, vrsqrteq_f32</text><!--MD5=[66204d2a76620460667f00b02d4eac5c]
+entity cmsis--><rect fill="#90EE90" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="192" x="74" y="743.4531"/><rect fill="#90EE90" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="69" y="748.4531"/><rect fill="#90EE90" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="69" y="769.75"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="172" x="84" y="766.4482">CONFIG_MICROLA_CMSIS</text><path d="M301.5,521.9531 L301.5,757.4531 L266.24,761.4531 L301.5,765.4531 L301.5,1001.0703 A0,0 0 0 0 301.5,1001.0703 L578.5,1001.0703 A0,0 0 0 0 578.5,1001.0703 L578.5,531.9531 L568.5,521.9531 L301.5,521.9531 A0,0 0 0 0 301.5,521.9531 " fill="#FFFFE0" filter="url(#fxq1rurxdxjqi)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M568.5,521.9531 L568.5,531.9531 L578.5,531.9531 L568.5,521.9531 " fill="#FFFFE0" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="77" x="307.5" y="539.02">Platforms:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="202" x="307.5" y="554.1528">• ARM Cortex-M4F/M7/M33/M85</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="236" x="307.5" y="569.2856">• Microcontrollers (STM32, NXP, etc.)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="311.5" y="584.4185"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="111" x="307.5" y="599.5513">DSP Functions:</text><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="85" x="307.5" y="614.6841">Vector ops:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="175" x="307.5" y="629.8169">arm_add_f32, arm_sub_f32</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="206" x="307.5" y="644.9497">arm_scale_f32, arm_negate_f32</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="210" x="307.5" y="660.0825">arm_dot_prod_f32, arm_sqrt_f32</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="311.5" y="675.2153"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="83" x="307.5" y="690.3481">Matrix ops:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="241" x="307.5" y="705.481">arm_mat_add_f32, arm_mat_sub_f32</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="256" x="307.5" y="720.6138">arm_mat_scale_f32, arm_mat_mult_f32</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="126" x="307.5" y="735.7466">arm_mat_trans_f32</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="311.5" y="750.8794"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="118" x="307.5" y="766.0122">Quaternion ops:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="186" x="307.5" y="781.145">arm_sqrt_f32, arm_scale_f32</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="182" x="307.5" y="796.2778">arm_negate_f32 (conjugate)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="311.5" y="811.4106"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="100" x="307.5" y="826.5435">Performance:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="213" x="307.5" y="841.6763">• Vec operations: 1.3-1.8× faster</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="194" x="307.5" y="856.8091">• Matrix 3×3/4×4: 2-3× faster</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="230" x="307.5" y="871.9419">• Quaternion normalize: 1.8× faster</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="214" x="307.5" y="887.0747">• Power-efficient DSP instructions</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="311.5" y="902.2075"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="66" x="307.5" y="917.3403">Benefits:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="241" x="307.5" y="932.4731">• Vendor-optimized for ARM Cortex-M</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="175" x="307.5" y="947.606">• DSP instruction utilization</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="249" x="307.5" y="962.7388">• Hardware MAC (Multiply-Accumulate)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="178" x="307.5" y="977.8716">• Lower power consumption</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="170" x="307.5" y="993.0044">• Float/Fixed-point support</text><!--MD5=[2ab5fcaedfebecc65fbd0ba69b4ae2c0]
+entity riscv--><rect fill="#FFEB99" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="190" x="62" y="1224.9531"/><rect fill="#FFEB99" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="57" y="1229.9531"/><rect fill="#FFEB99" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="57" y="1251.25"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="170" x="72" y="1247.9482">CONFIG_MICROLA_RISCV</text><path d="M287.5,1116.9531 L287.5,1238.9531 L252.01,1242.9531 L287.5,1246.9531 L287.5,1369.0781 A0,0 0 0 0 287.5,1369.0781 L590.5,1369.0781 A0,0 0 0 0 590.5,1369.0781 L590.5,1126.9531 L580.5,1116.9531 L287.5,1116.9531 A0,0 0 0 0 287.5,1116.9531 " fill="#FFFFE0" filter="url(#fxq1rurxdxjqi)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M580.5,1116.9531 L580.5,1126.9531 L590.5,1126.9531 L580.5,1116.9531 " fill="#FFFFE0" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="77" x="293.5" y="1134.02">Platforms:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="244" x="293.5" y="1149.1528">• RISC-V processors with V extensions</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="225" x="293.5" y="1164.2856">• SiFive U74, Alibaba XuanTie C910</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="297.5" y="1179.4185"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="100" x="293.5" y="1194.5513">Performance:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="233" x="293.5" y="1209.6841">• Vec2/3/4 operations: 1.3-2× faster</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="194" x="293.5" y="1224.8169">• Matrix 3×3/4×4: 2-3× faster</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="190" x="293.5" y="1239.9497">• Variable-length vectors (VL)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="204" x="293.5" y="1255.0825">• Optimized for low-power cores</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="297.5" y="1270.2153"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="71" x="293.5" y="1285.3481">Intrinsics:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="211" x="293.5" y="1300.481">vsetvl_e32m1 (set vector length)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="282" x="293.5" y="1315.6138">vle32_v_f32m1, vse32_v_f32m1 (load/store)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="280" x="293.5" y="1330.7466">vfadd_vv_f32m1, vfsub_vv_f32m1 (add/sub)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="277" x="293.5" y="1345.8794">vfmul_vv_f32m1, vfmul_vf_f32m1 (multiply)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="251" x="293.5" y="1361.0122">vfredsum_vs_f32m1_f32m1 (reduction)</text><!--MD5=[4598f43ce0d2a9cfe449db76b9405eb2]
+entity scalar--><rect fill="#FFA07A" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="122" x="96" y="1562.9531"/><rect fill="#FFA07A" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="91" y="1567.9531"/><rect fill="#FFA07A" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="91" y="1589.25"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="102" x="106" y="1585.9482">Portable Scalar</text><path d="M253,1484.9531 L253,1576.9531 L218.24,1580.9531 L253,1584.9531 L253,1676.5469 A0,0 0 0 0 253,1676.5469 L463,1676.5469 A0,0 0 0 0 463,1676.5469 L463,1494.9531 L453,1484.9531 L253,1484.9531 A0,0 0 0 0 253,1484.9531 " fill="#FFFFE0" filter="url(#fxq1rurxdxjqi)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M453,1484.9531 L453,1494.9531 L463,1494.9531 L453,1484.9531 " fill="#FFFFE0" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="77" x="259" y="1502.02">Platforms:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="144" x="259" y="1517.1528">• All C++11 compilers</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="94" x="259" y="1532.2856">• x86/x64, etc.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="263" y="1547.4185"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="107" x="259" y="1562.5513">Optimizations:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="189" x="259" y="1577.6841">• Compiler auto-vectorization</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="259" y="1592.8169">• Loop unrolling hints</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="160" x="259" y="1607.9497">• constexpr computation</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="159" x="259" y="1623.0825">• Branch prediction hints</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="263" y="1638.2153"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="123" x="259" y="1653.3481">Always Available</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="155" x="259" y="1668.481">Fallback for all platforms</text><!--MD5=[90e3df2fcb17bf076f837cd3f6d1d575]
+entity vec2--><rect fill="#E6F3FF" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="135" x="671.5" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="115" x="681.5" y="766.4482">N=2: float32x2_t</text><!--MD5=[05be6de78a79d083b0b30ef5f234232a]
+entity vec3--><rect fill="#E6F3FF" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="175" x="841.5" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="155" x="851.5" y="766.4482">N=3: float32x4_t (pad)</text><!--MD5=[2e3f38a9fb9e35f9b35259b90d43c50c]
+entity vec4--><rect fill="#E6F3FF" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="135" x="1051.5" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="115" x="1061.5" y="766.4482">N=4: float32x4_t</text><path d="M816,1207.4531 L816,1277.9844 A0,0 0 0 0 816,1277.9844 L1042,1277.9844 A0,0 0 0 0 1042,1277.9844 L1042,1217.4531 L1032,1207.4531 L933,1207.4531 L929,779.5231 L925,1207.4531 L816,1207.4531 A0,0 0 0 0 816,1207.4531 " fill="#FFFFE0" filter="url(#fxq1rurxdxjqi)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M1032,1207.4531 L1032,1217.4531 L1042,1217.4531 L1032,1207.4531 " fill="#FFFFE0" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="135" x="822" y="1224.52">Optimized Layout:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="182" x="822" y="1239.6528">Eliminated temporary arrays</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="205" x="822" y="1254.7856">Direct NEON register operations</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="163" x="822" y="1269.9185">1.4× faster than previous</text><!--MD5=[75d843a819faf44dd33d251b2906dd07]
+entity qmul--><rect fill="#FFE6F0" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="143" x="1243.5" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="123" x="1253.5" y="766.4482">Full NEON multiply</text><!--MD5=[9d11bffdb0d8548005852632768f1e7e]
+entity qvec3--><rect fill="#FFE6F0" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="133" x="1421.5" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="113" x="1431.5" y="766.4482">Vec3 integration</text><!--MD5=[4282f2fc947d293193518882ade86e62]
+entity qslerp--><rect fill="#FFE6F0" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="136" x="1590" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="116" x="1600" y="766.4482">SLERP optimized</text><path d="M1243.5,1207.4531 L1243.5,1277.9844 A0,0 0 0 0 1243.5,1277.9844 L1460.5,1277.9844 A0,0 0 0 0 1460.5,1277.9844 L1460.5,1217.4531 L1450.5,1207.4531 L1353.32,1207.4531 L1316.32,779.5231 L1345.32,1207.4531 L1243.5,1207.4531 A0,0 0 0 0 1243.5,1207.4531 " fill="#FFFFE0" filter="url(#fxq1rurxdxjqi)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M1450.5,1207.4531 L1450.5,1217.4531 L1460.5,1217.4531 L1450.5,1207.4531 " fill="#FFFFE0" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="196" x="1249.5" y="1224.52">NEON Quaternion Product:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="147" x="1249.5" y="1239.6528">3.5× faster than scalar</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="144" x="1249.5" y="1254.7856">Uses vfmaq_f32 (FMA)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="162" x="1249.5" y="1269.9185">Minimal register pressure</text><!--MD5=[c7655474378f3f738da6cb2764bdc6bb]
+entity mat3--><rect fill="#F0FFE6" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="106" x="1782" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="86" x="1792" y="766.4482">3×3 multiply</text><!--MD5=[6c6a949a315fc9f807946d254dec7e6f]
+entity mat4--><rect fill="#F0FFE6" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="106" x="1923" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="86" x="1933" y="766.4482">4×4 multiply</text><!--MD5=[a2e14d8f16af051838b072e50e1f373f]
+entity block--><rect fill="#F0FFE6" filter="url(#fxq1rurxdxjqi)" height="36.2969" style="stroke: #000000; stroke-width: 1.5;" width="136" x="2064" y="743.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="116" x="2074" y="766.4482">Block operations</text><path d="M1782.5,1207.4531 L1782.5,1277.9844 A0,0 0 0 0 1782.5,1277.9844 L1981.5,1277.9844 A0,0 0 0 0 1981.5,1277.9844 L1981.5,1217.4531 L1971.5,1207.4531 L1882.6,1207.4531 L1836.67,779.5231 L1874.6,1207.4531 L1782.5,1207.4531 A0,0 0 0 0 1782.5,1207.4531 " fill="#FFFFE0" filter="url(#fxq1rurxdxjqi)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M1971.5,1207.4531 L1971.5,1217.4531 L1981.5,1217.4531 L1971.5,1207.4531 " fill="#FFFFE0" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="93" x="1788.5" y="1224.52">Matrix SIMD:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="178" x="1788.5" y="1239.6528">3-4× speedup for 3×3, 4×4</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="134" x="1788.5" y="1254.7856">Row-major optimized</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="139" x="1788.5" y="1269.9185">Cache-friendly access</text><!--MD5=[589fb5323c8fbdb7742d46199bc20757]
+link neon to cmsis--><path d="M191.23,290.5031 C187.9,364.1331 174.77,654.9331 171.01,738.1131 " fill="none" id="neon-&gt;cmsis" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="170.78,743.2931,175.1868,734.4852,171.0083,738.2983,167.1952,734.1198,170.78,743.2931" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="70" x="186" y="451.02">Disabled →</text><!--MD5=[96ce515114e8af7a4968086d746c544c]
+link cmsis to riscv--><path d="M169.54,779.5231 C167.56,852.4131 159.83,1137.6331 157.6,1219.7331 " fill="none" id="cmsis-&gt;riscv" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="157.46,1224.8431,161.7154,1215.961,157.6028,1219.8452,153.7187,1215.7326,157.46,1224.8431" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="70" x="164" y="1046.02">Disabled →</text><!--MD5=[654da745bd346524984e2eaad61aa1dd]
+link riscv to scalar--><path d="M157,1261.0731 C157,1317.1431 157,1495.1731 157,1557.8531 " fill="none" id="riscv-&gt;scalar" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="157,1562.8631,161,1553.8631,157,1557.8631,153,1553.8631,157,1562.8631" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="70" x="158" y="1414.02">Disabled →</text><!--MD5=[0ef6f761d99815ac7b3204a8f54fd540]
+link neon to vec2--><path d="M198.59,290.5131 C212.43,323.7931 247.97,397.0331 304,429.9531 C416.22,495.9031 488.8,387.7031 595,462.9531 C691.16,531.0831 725.71,681.3731 735.61,738.1431 " fill="none" id="neon-&gt;vec2" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="736.5,743.3431,738.9525,733.8045,735.6711,738.4123,731.0633,735.1308,736.5,743.3431" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[c3faac834e5742557b684f23f018feee]
+link neon to vec3--><path d="M198.29,290.5831 C211.73,324.3331 246.75,398.8631 304,429.9531 C321.2,439.2931 460.46,436.8031 480,437.9531 C556.51,442.4731 763.08,416.4431 824,462.9531 C913.41,531.2131 926.94,681.4231 928.8,738.1631 " fill="none" id="neon-&gt;vec3" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="928.94,743.3531,932.6813,734.2426,928.7972,738.3552,924.6846,734.471,928.94,743.3531" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[32edca15dbc3ed372facce61ac421765]
+link neon to vec4--><path d="M198.23,290.6931 C211.56,324.6531 246.39,399.5331 304,429.9531 C321.94,439.4231 648.74,437.0331 669,437.9531 C750.22,441.6231 970.81,411.8031 1034,462.9531 C1119.55,532.1931 1122.61,681.1731 1120.42,737.8931 " fill="none" id="neon-&gt;vec4" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1120.19,743.0931,1124.5717,734.2727,1120.4041,738.0977,1116.579,733.9301,1120.19,743.0931" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[2be56ab6de5e4763f69b3345bd4a181d]
+link neon to qmul--><path d="M198.11,290.4731 C211.32,324.3731 246.12,399.6831 304,429.9531 C317.93,437.2431 854.29,437.2531 870,437.9531 C944.13,441.2531 1143.6,418.4631 1203,462.9531 C1293.72,530.9031 1310.96,681.2931 1314.24,738.1231 " fill="none" id="neon-&gt;qmul" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1314.51,743.3231,1318.0411,734.129,1314.2525,738.3298,1310.0517,734.5411,1314.51,743.3231" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[7d27d05136de265db373a89229e4c52e]
+link neon to qvec3--><path d="M198.1,290.4931 C211.3,324.4231 246.07,399.7831 304,429.9531 C322.48,439.5731 1033.18,437.1031 1054,437.9531 C1131.91,441.1531 1343.54,413.7131 1404,462.9531 C1489.26,532.3931 1491.85,681.2431 1489.49,737.9131 " fill="none" id="neon-&gt;qvec3" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1489.25,743.1031,1493.6568,734.2952,1489.4783,738.1083,1485.6652,733.9298,1489.25,743.1031" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[7234e78e4739c4bce7d35c703b9cb6a8]
+link neon to qslerp--><path d="M198.1,290.5031 C211.28,324.4531 246.03,399.8431 304,429.9531 C315.64,435.9931 1234.9,437.3931 1248,437.9531 C1320.15,441.0431 1515.99,417.3631 1572,462.9531 C1657.43,532.4931 1661.2,681.2931 1659.3,737.9331 " fill="none" id="neon-&gt;qslerp" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1659.1,743.1131,1663.4565,734.2802,1659.2998,738.1171,1655.4629,733.9604,1659.1,743.1131" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[b8a2140fe4030f700df8b193866d34aa]
+link neon to mat3--><path d="M198.09,290.5031 C211.27,324.4731 246.01,399.8831 304,429.9531 C317.86,437.1431 1412.4,437.2731 1428,437.9531 C1497.93,440.9831 1687.29,419.2831 1742,462.9531 C1828.86,532.2831 1836.21,681.8431 1835.72,738.2831 " fill="none" id="neon-&gt;mat3" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1835.65,743.4531,1839.7526,734.4994,1835.7071,738.4535,1831.7531,734.408,1835.65,743.4531" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[cc59971bac646afdc3d319ef4e91ce91]
+link neon to mat4--><path d="M198.09,290.5131 C211.27,324.4831 246,399.9131 304,429.9531 C320.02,438.2531 1584.98,437.1531 1603,437.9531 C1670.5,440.9431 1854.81,418.8631 1906,462.9531 C1988.37,533.9031 1983.73,681.8531 1978.59,738.0931 " fill="none" id="neon-&gt;mat4" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1978.1,743.2531,1982.9538,734.6834,1978.5848,738.2767,1974.9915,733.9077,1978.1,743.2531" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[e6367d47e924749902f76163fb3aba90]
+link neon to block--><path d="M198.09,290.5131 C211.26,324.4931 245.99,399.9331 304,429.9531 C322.12,439.3331 1752.62,436.9731 1773,437.9531 C1834.07,440.9031 1999.91,423.9531 2047,462.9531 C2131.76,533.1531 2135.29,681.5531 2133.32,738.0131 " fill="none" id="neon-&gt;block" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="2133.12,743.1831,2137.4765,734.3502,2133.3198,738.1871,2129.4829,734.0304,2133.12,743.1831" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[387d1b665c5e6e1aec059ca1e3e362b5]
+@startuml
+title MicroLA SIMD Optimization Strategy
+
+skinparam packageStyle rectangle
+skinparam noteBackgroundColor lightyellow
+
+package "SIMD Acceleration Tiers" {
+
+    package "Tier 1: ARM NEON" <<Rectangle>> #lightblue {
+        component "CONFIG_MICROLA_NEON" as neon #ADD8E6
+        note right of neon
+            **Platforms:**
+            • ARM Cortex-A (Raspberry Pi, phones)
+            • Apple Silicon (M1/M2/M3)
+            • ARM64 (aarch64)
+
+            **Performance:**
+            • Vec3 operations: 1.4× faster
+            • Quaternion multiply: 3.5× faster
+            • Matrix 3×3/4×4: 3-4× faster
+            • FMA instructions enabled
+            • Fast reciprocal/rsqrt
+
+            **Intrinsics:**
+            vld1q_f32, vaddq_f32,
+            vsubq_f32, vmulq_f32,
+            vfmaq_f32 (FMA),
+            vrecpeq_f32, vrsqrteq_f32
+        end note
+    }
+
+    package "Tier 2: CMSIS-DSP" <<Rectangle>> #lightgreen {
+        component "CONFIG_MICROLA_CMSIS" as cmsis #90EE90
+        note right of cmsis
+            **Platforms:**
+            • ARM Cortex-M4F/M7/M33/M85
+            • Microcontrollers (STM32, NXP, etc.)
+
+            **DSP Functions:**
+            **Vector ops:**
+            arm_add_f32, arm_sub_f32
+            arm_scale_f32, arm_negate_f32
+            arm_dot_prod_f32, arm_sqrt_f32
+
+            **Matrix ops:**
+            arm_mat_add_f32, arm_mat_sub_f32
+            arm_mat_scale_f32, arm_mat_mult_f32
+            arm_mat_trans_f32
+
+            **Quaternion ops:**
+            arm_sqrt_f32, arm_scale_f32
+            arm_negate_f32 (conjugate)
+
+            **Performance:**
+            • Vec operations: 1.3-1.8× faster
+            • Matrix 3×3/4×4: 2-3× faster
+            • Quaternion normalize: 1.8× faster
+            • Power-efficient DSP instructions
+
+            **Benefits:**
+            • Vendor-optimized for ARM Cortex-M
+            • DSP instruction utilization
+            • Hardware MAC (Multiply-Accumulate)
+            • Lower power consumption
+            • Float/Fixed-point support
+        end note
+    }
+
+    package "Tier 3: RISC-V V Extensions" <<Rectangle>> #lightyellow {
+        component "CONFIG_MICROLA_RISCV" as riscv #FFEB99
+        note right of riscv
+            **Platforms:**
+            • RISC-V processors with V extensions
+            • SiFive U74, Alibaba XuanTie C910
+
+            **Performance:**
+            • Vec2/3/4 operations: 1.3-2× faster
+            • Matrix 3×3/4×4: 2-3× faster
+            • Variable-length vectors (VL)
+            • Optimized for low-power cores
+
+            **Intrinsics:**
+            vsetvl_e32m1 (set vector length)
+            vle32_v_f32m1, vse32_v_f32m1 (load/store)
+            vfadd_vv_f32m1, vfsub_vv_f32m1 (add/sub)
+            vfmul_vv_f32m1, vfmul_vf_f32m1 (multiply)
+            vfredsum_vs_f32m1_f32m1 (reduction)
+        end note
+    }
+
+    package "Tier 4: Generic C++" <<Rectangle>> #lightcoral {
+        component "Portable Scalar" as scalar #FFA07A
+        note right of scalar
+            **Platforms:**
+            • All C++11 compilers
+            • x86/x64, etc.
+
+            **Optimizations:**
+            • Compiler auto-vectorization
+            • Loop unrolling hints
+            • constexpr computation
+            • Branch prediction hints
+
+            **Always Available**
+            Fallback for all platforms
+        end note
+    }
+}
+
+neon -down-> cmsis : Disabled →
+cmsis -down-> riscv : Disabled →
+riscv -down-> scalar : Disabled →
+
+package "Vec<float, N> Optimization" {
+    rectangle "N=2: float32x2_t" as vec2 #E6F3FF
+    rectangle "N=3: float32x4_t (pad)" as vec3 #E6F3FF
+    rectangle "N=4: float32x4_t" as vec4 #E6F3FF
+
+    note bottom of vec3
+        **Optimized Layout:**
+        Eliminated temporary arrays
+        Direct NEON register operations
+        1.4× faster than previous
+    end note
+}
+
+neon - -> vec2
+neon - -> vec3
+neon - -> vec4
+
+package "Quaternion<float> Optimization" {
+    rectangle "Full NEON multiply" as qmul #FFE6F0
+    rectangle "Vec3 integration" as qvec3 #FFE6F0
+    rectangle "SLERP optimized" as qslerp #FFE6F0
+
+    note bottom of qmul
+        **NEON Quaternion Product:**
+        3.5× faster than scalar
+        Uses vfmaq_f32 (FMA)
+        Minimal register pressure
+    end note
+}
+
+neon - -> qmul
+neon - -> qvec3
+neon - -> qslerp
+
+package "Matrix Operations" {
+    rectangle "3×3 multiply" as mat3 #F0FFE6
+    rectangle "4×4 multiply" as mat4 #F0FFE6
+    rectangle "Block operations" as block #F0FFE6
+
+    note bottom of mat3
+        **Matrix SIMD:**
+        3-4× speedup for 3×3, 4×4
+        Row-major optimized
+        Cache-friendly access
+    end note
+}
+
+neon - -> mat3
+neon - -> mat4
+neon - -> block
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 05:22:07 EST 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 21.0.10+7-Ubuntu-124.04
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>

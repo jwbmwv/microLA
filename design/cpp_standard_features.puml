@@ -1,0 +1,121 @@
+@startuml
+title MicroLA C++ Standard Feature Progression
+
+skinparam packageStyle rectangle
+
+package "C++11 (Baseline - Required)" <<Rectangle>> #FFE6E6 {
+    component "Core Language" as cpp11core
+    note right of cpp11core
+        • constexpr functions (single return)
+        • static_assert
+        • alignas(16) for SIMD
+        • noexcept
+        • nullptr
+        • auto type deduction
+        • Range-based for loops
+        • std::initializer_list
+        • Variadic templates
+
+        **MicroLA Support:**
+        100% functional, all features
+        available on C++11 compilers
+    end note
+}
+
+package "C++14 Enhancements" <<Rectangle>> #E6F3FF {
+    component "MICROLA_CONSTEXPR14" as cpp14
+    note right of cpp14
+        • Relaxed constexpr:
+          - Multiple statements
+          - Loops in constexpr
+          - Local variables
+
+        **MicroLA Usage:**
+        identity() with loops
+        Generic matrix operations
+        Runtime/compile-time dual use
+    end note
+}
+
+package "C++17 Features" <<Rectangle>> #E6FFE6 {
+    component "MICROLA_IF_CONSTEXPR" as cpp17
+    note right of cpp17
+        • if constexpr (compile-time branches)
+        • inline variables
+        • structured bindings
+
+        **MicroLA Usage:**
+        SIMD path selection
+        Optimized code generation
+        Zero runtime overhead
+    end note
+}
+
+package "C++20 Features" <<Rectangle>> #FFF0E6 {
+    component "Modern Features" as cpp20
+    note right of cpp20
+        • Concepts:
+          - Arithmetic<T>
+          - FloatingPoint<T>
+          - Integral<T>
+        • MICROLA_BIT_CAST (std::bit_cast)
+        • consteval, constinit
+
+        **MicroLA Usage:**
+        Type-safe templates
+        Branch optimization
+        Safe type punning
+        Compile-time validation
+    end note
+}
+
+package "C++23 Enhancements" <<Rectangle>> #FFE6F3 {
+    component "MICROLA_IF_CONSTEVAL" as cpp23
+    note right of cpp23
+        • if consteval
+        • Deducing this
+
+        **MicroLA Usage:**
+        Dual compile/runtime paths
+        Optimized constexpr detection
+    end note
+}
+
+package "C++26 (Latest)" <<Rectangle>> #F0E6FF {
+    component "MICROLA_CONSTEXPR_TRIG" as cpp26
+    note right of cpp26
+        • constexpr math functions:
+          - std::sin, std::cos
+          - std::sqrt, std::atan2
+
+        **MicroLA Usage:**
+        Compile-time rotations
+        Arbitrary angle matrices
+        Full constexpr transformation
+
+        **Example:**
+        constexpr auto rot =
+          Mat<float,2,2>::rotation(45°);
+    end note
+}
+
+cpp11core -down-> cpp14 : Adds
+cpp14 -down-> cpp17 : Adds
+cpp17 -down-> cpp20 : Adds
+cpp20 -down-> cpp23 : Adds
+cpp23 -down-> cpp26 : Adds
+
+note as FeatureDetection
+    **Automatic Feature Detection:**
+
+    #if __cplusplus >= 201402L
+      #define MICROLA_CONSTEXPR14 constexpr
+    #else
+      #define MICROLA_CONSTEXPR14 inline
+    #endif
+
+    Features automatically enabled
+    based on compiler __cplusplus value
+end note
+
+@enduml

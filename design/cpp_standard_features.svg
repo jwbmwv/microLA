@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1672px" preserveAspectRatio="none" style="width:850px;height:1672px;" version="1.1" viewBox="0 0 850 1672" width="850px" zoomAndPan="magnify"><defs><filter height="300%" id="f1r9qiieof429a" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="388" x="234.5" y="16.708">MicroLA C++ Standard Feature Progression</text><!--MD5=[8c4c1d16c70b2acb98b12ccdab7fc162]
+cluster C++11 (Baseline - Required)--><polygon fill="#FFE6E6" filter="url(#f1r9qiieof429a)" points="67,44.9531,298,44.9531,305,67.25,512,67.25,512,318.9531,67,318.9531,67,44.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="67" x2="305" y1="67.25" y2="67.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="225" x="71" y="59.9482">C++11 (Baseline - Required)</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="249.5" y="82.2451">«Rectangle»</text><!--MD5=[8609c0e921a99518bdaa754208046c8b]
+cluster C++14 Enhancements--><polygon fill="#E6F3FF" filter="url(#f1r9qiieof429a)" points="33,367.9531,215,367.9531,222,390.25,514,390.25,514,580.9531,33,580.9531,33,367.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="33" x2="222" y1="390.25" y2="390.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="176" x="37" y="382.9482">C++14 Enhancements</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="233.5" y="405.2451">«Rectangle»</text><!--MD5=[36c41c5d5a34718935ba36c555be177d]
+cluster C++17 Features--><polygon fill="#E6FFE6" filter="url(#f1r9qiieof429a)" points="33,629.9531,169,629.9531,176,652.25,562,652.25,562,827.9531,33,827.9531,33,629.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="33" x2="176" y1="652.25" y2="652.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="130" x="37" y="644.9482">C++17 Features</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="257.5" y="667.2451">«Rectangle»</text><!--MD5=[5fe2592c1e6e043b962f694bf1effa6a]
+cluster C++20 Features--><polygon fill="#FFF0E6" filter="url(#f1r9qiieof429a)" points="61,876.9531,197,876.9531,204,899.25,516,899.25,516,1135.9531,61,1135.9531,61,876.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="61" x2="204" y1="899.25" y2="899.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="130" x="65" y="891.9482">C++20 Features</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="248.5" y="914.2451">«Rectangle»</text><!--MD5=[2fb86960d7ac2c48bcf61891e47df08b]
+cluster C++23 Enhancements--><polygon fill="#FFE6F3" filter="url(#f1r9qiieof429a)" points="35,1184.9531,217,1184.9531,224,1207.25,510,1207.25,510,1352.9531,35,1352.9531,35,1184.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="35" x2="224" y1="1207.25" y2="1207.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="176" x="39" y="1199.9482">C++23 Enhancements</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="232.5" y="1222.2451">«Rectangle»</text><!--MD5=[848e79d69ec120098873f4c84351f556]
+cluster C++26 (Latest)--><polygon fill="#F0E6FF" filter="url(#f1r9qiieof429a)" points="22,1401.9531,149,1401.9531,156,1424.25,527,1424.25,527,1660.9531,22,1660.9531,22,1401.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="22" x2="156" y1="1424.25" y2="1424.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="121" x="26" y="1416.9482">C++26 (Latest)</text><text fill="#000000" font-family="sans-serif" font-size="14" font-style="italic" lengthAdjust="spacingAndGlyphs" textLength="88" x="234.5" y="1439.2451">«Rectangle»</text><!--MD5=[f37d2b502aadb91b3b8fd03ecb302f3e]
+entity cpp11core--><rect fill="#FEFECE" filter="url(#f1r9qiieof429a)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="125" x="83.5" y="181.4531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="78.5" y="186.4531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="78.5" y="207.75"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="105" x="93.5" y="204.4482">Core Language</text><path d="M244,95.9531 L244,195.4531 L208.56,199.4531 L244,203.4531 L244,302.6797 A0,0 0 0 0 244,302.6797 L496,302.6797 A0,0 0 0 0 496,302.6797 L496,105.9531 L486,95.9531 L244,95.9531 A0,0 0 0 0 244,95.9531 " fill="#FBFB77" filter="url(#f1r9qiieof429a)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M486,95.9531 L486,105.9531 L496,105.9531 L486,95.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="231" x="250" y="113.02">• constexpr functions (single return)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="94" x="250" y="128.1528">• static_assert</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="141" x="250" y="143.2856">• alignas(16) for SIMD</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="71" x="250" y="158.4185">• noexcept</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="52" x="250" y="173.5513">• nullptr</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="140" x="250" y="188.6841">• auto type deduction</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="155" x="250" y="203.8169">• Range-based for loops</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="121" x="250" y="218.9497">• std::initializer_list</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="132" x="250" y="234.0825">• Variadic templates</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="254" y="249.2153"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="127" x="250" y="264.3481">MicroLA Support:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="181" x="250" y="279.481">100% functional, all features</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="193" x="250" y="294.6138">available on C++11 compilers</text><!--MD5=[67f994d3cc3f75fdf1200d0b905692be]
+entity cpp14--><rect fill="#FEFECE" filter="url(#f1r9qiieof429a)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="193" x="49.5" y="473.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="44.5" y="478.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="44.5" y="500.25"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="173" x="59.5" y="496.9482">MICROLA_CONSTEXPR14</text><path d="M278,418.9531 L278,487.9531 L242.89,491.9531 L278,495.9531 L278,565.1484 A0,0 0 0 0 278,565.1484 L498,565.1484 A0,0 0 0 0 498,565.1484 L498,428.9531 L488,418.9531 L278,418.9531 A0,0 0 0 0 278,418.9531 " fill="#FBFB77" filter="url(#f1r9qiieof429a)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M488,418.9531 L488,428.9531 L498,428.9531 L488,418.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="133" x="284" y="436.02">• Relaxed constexpr:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="136" x="292" y="451.1528">- Multiple statements</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="129" x="292" y="466.2856">- Loops in constexpr</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="103" x="292" y="481.4185">- Local variables</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="288" y="496.5513"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="114" x="284" y="511.6841">MicroLA Usage:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="124" x="284" y="526.8169">identity() with loops</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="166" x="284" y="541.9497">Generic matrix operations</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="199" x="284" y="557.0825">Runtime/compile-time dual use</text><!--MD5=[32e4463c349b2eba1b7e35d8b00f839e]
+entity cpp17--><rect fill="#FEFECE" filter="url(#f1r9qiieof429a)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="193" x="49.5" y="728.4531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="44.5" y="733.4531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="44.5" y="754.75"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="173" x="59.5" y="751.4482">MICROLA_IF_CONSTEXPR</text><path d="M278,680.9531 L278,742.4531 L242.63,746.4531 L278,750.4531 L278,812.0156 A0,0 0 0 0 278,812.0156 L546,812.0156 A0,0 0 0 0 546,812.0156 L546,690.9531 L536,680.9531 L278,680.9531 A0,0 0 0 0 278,680.9531 " fill="#FBFB77" filter="url(#f1r9qiieof429a)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M536,680.9531 L536,690.9531 L546,690.9531 L536,680.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="247" x="284" y="698.02">• if constexpr (compile-time branches)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="106" x="284" y="713.1528">• inline variables</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="135" x="284" y="728.2856">• structured bindings</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="288" y="743.4185"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="114" x="284" y="758.5513">MicroLA Usage:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="127" x="284" y="773.6841">SIMD path selection</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="173" x="284" y="788.8169">Optimized code generation</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="149" x="284" y="803.9497">Zero runtime overhead</text><!--MD5=[1e515b5274292301c821f970dad1548f]
+entity cpp20--><rect fill="#FEFECE" filter="url(#f1r9qiieof429a)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="138" x="77" y="1005.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="72" y="1010.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="72" y="1032.25"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="118" x="87" y="1028.9482">Modern Features</text><path d="M250.5,927.9531 L250.5,1019.9531 L215.33,1023.9531 L250.5,1027.9531 L250.5,1119.5469 A0,0 0 0 0 250.5,1119.5469 L499.5,1119.5469 A0,0 0 0 0 499.5,1119.5469 L499.5,937.9531 L489.5,927.9531 L250.5,927.9531 A0,0 0 0 0 250.5,927.9531 " fill="#FBFB77" filter="url(#f1r9qiieof429a)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M489.5,927.9531 L489.5,937.9531 L499.5,937.9531 L489.5,927.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="76" x="256.5" y="945.02">• Concepts:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="104" x="264.5" y="960.1528">- Arithmetic&lt;T&gt;</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="120" x="264.5" y="975.2856">- FloatingPoint&lt;T&gt;</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="86" x="264.5" y="990.4185">- Integral&lt;T&gt;</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="228" x="256.5" y="1005.5513">• MICROLA_BIT_CAST (std::bit_cast)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="135" x="256.5" y="1020.6841">• consteval, constinit</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="260.5" y="1035.8169"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="114" x="256.5" y="1050.9497">MicroLA Usage:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="131" x="256.5" y="1066.0825">Type-safe templates</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="128" x="256.5" y="1081.2153">Branch optimization</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="116" x="256.5" y="1096.3481">Safe type punning</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="151" x="256.5" y="1111.481">Compile-time validation</text><!--MD5=[4adf6eaf18d77201764a143055f3edd9]
+entity cpp23--><rect fill="#FEFECE" filter="url(#f1r9qiieof429a)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="190" x="51" y="1268.4531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="46" y="1273.4531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="46" y="1294.75"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="170" x="61" y="1291.4482">MICROLA_IF_CONSTEVAL</text><path d="M276.5,1235.9531 L276.5,1282.4531 L241.23,1286.4531 L276.5,1290.4531 L276.5,1336.75 A0,0 0 0 0 276.5,1336.75 L493.5,1336.75 A0,0 0 0 0 493.5,1336.75 L493.5,1245.9531 L483.5,1235.9531 L276.5,1235.9531 A0,0 0 0 0 276.5,1235.9531 " fill="#FBFB77" filter="url(#f1r9qiieof429a)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M483.5,1235.9531 L483.5,1245.9531 L493.5,1245.9531 L483.5,1235.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="84" x="282.5" y="1253.02">• if consteval</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="99" x="282.5" y="1268.1528">• Deducing this</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="286.5" y="1283.2856"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="114" x="282.5" y="1298.4185">MicroLA Usage:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="177" x="282.5" y="1313.5513">Dual compile/runtime paths</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="196" x="282.5" y="1328.6841">Optimized constexpr detection</text><!--MD5=[d6fa3b2943039a4d044269b0657cef56]
+entity cpp26--><rect fill="#FEFECE" filter="url(#f1r9qiieof429a)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="215" x="38.5" y="1530.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="33.5" y="1535.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="33.5" y="1557.25"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="195" x="48.5" y="1553.9482">MICROLA_CONSTEXPR_TRIG</text><path d="M289,1452.9531 L289,1544.9531 L253.65,1548.9531 L289,1552.9531 L289,1644.5469 A0,0 0 0 0 289,1644.5469 L511,1644.5469 A0,0 0 0 0 511,1644.5469 L511,1462.9531 L501,1452.9531 L289,1452.9531 A0,0 0 0 0 289,1452.9531 " fill="#FBFB77" filter="url(#f1r9qiieof429a)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M501,1452.9531 L501,1462.9531 L511,1462.9531 L501,1452.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="179" x="295" y="1470.02">• constexpr math functions:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="113" x="303" y="1485.1528">- std::sin, std::cos</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="135" x="303" y="1500.2856">- std::sqrt, std::atan2</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="299" y="1515.4185"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="114" x="295" y="1530.5513">MicroLA Usage:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="147" x="295" y="1545.6841">Compile-time rotations</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="154" x="295" y="1560.8169">Arbitrary angle matrices</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="187" x="295" y="1575.9497">Full constexpr transformation</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="299" y="1591.0825"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="68" x="295" y="1606.2153">Example:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="133" x="295" y="1621.3481">constexpr auto rot =</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="193" x="303" y="1636.481">Mat&lt;float,2,2&gt;::rotation(45°);</text><path d="M531.5,118.9531 L531.5,280.2813 L838.5,280.2813 L838.5,128.9531 L828.5,118.9531 L531.5,118.9531 " fill="#FBFB77" filter="url(#f1r9qiieof429a)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M828.5,118.9531 L828.5,128.9531 L838.5,128.9531 L828.5,118.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="218" x="537.5" y="136.02">Automatic Feature Detection:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="541.5" y="151.1528"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="12" x="537.5" y="166.2856">1.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="169" x="553.5" y="166.2856">if __cplusplus &gt;= 201402L</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="278" x="545.5" y="181.4185">#define MICROLA_CONSTEXPR14 constexpr</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="12" x="537.5" y="196.5513">2.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="26" x="553.5" y="196.5513">else</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="248" x="545.5" y="211.6841">#define MICROLA_CONSTEXPR14 inline</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="12" x="537.5" y="226.8169">3.</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="31" x="553.5" y="226.8169">endif</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="541.5" y="241.9497"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="201" x="537.5" y="257.0825">Features automatically enabled</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="233" x="537.5" y="272.2153">based on compiler __cplusplus value</text><!--MD5=[c7e2e9eb730d0ded057da8c2e82fc5a0]
+link cpp11core to cpp14--><path d="M146,217.7531 C146,267.8131 146,412.7431 146,468.6231 " fill="none" id="cpp11core-&gt;cpp14" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="146,473.7431,150,464.7431,146,468.7431,142,464.7431,146,473.7431" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="32" x="147" y="348.02">Adds</text><!--MD5=[309274abc03155d5372a02b36d12c370]
+link cpp14 to cpp17--><path d="M146,510.3131 C146,554.9231 146,673.5731 146,723.1731 " fill="none" id="cpp14-&gt;cpp17" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="146,728.3131,150,719.3131,146,723.3131,142,719.3131,146,728.3131" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="32" x="147" y="610.02">Adds</text><!--MD5=[d7ab02760f0cbb330b1058432046caf7]
+link cpp17 to cpp20--><path d="M146,764.6831 C146,812.5231 146,946.9231 146,1000.5031 " fill="none" id="cpp17-&gt;cpp20" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="146,1005.7231,150,996.7231,146,1000.7231,142,996.7231,146,1005.7231" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="32" x="147" y="857.02">Adds</text><!--MD5=[8dc0c3b7bb9fa020c40670aae1eb93b8]
+link cpp20 to cpp23--><path d="M146,1042.0431 C146,1087.5831 146,1211.8631 146,1263.0031 " fill="none" id="cpp20-&gt;cpp23" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="146,1268.2931,150,1259.2931,146,1263.2931,142,1259.2931,146,1268.2931" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="32" x="147" y="1165.02">Adds</text><!--MD5=[a63adf4ab27c56647b88176150552604]
+link cpp23 to cpp26--><path d="M146,1304.5431 C146,1350.0831 146,1474.3631 146,1525.5031 " fill="none" id="cpp23-&gt;cpp26" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="146,1530.7931,150,1521.7931,146,1525.7931,142,1521.7931,146,1530.7931" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="32" x="147" y="1382.02">Adds</text><!--MD5=[2ad5b8af0492008a32e84bbb15b6d096]
+@startuml
+title MicroLA C++ Standard Feature Progression
+
+skinparam packageStyle rectangle
+
+package "C++11 (Baseline - Required)" <<Rectangle>> #FFE6E6 {
+    component "Core Language" as cpp11core
+    note right of cpp11core
+        • constexpr functions (single return)
+        • static_assert
+        • alignas(16) for SIMD
+        • noexcept
+        • nullptr
+        • auto type deduction
+        • Range-based for loops
+        • std::initializer_list
+        • Variadic templates
+
+        **MicroLA Support:**
+        100% functional, all features
+        available on C++11 compilers
+    end note
+}
+
+package "C++14 Enhancements" <<Rectangle>> #E6F3FF {
+    component "MICROLA_CONSTEXPR14" as cpp14
+    note right of cpp14
+        • Relaxed constexpr:
+          - Multiple statements
+          - Loops in constexpr
+          - Local variables
+
+        **MicroLA Usage:**
+        identity() with loops
+        Generic matrix operations
+        Runtime/compile-time dual use
+    end note
+}
+
+package "C++17 Features" <<Rectangle>> #E6FFE6 {
+    component "MICROLA_IF_CONSTEXPR" as cpp17
+    note right of cpp17
+        • if constexpr (compile-time branches)
+        • inline variables
+        • structured bindings
+
+        **MicroLA Usage:**
+        SIMD path selection
+        Optimized code generation
+        Zero runtime overhead
+    end note
+}
+
+package "C++20 Features" <<Rectangle>> #FFF0E6 {
+    component "Modern Features" as cpp20
+    note right of cpp20
+        • Concepts:
+          - Arithmetic<T>
+          - FloatingPoint<T>
+          - Integral<T>
+        • MICROLA_BIT_CAST (std::bit_cast)
+        • consteval, constinit
+
+        **MicroLA Usage:**
+        Type-safe templates
+        Branch optimization
+        Safe type punning
+        Compile-time validation
+    end note
+}
+
+package "C++23 Enhancements" <<Rectangle>> #FFE6F3 {
+    component "MICROLA_IF_CONSTEVAL" as cpp23
+    note right of cpp23
+        • if consteval
+        • Deducing this
+
+        **MicroLA Usage:**
+        Dual compile/runtime paths
+        Optimized constexpr detection
+    end note
+}
+
+package "C++26 (Latest)" <<Rectangle>> #F0E6FF {
+    component "MICROLA_CONSTEXPR_TRIG" as cpp26
+    note right of cpp26
+        • constexpr math functions:
+          - std::sin, std::cos
+          - std::sqrt, std::atan2
+
+        **MicroLA Usage:**
+        Compile-time rotations
+        Arbitrary angle matrices
+        Full constexpr transformation
+
+        **Example:**
+        constexpr auto rot =
+          Mat<float,2,2>::rotation(45°);
+    end note
+}
+
+cpp11core -down-> cpp14 : Adds
+cpp14 -down-> cpp17 : Adds
+cpp17 -down-> cpp20 : Adds
+cpp20 -down-> cpp23 : Adds
+cpp23 -down-> cpp26 : Adds
+
+note as FeatureDetection
+    **Automatic Feature Detection:**
+
+    #if __cplusplus >= 201402L
+      #define MICROLA_CONSTEXPR14 constexpr
+    #else
+      #define MICROLA_CONSTEXPR14 inline
+    #endif
+
+    Features automatically enabled
+    based on compiler __cplusplus value
+end note
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 05:22:07 EST 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 21.0.10+7-Ubuntu-124.04
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>

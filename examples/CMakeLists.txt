@@ -1,0 +1,25 @@
+# Examples
+
+add_executable(basic_usage basic_usage.cpp)
+target_link_libraries(basic_usage PRIVATE microla)
+target_compile_features(basic_usage PRIVATE cxx_std_11)
+
+add_executable(constexpr_rotations constexpr_rotations.cpp)
+target_link_libraries(constexpr_rotations PRIVATE microla)
+target_compile_features(constexpr_rotations PRIVATE cxx_std_11)
+
+add_executable(sensor_fusion sensor_fusion.cpp)
+target_link_libraries(sensor_fusion PRIVATE microla)
+target_compile_features(sensor_fusion PRIVATE cxx_std_11)
+
+add_executable(robotics_kinematics robotics_kinematics.cpp)
+target_link_libraries(robotics_kinematics PRIVATE microla)
+target_compile_features(robotics_kinematics PRIVATE cxx_std_11)
+
+add_executable(graphics_pipeline graphics_pipeline.cpp)
+target_link_libraries(graphics_pipeline PRIVATE microla)
+target_compile_features(graphics_pipeline PRIVATE cxx_std_11)
+
+add_executable(advanced_features_demo advanced_features_demo.cpp)
+target_link_libraries(advanced_features_demo PRIVATE microla)
+target_compile_features(advanced_features_demo PRIVATE cxx_std_11)

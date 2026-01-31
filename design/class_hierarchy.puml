@@ -1,0 +1,241 @@
+@startuml
+title MicroLA Class Hierarchy (C++11-C++26)
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+
+package "microla namespace" {
+
+    class "Vec<T, N>" as Vec {
+        + alignas(16) T data[N]
+        --
+        + Vec()
+        + Vec(T...)
+        + T& operator[](uint32_t)
+        + Vec operator+(Vec)
+        + Vec operator-(Vec)
+        + Vec operator*(T)
+        + Vec operator/(T)
+        + T dot(Vec)
+        + Vec cross(Vec) {N==3}
+        + T length()
+        + T length_squared()
+        + Vec normalized()
+        + void normalize()
+        + Vec lerp(Vec, T)
+        --
+        **SIMD: NEON/CMSIS/RISC-V**
+        **C++11-C++26 adaptive**
+    }
+
+    class "Mat<T, R, C>" as Mat {
+        + alignas(16) T data[R*C]
+        --
+        + Mat()
+        + Mat(initializer_list)
+        + static Mat identity() {R==C}
+        + static Mat zero()
+        + T& operator()(uint32_t, uint32_t)
+        + Mat operator+(Mat)
+        + Mat operator-(Mat)
+        + Mat operator*(Mat)
+        + Mat operator*(T)
+        + Mat transpose()
+        + T trace() {R==C}
+        + T determinant() {R==C, R<=3}
+        + Mat inverse() {R==C, R<=3}
+        + T frobenius_norm()
+        + Mat<T,BR,BC> block(row,col)
+        --
+        **Row-major storage**
+        **SIMD: NEON/RISC-V optimized**
+        **C++11-C++26 adaptive**
+    }
+
+    class "SquareMat<T, N>" as SquareMat {
+        **Type alias: Mat<T,N,N>**
+        --
+        + static Mat rotation_x(T)
+        + static Mat rotation_y(T)
+        + static Mat rotation_z(T)
+        + static Mat rotation(axis, angle)
+        + static Mat look_at(eye, target, up)
+        + static Mat scale(T/Vec)
+        + Vec<T,3> euler_angles() {N==3}
+        --
+        **SIMD optimized 3×3, 4×4 (NEON/RISC-V)**
+        **constexpr rotation helpers**
+    }
+
+    class "Quaternion<T>" as Quat {
+        + alignas(16) T data[4]
+        + // [x, y, z, w] layout
+        --
+        + Quaternion()
+        + Quaternion(w, x, y, z)
+        + Quaternion(axis, angle)
+        + Quaternion(Mat<T,3,3>)
+        + Quaternion operator*(Quaternion)
+        + Vec<T,3> rotate(Vec<T,3>)
+        + Quaternion conjugate()
+        + Quaternion inverse()
+        + T norm()
+        + void normalize()
+        + Mat<T,3,3> to_matrix()
+        + Vec<T,3> to_euler()
+        + Quaternion lerp(Quaternion, T)
+        + Quaternion slerp(Quaternion, T)
+        --
+        **SIMD: Full NEON/RISC-V support**
+        **Optimized Vec3 integration**
+        **Template default: T = float**
+    }
+
+    class "KalmanFilter<T, STATE_DIM, MEAS_DIM>" as KF {
+        + Vec<T, STATE_DIM> x
+        + Mat<T, STATE_DIM, STATE_DIM> P
+        + Mat<T, STATE_DIM, STATE_DIM> F
+        + Mat<T, MEAS_DIM, STATE_DIM> H
+        + Mat<T, STATE_DIM, STATE_DIM> Q
+        + Mat<T, MEAS_DIM, MEAS_DIM> R
+        --
+        + void predict()
+        + void predict(control, B)
+        + void update(measurement)
+        + T innovation_squared(measurement)
+        + T normalized_innovation(measurement)
+        --
+        **Joseph form covariance update**
+        **Innovation & NIS computation**
+        **Template defaults to float**
+    }
+
+    class "ExtendedKalmanFilter<T, STATE_DIM, MEAS_DIM>" as EKF {
+        + Vec<T, STATE_DIM> x
+        + Mat<T, STATE_DIM, STATE_DIM> P
+        + Mat<T, STATE_DIM, STATE_DIM> Q
+        + Mat<T, MEAS_DIM, MEAS_DIM> R
+        + StateModel state_model
+        + StateJacobian state_jacobian
+        + MeasurementModel measurement_model
+        + MeasurementJacobian measurement_jacobian
+        --
+        + void predict()
+        + void update(measurement)
+        + void update_joseph(measurement)
+        --
+        **Nonlinear system support**
+        **Jacobian linearization**
+        **Template defaults to float**
+    }
+
+    package "Utility Functions" {
+        class constants <<namespace>> {
+            + pi<T>()
+            + two_pi<T>()
+            + deg_to_rad<T>()
+            + rad_to_deg<T>()
+            + epsilon<T>()
+            --
+            **C++14+ variable templates**
+            **C++11 function templates**
+        }
+
+        class memory_info <<namespace>> {
+            + matrix_size_bytes<T,R,C>()
+            + vector_size_bytes<T,N>()
+            + quaternion_size_bytes<T>()
+            + validate_matrix_stack_size<>()
+            --
+            **constexpr memory queries**
+            **Embedded-friendly**
+        }
+
+        class safe_math <<functions>> {
+            + safe_divide<T>(a, b, result, fallback)
+            + saturating_add/sub/mul<T>(a, b)
+            + safe_sqrt<T>(x, result, fallback)
+            + safe_acos/asin<T>(x, result)
+            + is_finite<T>(x), is_nan<T>(x)
+            --
+            **Safety-critical operations**
+            **All default to float**
+        }
+
+        class fast <<namespace>> {
+            + sin<T>(x), cos<T>(x), tan<T>(x)
+            + atan2<T>(y, x)
+            + rsqrt<T>(x), sqrt<T>(x)
+            + exp<T>(x), ln<T>(x), pow<T>(b, e)
+            + lerp<T>(a, b, t)
+            + smoothstep<T>(edge0, edge1, x)
+            --
+            **2-10× speedup approximations**
+            **~0.17% typical error**
+        }
+
+        class numerical <<functions>> {
+            + approx_equal<T>(a, b, eps)
+            + kahan_sum<T>(values, n)
+            + hypot<T>(x, y), hypot3<T>(x, y, z)
+            + safe_normalize<T>(x, y, z)
+            + stable_discriminant<T>(a, b, c)
+            + condition_number_2x2<T>(...)
+            + horner_eval<T>(coeffs, n, x)
+            --
+            **Numerically stable algorithms**
+        }
+
+        class resource_checks <<structs>> {
+            + VecLayoutCheck<T, N>
+            + MatSizeInfo<T, R, C>
+            + QuaternionSizeInfo<T>
+            --
+            **Compile-time size/layout checks**
+            **POD verification**
+            **DMA compatibility**
+        }
+    }
+}
+
+Mat <|-- SquareMat : type alias
+Vec ..> Mat : used in cross product
+Vec ..> KF : state vector
+Vec ..> EKF : state vector
+Mat ..> KF : covariance matrices
+Mat ..> EKF : covariance matrices
+Quat ..> Vec : rotate vector
+Quat ..> Mat : to_matrix()
+Mat ..> Quat : from rotation matrix
+
+note right of Vec
+  **Features:**
+  • N-dimensional vectors
+  • Component access (x,y,z,w)
+  • SIMD: NEON/RISC-V for float 2/3/4
+  • CMSIS-DSP optimized
+  • constexpr compatible
+  • Zero allocation
+end note
+
+note right of Mat
+  **Features:**
+  • Row-major storage
+  • Block operations
+  • Determinant/inverse (≤3×3)
+  • SIMD matrix multiply (NEON/RISC-V)
+  • constexpr compatible
+  • C++11-C++26 optimizations
+end note
+
+note right of Quat
+  **Features:**
+  • [x,y,z,w] memory layout
+  • Vec<T,3> integration
+  • SLERP interpolation
+  • Full NEON/RISC-V support
+  • 3.5× faster multiply (NEON)
+  • constexpr compatible
+end note
+
+@enduml

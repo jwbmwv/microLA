@@ -1,0 +1,165 @@
+@startuml
+title MicroLA SIMD Optimization Strategy
+
+skinparam packageStyle rectangle
+skinparam noteBackgroundColor lightyellow
+
+package "SIMD Acceleration Tiers" {
+
+    package "Tier 1: ARM NEON" <<Rectangle>> #lightblue {
+        component "CONFIG_MICROLA_NEON" as neon #ADD8E6
+        note right of neon
+            **Platforms:**
+            • ARM Cortex-A (Raspberry Pi, phones)
+            • Apple Silicon (M1/M2/M3)
+            • ARM64 (aarch64)
+
+            **Performance:**
+            • Vec3 operations: 1.4× faster
+            • Quaternion multiply: 3.5× faster
+            • Matrix 3×3/4×4: 3-4× faster
+            • FMA instructions enabled
+            • Fast reciprocal/rsqrt
+
+            **Intrinsics:**
+            vld1q_f32, vaddq_f32,
+            vsubq_f32, vmulq_f32,
+            vfmaq_f32 (FMA),
+            vrecpeq_f32, vrsqrteq_f32
+        end note
+    }
+
+    package "Tier 2: CMSIS-DSP" <<Rectangle>> #lightgreen {
+        component "CONFIG_MICROLA_CMSIS" as cmsis #90EE90
+        note right of cmsis
+            **Platforms:**
+            • ARM Cortex-M4F/M7/M33/M85
+            • Microcontrollers (STM32, NXP, etc.)
+
+            **DSP Functions:**
+            **Vector ops:**
+            arm_add_f32, arm_sub_f32
+            arm_scale_f32, arm_negate_f32
+            arm_dot_prod_f32, arm_sqrt_f32
+
+            **Matrix ops:**
+            arm_mat_add_f32, arm_mat_sub_f32
+            arm_mat_scale_f32, arm_mat_mult_f32
+            arm_mat_trans_f32
+
+            **Quaternion ops:**
+            arm_sqrt_f32, arm_scale_f32
+            arm_negate_f32 (conjugate)
+
+            **Performance:**
+            • Vec operations: 1.3-1.8× faster
+            • Matrix 3×3/4×4: 2-3× faster
+            • Quaternion normalize: 1.8× faster
+            • Power-efficient DSP instructions
+
+            **Benefits:**
+            • Vendor-optimized for ARM Cortex-M
+            • DSP instruction utilization
+            • Hardware MAC (Multiply-Accumulate)
+            • Lower power consumption
+            • Float/Fixed-point support
+        end note
+    }
+
+    package "Tier 3: RISC-V V Extensions" <<Rectangle>> #lightyellow {
+        component "CONFIG_MICROLA_RISCV" as riscv #FFEB99
+        note right of riscv
+            **Platforms:**
+            • RISC-V processors with V extensions
+            • SiFive U74, Alibaba XuanTie C910
+
+            **Performance:**
+            • Vec2/3/4 operations: 1.3-2× faster
+            • Matrix 3×3/4×4: 2-3× faster
+            • Variable-length vectors (VL)
+            • Optimized for low-power cores
+
+            **Intrinsics:**
+            vsetvl_e32m1 (set vector length)
+            vle32_v_f32m1, vse32_v_f32m1 (load/store)
+            vfadd_vv_f32m1, vfsub_vv_f32m1 (add/sub)
+            vfmul_vv_f32m1, vfmul_vf_f32m1 (multiply)
+            vfredsum_vs_f32m1_f32m1 (reduction)
+        end note
+    }
+
+    package "Tier 4: Generic C++" <<Rectangle>> #lightcoral {
+        component "Portable Scalar" as scalar #FFA07A
+        note right of scalar
+            **Platforms:**
+            • All C++11 compilers
+            • x86/x64, etc.
+
+            **Optimizations:**
+            • Compiler auto-vectorization
+            • Loop unrolling hints
+            • constexpr computation
+            • Branch prediction hints
+
+            **Always Available**
+            Fallback for all platforms
+        end note
+    }
+}
+
+neon -down-> cmsis : Disabled →
+cmsis -down-> riscv : Disabled →
+riscv -down-> scalar : Disabled →
+
+package "Vec<float, N> Optimization" {
+    rectangle "N=2: float32x2_t" as vec2 #E6F3FF
+    rectangle "N=3: float32x4_t (pad)" as vec3 #E6F3FF
+    rectangle "N=4: float32x4_t" as vec4 #E6F3FF
+
+    note bottom of vec3
+        **Optimized Layout:**
+        Eliminated temporary arrays
+        Direct NEON register operations
+        1.4× faster than previous
+    end note
+}
+
+neon --> vec2
+neon --> vec3
+neon --> vec4
+
+package "Quaternion<float> Optimization" {
+    rectangle "Full NEON multiply" as qmul #FFE6F0
+    rectangle "Vec3 integration" as qvec3 #FFE6F0
+    rectangle "SLERP optimized" as qslerp #FFE6F0
+
+    note bottom of qmul
+        **NEON Quaternion Product:**
+        3.5× faster than scalar
+        Uses vfmaq_f32 (FMA)
+        Minimal register pressure
+    end note
+}
+
+neon --> qmul
+neon --> qvec3
+neon --> qslerp
+
+package "Matrix Operations" {
+    rectangle "3×3 multiply" as mat3 #F0FFE6
+    rectangle "4×4 multiply" as mat4 #F0FFE6
+    rectangle "Block operations" as block #F0FFE6
+
+    note bottom of mat3
+        **Matrix SIMD:**
+        3-4× speedup for 3×3, 4×4
+        Row-major optimized
+        Cache-friendly access
+    end note
+}
+
+neon --> mat3
+neon --> mat4
+neon --> block
+
+@enduml

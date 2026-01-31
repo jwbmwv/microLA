@@ -1,0 +1,422 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop, develop/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    name: ${{ matrix.os }} - ${{ matrix.compiler }} - C++${{ matrix.std }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        compiler: [gcc, clang, msvc]
+        std: [11, 14, 17, 20]
+        exclude:
+          # MSVC only on Windows
+          - os: ubuntu-latest
+            compiler: msvc
+          - os: macos-latest
+            compiler: msvc
+          # MSVC doesn't support strict C++11 mode
+          - os: windows-latest
+            compiler: msvc
+            std: 11
+          # GCC not available on macOS runner
+          - os: macos-latest
+            compiler: gcc
+          # Limit Windows to MSVC to reduce matrix size
+          - os: windows-latest
+            compiler: gcc
+          - os: windows-latest
+            compiler: clang
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libgtest-dev libbenchmark-dev
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y clang
+          fi
+
+      - name: Install Dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install cmake ninja googletest google-benchmark
+
+      - name: Setup MSVC
+        if: matrix.os == 'windows-latest' && matrix.compiler == 'msvc'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Ninja (Windows)
+        if: matrix.os == 'windows-latest'
+        run: choco install ninja -y
+        shell: powershell
+
+      - name: Install Google Test (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone https://github.com/google/googletest.git -b v1.14.0
+          cd googletest
+          cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=C:/googletest -Dgtest_force_shared_crt=ON
+          cmake --build build --config Release
+          cmake --install build
+        shell: bash
+
+      - name: Install Google Benchmark (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone https://github.com/google/benchmark.git -b v1.8.3
+          cd benchmark
+          cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_TESTING=OFF -DCMAKE_INSTALL_PREFIX=C:/benchmark
+          cmake --build build --config Release
+          cmake --install build
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cmake .. -G "Ninja" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_CXX_STANDARD=${{ matrix.std }} \
+              -DMICROLA_LINEAR_BUILD_TESTS=ON \
+              -DMICROLA_LINEAR_BUILD_EXAMPLES=ON \
+              -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON \
+              -DCMAKE_PREFIX_PATH="C:/googletest;C:/benchmark"
+          else
+            if [ "${{ matrix.compiler }}" = "clang" ]; then
+              export CC=clang
+              export CXX=clang++
+            else
+              export CC=gcc
+              export CXX=g++
+            fi
+            cmake .. -G "Ninja" \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_CXX_STANDARD=${{ matrix.std }} \
+              -DMICROLA_LINEAR_BUILD_TESTS=ON \
+              -DMICROLA_LINEAR_BUILD_EXAMPLES=ON \
+              -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
+          fi
+        shell: bash
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Test
+        run: cd build && ctest --output-on-failure -C Release
+        shell: bash
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ lcov libgtest-dev
+
+      - name: Configure with Coverage
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DMICROLA_LINEAR_BUILD_TESTS=ON \
+            -DCMAKE_CXX_FLAGS="--coverage -fprofile-arcs -ftest-coverage"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        run: cd build && ctest --output-on-failure
+
+      - name: Generate Coverage Report
+        run: |
+          cd build
+          lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
+          lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
+          lcov --list coverage.info
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./build/coverage.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  sanitizers:
+    name: Sanitizers (ASan + UBSan)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build clang libgtest-dev libbenchmark-dev
+
+      - name: Configure with Sanitizers
+        run: |
+          mkdir build
+          cd build
+          export CC=clang
+          export CXX=clang++
+          cmake .. -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DMICROLA_LINEAR_BUILD_TESTS=ON \
+            -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test with Sanitizers
+        run: cd build && ctest --output-on-failure
+        env:
+          ASAN_OPTIONS: detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1
+          UBSAN_OPTIONS: print_stacktrace=1
+
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy cppcheck cmake ninja-build
+
+      - name: Run clang-tidy
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+          cd ..
+          # Run clang-tidy on header files
+          find include/microla -name '*.hpp' | xargs clang-tidy \
+            -p build \
+            --checks='-*,bugprone-*,performance-*,readability-*,modernize-*' \
+            --warnings-as-errors=false || true
+
+      - name: Run cppcheck
+        run: |
+          set -o pipefail
+          cppcheck \
+            --enable=warning,performance,portability \
+            --std=c++11 \
+            --suppress=missingIncludeSystem \
+            --error-exitcode=1 \
+            --inline-suppr \
+            -I include \
+            include/microla/*.hpp 2>&1 | tee cppcheck-report.txt
+
+  constexpr-tests:
+    name: Constexpr Validation (C++14+)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libgtest-dev
+
+      - name: Build with C++14
+        run: |
+          mkdir build-cpp14
+          cd build-cpp14
+          cmake .. -G Ninja -DCMAKE_CXX_STANDARD=14 -DMICROLA_LINEAR_BUILD_TESTS=ON
+          cmake --build .
+          ctest --output-on-failure
+
+      - name: Build with C++20
+        run: |
+          mkdir build-cpp20
+          cd build-cpp20
+          cmake .. -G Ninja -DCMAKE_CXX_STANDARD=20 -DMICROLA_LINEAR_BUILD_TESTS=ON
+          cmake --build .
+          ctest --output-on-failure
+
+  plantuml-validation:
+    name: Validate PlantUML Diagrams
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Download PlantUML
+        run: |
+          wget https://github.com/plantuml/plantuml/releases/download/v1.2024.3/plantuml-1.2024.3.jar
+          mv plantuml-1.2024.3.jar plantuml.jar
+
+      - name: Validate PlantUML Files
+        run: |
+          cd design
+          for file in *.puml; do
+            echo "Validating $file..."
+            java -jar ../plantuml.jar -tsvg "$file" || echo "Warning: $file has syntax errors"
+          done
+
+      - name: Check for Errors
+        run: |
+          cd design
+          error_count=0
+          for file in *.svg; do
+            if grep -q "Syntax Error" "$file"; then
+              echo "ERROR: $file contains syntax errors"
+              error_count=$((error_count + 1))
+            fi
+          done
+          if [ $error_count -gt 0 ]; then
+            echo "$error_count diagram(s) have errors"
+            exit 1
+          fi
+
+  benchmark-regression:
+    name: Benchmark Regression Detection
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need history for comparison
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ python3 python3-pip libbenchmark-dev
+          pip3 install pandas
+
+      - name: Build Benchmarks
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
+          cmake --build .
+
+      - name: Run Benchmarks
+        run: |
+          cd build/benchmarks
+          ./bench_matrix_multiply --benchmark_format=json > bench_matrix_multiply.json || true
+          ./bench_vector_ops --benchmark_format=json > bench_vector_ops.json || true
+          ./bench_simd --benchmark_format=json > bench_simd.json || true
+          ./bench_constexpr --benchmark_format=json > bench_constexpr.json || true
+          ./bench_quaternion --benchmark_format=json > bench_quaternion.json || true
+          ./bench_algorithms --benchmark_format=json > bench_algorithms.json || true
+          ./bench_geometry --benchmark_format=json > bench_geometry.json || true
+          ./bench_large_matrices --benchmark_format=json > bench_large_matrices.json || true
+
+          python3 << 'EOF'
+          import json
+          import glob
+          import os
+
+          merged = {"benchmarks": []}
+          for path in sorted(glob.glob("bench_*.json")):
+              if not os.path.exists(path):
+                  continue
+              with open(path) as f:
+                  data = json.load(f)
+              merged["benchmarks"].extend(data.get("benchmarks", []))
+
+          with open("current_results.json", "w") as f:
+              json.dump(merged, f)
+          EOF
+
+      - name: Download Baseline
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-baseline
+          path: baseline/
+
+      - name: Compare Results
+        run: |
+          python3 << 'EOF'
+          import json
+          import os
+
+          if os.path.exists('baseline/current_results.json'):
+            with open('baseline/current_results.json') as f:
+              baseline = json.load(f)
+            with open('build/benchmarks/current_results.json') as f:
+              current = json.load(f)
+
+            print("Benchmark comparison:")
+            # Simple comparison logic
+            for bench in current.get('benchmarks', []):
+              name = bench.get('name', '')
+              current_time = bench.get('real_time', 0)
+              # Find corresponding baseline
+              baseline_bench = next((b for b in baseline.get('benchmarks', []) if b.get('name') == name), None)
+              if baseline_bench:
+                baseline_time = baseline_bench.get('real_time', 0)
+                if baseline_time > 0:
+                  ratio = current_time / baseline_time
+                  if ratio > 1.1:  # 10% slower
+                    print(f"⚠️  {name}: {ratio:.2f}x slower ({current_time:.1f}ns vs {baseline_time:.1f}ns)")
+                  elif ratio < 0.9:  # 10% faster
+                    print(f"✅ {name}: {ratio:.2f}x faster ({current_time:.1f}ns vs {baseline_time:.1f}ns)")
+          else:
+            print("No baseline found, this will become the new baseline")
+          EOF
+
+      - name: Upload Current as Baseline
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-baseline
+          path: build/benchmarks/current_results.json
+          retention-days: 90
+
+  format-check:
+    name: Code Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+
+      - name: Check Formatting
+        run: |
+          # Check if formatting is needed
+          files_to_check=$(find include tests examples benchmarks \( -name '*.hpp' -o -name '*.cpp' \))
+          if [ ! -z "$files_to_check" ]; then
+            echo "$files_to_check" | xargs clang-format -i
+            # Check if any files were modified
+            if ! git diff --quiet; then
+              echo "::error::Code formatting issues found. Run './format.sh' locally or see diff below:"
+              git diff
+              exit 1
+            fi
+          fi

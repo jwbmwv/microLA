@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="854px" preserveAspectRatio="none" style="width:3825px;height:854px;" version="1.1" viewBox="0 0 3825 854" width="3825px" zoomAndPan="magnify"><defs><filter height="300%" id="f16k0ayq6w6zmx" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" lengthAdjust="spacingAndGlyphs" textLength="332" x="1752.5" y="16.708">MicroLA Memory Layout &amp; Alignment</text><!--MD5=[4f4983d0d62d7890a121d43d1506f3e0]
+cluster Vec<T, N> Memory Layout--><polygon fill="#FFFFFF" filter="url(#f16k0ayq6w6zmx)" points="22,93.9531,239,93.9531,246,116.25,620,116.25,620,842.9531,22,842.9531,22,93.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="22" x2="246" y1="116.25" y2="116.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="211" x="26" y="108.9482">Vec&lt;T, N&gt; Memory Layout</text><!--MD5=[4f8fddc806af8a981183fa5c259a8034]
+cluster vec3layout--><rect fill="#E6F3FF" filter="url(#f16k0ayq6w6zmx)" height="666" style="stroke: #000000; stroke-width: 1.5;" width="284" x="304" y="144.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="109" x="391.5" y="159.9482">Vec&lt;float, 3&gt;</text><!--MD5=[cd905412b1e82ff90445793fc6fb381b]
+cluster Mat<T, R, C> Memory Layout--><polygon fill="#FFFFFF" filter="url(#f16k0ayq6w6zmx)" points="2316,82.9531,2551,82.9531,2558,105.25,3176,105.25,3176,676.9531,2316,676.9531,2316,82.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="2316" x2="2558" y1="105.25" y2="105.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="229" x="2320" y="97.9482">Mat&lt;T, R, C&gt; Memory Layout</text><!--MD5=[88d588ba3024ea44b29fdb512dd7ebe2]
+cluster mat3layout--><rect fill="#FFE6F0" filter="url(#f16k0ayq6w6zmx)" height="500" style="stroke: #000000; stroke-width: 1.5;" width="517" x="2627" y="144.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="127" x="2822" y="159.9482">Mat&lt;float, 3, 3&gt;</text><!--MD5=[90eaab4576353d82e8d4bd423ca6b999]
+cluster Quaternion<T> Memory Layout--><polygon fill="#FFFFFF" filter="url(#f16k0ayq6w6zmx)" points="3200,90.4531,3454,90.4531,3461,112.75,3803,112.75,3803,842.9531,3200,842.9531,3200,90.4531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="3200" x2="3461" y1="112.75" y2="112.75"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="248" x="3204" y="105.4482">Quaternion&lt;T&gt; Memory Layout</text><!--MD5=[efdc6ac8db7df9b401fc2ef89a127a81]
+cluster quatlayout--><rect fill="#F0FFE6" filter="url(#f16k0ayq6w6zmx)" height="666" style="stroke: #000000; stroke-width: 1.5;" width="300" x="3471" y="144.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="147" x="3547.5" y="159.9482">Quaternion&lt;float&gt;</text><!--MD5=[3815100296a6224513756fbb8efec8da]
+cluster Alignment Benefits--><polygon fill="#FFFFFF" filter="url(#f16k0ayq6w6zmx)" points="978,309.9531,1133,309.9531,1140,332.25,2292,332.25,2292,683.9531,978,683.9531,978,309.9531" style="stroke: #000000; stroke-width: 1.5;"/><line style="stroke: #000000; stroke-width: 1.5;" x1="978" x2="1140" y1="332.25" y2="332.25"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="149" x="982" y="324.9482">Alignment Benefits</text><!--MD5=[d51e30b1fa688a13ca6d9d820b414957]
+cluster simd--><rect fill="#FFFACD" filter="url(#f16k0ayq6w6zmx)" height="289.5" style="stroke: #000000; stroke-width: 1.5;" width="373" x="1547" y="361.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="145" x="1661" y="376.4482">SIMD Performance</text><!--MD5=[6e2bc53f2b489a463b0855903b315b97]
+cluster cache--><rect fill="#FFFACD" filter="url(#f16k0ayq6w6zmx)" height="291" style="stroke: #000000; stroke-width: 1.5;" width="300" x="1960" y="360.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="130" x="2045" y="375.9482">Cache Efficiency</text><!--MD5=[ede580ab3e240a49e453a9bae926c9c5]
+cluster dma--><rect fill="#FFFACD" filter="url(#f16k0ayq6w6zmx)" height="116" style="stroke: #000000; stroke-width: 1.5;" width="497" x="1010" y="361.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="141" x="1188" y="376.9482">DMA Compatibility</text><path d="M38.5,140.4531 L38.5,271.5156 L279.5,271.5156 L279.5,150.4531 L269.5,140.4531 L38.5,140.4531 " fill="#FBFB77" filter="url(#f16k0ayq6w6zmx)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M269.5,140.4531 L269.5,150.4531 L279.5,150.4531 L269.5,140.4531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="116" x="44.5" y="157.52">16-byte aligned</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="209" x="44.5" y="172.6528">12 bytes data + 4 bytes padding</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="220" x="44.5" y="187.7856">SIMD-friendly: loads as float32x4_t</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="48.5" y="202.9185"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="130" x="44.5" y="218.0513">Padding ensures:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="200" x="44.5" y="233.1841">• NEON vld1q_f32 compatibility</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="146" x="44.5" y="248.3169">• Cache line alignment</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="159" x="44.5" y="263.4497">• DMA transfer efficiency</text><!--MD5=[1cf0ea693ced0f88abae212ad4f8df79]
+entity vec3align--><rect fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="96" x="449" y="187.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="444" y="192.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="444" y="214.25"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="76" x="459" y="210.9482">alignas(16)</text><!--MD5=[cc29dbe789cd13185914ceb217ff28d8]
+entity v3x--><rect fill="#ADD8E6" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="85" x="328.5" y="187.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="65" x="338.5" y="210.9482">data[0]: x</text><!--MD5=[7dfcbd5fedafb9c573579dd51c704d0d]
+entity v3y--><rect fill="#ADD8E6" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="85" x="328.5" y="411.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="65" x="338.5" y="434.4482">data[1]: y</text><!--MD5=[8388a399c4eff2f91d6857acceefdaa2]
+entity v3z--><rect fill="#ADD8E6" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="86" x="328" y="584.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="66" x="338" y="607.9482">data[2]: z</text><!--MD5=[a3397312cd3afb32c531bb96470c48ef]
+entity v3pad--><rect fill="#DDDDDD" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="76" x="333" y="750.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="56" x="343" y="773.9482">padding</text><path d="M2332,117.9531 L2332,294.4141 L2600,294.4141 L2600,127.9531 L2590,117.9531 L2332,117.9531 " fill="#FBFB77" filter="url(#f16k0ayq6w6zmx)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M2590,117.9531 L2590,127.9531 L2600,127.9531 L2590,117.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="128" x="2338" y="135.02">Row-major order:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="138" x="2338" y="150.1528">M(i,j) = data[i * C + j]</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="2342" y="165.2856"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="66" x="2338" y="180.4185">Benefits:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="177" x="2338" y="195.5513">• Cache-friendly row access</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="150" x="2338" y="210.6841">• Natural C/C++ layout</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="143" x="2338" y="225.8169">• SIMD row operations</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="247" x="2338" y="240.9497">• Compatible with OpenGL (transpose)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="2342" y="256.0825"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="177" x="2338" y="271.2153">Size: 36 bytes (9 floats)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="181" x="2338" y="286.3481">Aligned to 16 bytes for SIMD</text><!--MD5=[85c600c36e5a948e7a15fe0984c0911f]
+entity mat3align--><rect fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="96" x="3024" y="187.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="3019" y="192.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="3019" y="214.25"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="76" x="3034" y="210.9482">alignas(16)</text><!--MD5=[20544325184a4535aacc8da541b4f7c5]
+entity rowmajor--><rect fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="150" x="2839" y="187.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="130" x="2849" y="210.9482">Row-major storage</text><!--MD5=[2831dae62cd58f4154fd80f3bf20d7b6]
+entity row0--><rect fill="#FFB6C1" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="133" x="2670.5" y="187.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="113" x="2680.5" y="210.9482">data[0..2]: row 0</text><!--MD5=[35345ac674ca654c1b73f356a3a9e9d0]
+entity row1--><rect fill="#FFB6C1" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="133" x="2670.5" y="411.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="113" x="2680.5" y="434.4482">data[3..5]: row 1</text><!--MD5=[a6b1746fdaf5ff86f5bdb865fca8f24c]
+entity row2--><rect fill="#FFB6C1" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="133" x="2670.5" y="584.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="113" x="2680.5" y="607.9482">data[6..8]: row 2</text><path d="M3216,125.4531 L3216,286.7813 L3444,286.7813 L3444,135.4531 L3434,125.4531 L3216,125.4531 " fill="#FBFB77" filter="url(#f16k0ayq6w6zmx)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M3434,125.4531 L3434,135.4531 L3444,135.4531 L3434,125.4531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="128" x="3222" y="142.52">[x, y, z, w] layout</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="3226" y="157.6528"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="74" x="3222" y="172.7856">Rationale:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="199" x="3222" y="187.9185">• First 3 elements = Vec&lt;T,3&gt;</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="207" x="3222" y="203.0513">• Enables Vec3 SIMD operations</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="176" x="3222" y="218.1841">• Optimal for rotate(vector)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="205" x="3222" y="233.3169">• Compatible with most libraries</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="3226" y="248.4497"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="177" x="3222" y="263.5825">Size: 16 bytes (4 floats)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="151" x="3222" y="278.7153">Perfect SIMD register fit</text><!--MD5=[7df6502f071576d1921cbb17656bbb1f]
+entity quatalign--><rect fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" height="36.2969" style="stroke: #A80036; stroke-width: 1.5;" width="96" x="3651" y="187.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="3646" y="192.9531"/><rect fill="#FEFECE" height="5" style="stroke: #A80036; stroke-width: 1.5;" width="10" x="3646" y="214.25"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="76" x="3661" y="210.9482">alignas(16)</text><!--MD5=[485bc2267791d464a6e9cf541daf9426]
+entity qx--><rect fill="#90EE90" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="102" x="3514" y="187.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="82" x="3524" y="210.9482">data[0]: x (i)</text><!--MD5=[d56d32f68a6484078ee612f7b826385f]
+entity qy--><rect fill="#90EE90" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="102" x="3518" y="411.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="82" x="3528" y="434.4482">data[1]: y (j)</text><!--MD5=[0387200e2b5b852f6fa596d2668b0fb3]
+entity qz--><rect fill="#90EE90" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="108" x="3519" y="584.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="88" x="3529" y="607.9482">data[2]: z (k)</text><!--MD5=[01186d90e5fad3751184023de783dc23]
+entity qw--><rect fill="#90EE90" filter="url(#f16k0ayq6w6zmx)" height="36.2969" rx="35" ry="35" style="stroke: #000000; stroke-width: 1.5;" width="128" x="3514" y="750.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="108" x="3524" y="773.9482">data[3]: w (real)</text><ellipse cx="1656.0247" cy="429.6044" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="65.5247" ry="25.1512" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="92" x="1610.0247" y="427.3983">Aligned loads</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="76" x="1618.0247" y="443.6951">(vld1q_f32)</text><ellipse cx="1826.1363" cy="429.3918" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="69.6363" ry="24.9387" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="99" x="1776.6363" y="427.5014">Aligned stores</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="77" x="1787.6363" y="443.7982">(vst1q_f32)</text><ellipse cx="1655.9994" cy="603.0851" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="61.9994" ry="24.132" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="91" x="1610.4994" y="602.4294">No unaligned</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="50" x="1630.9994" y="618.7262">penalty</text><ellipse cx="2056.2289" cy="429.6913" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="53.2289" ry="25.7382" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="72" x="2020.2289" y="426.6314">Cache line</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="68" x="2022.2289" y="442.9283">alignment</text><ellipse cx="2189.9049" cy="429.3918" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="45.4049" ry="24.9387" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="63" x="2158.4049" y="427.5014">Reduced</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="49" x="2165.4049" y="443.7982">misses</text><ellipse cx="2055.7722" cy="602.7416" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="41.7722" ry="24.7885" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="43" x="2034.2722" y="597.4068">Better</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="58" x="2026.7722" y="613.7036">prefetch</text><ellipse cx="1416.868" cy="429.5226" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="65.868" ry="24.5695" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="65" x="1384.368" y="423.8558">Hardware</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="95" x="1369.368" y="440.1526">transfer ready</text><ellipse cx="1255.0228" cy="429.2353" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="61.0228" ry="23.7822" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="91" x="1209.5228" y="429.136">No alignment</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="37" x="1236.5228" y="445.4329">faults</text><ellipse cx="1105.9694" cy="429.3832" fill="#FEFECE" filter="url(#f16k0ayq6w6zmx)" rx="52.9694" ry="24.4301" style="stroke: #A80036; stroke-width: 1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="76" x="1067.9694" y="428.2639">Embedded</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="49" x="1081.4694" y="444.5607">friendly</text><path d="M635.5,514.9531 L635.5,691.4141 L962.5,691.4141 L962.5,524.9531 L952.5,514.9531 L635.5,514.9531 " fill="#FBFB77" filter="url(#f16k0ayq6w6zmx)" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M952.5,514.9531 L952.5,524.9531 L962.5,524.9531 L952.5,514.9531 " fill="#FBFB77" style="stroke: #A80036; stroke-width: 1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="154" x="641.5" y="532.02">Memory Guarantees:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="203" x="641.5" y="547.1528">• All types: alignas(16) for SIMD</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="251" x="641.5" y="562.2856">• Standard layout (offsetof compatible)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="217" x="641.5" y="577.4185">• Contiguous memory (DMA safe)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="203" x="641.5" y="592.5513">• No virtual functions (POD-like)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="220" x="641.5" y="607.6841">• Trivially copyable (memcpy safe)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="0" x="645.5" y="622.8169"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacingAndGlyphs" textLength="114" x="641.5" y="637.9497">Size Validation:</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="271" x="641.5" y="653.0825">static_assert(sizeof(Vec&lt;float,3&gt;) == 16)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="283" x="641.5" y="668.2153">static_assert(sizeof(Mat&lt;float,3,3&gt;) &gt;= 36)</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacingAndGlyphs" textLength="306" x="641.5" y="683.3481">static_assert(sizeof(Quaternion&lt;float&gt;) == 16)</text><!--MD5=[99c17dc257a5b2ae56da27717e9f7e6e]
+link v3x to v3y--><path d="M371,223.9631 C371,263.5831 371,361.9931 371,406.2631 " fill="none" id="v3x-&gt;v3y" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="371,411.3831,375,402.3831,371,406.3831,367,402.3831,371,411.3831" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[1aa50c87024fc331caf0645eb72a19fd]
+link v3y to v3z--><path d="M371,447.5231 C371,478.7231 371,544.9431 371,579.6631 " fill="none" id="v3y-&gt;v3z" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="371,584.9531,375,575.9531,371,579.9531,367,575.9531,371,584.9531" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[0bca165deee55237e4582b088d1bdf26]
+link v3z to v3pad--><path d="M371,621.1931 C371,651.1731 371,712.8431 371,745.8931 " fill="none" id="v3z-&gt;v3pad" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="371,750.9431,375,741.9431,371,745.9431,367,741.9431,371,750.9431" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[ea147f5fac87981b4b37451aea172e2f]
+link vec3layout to GMN14--><path d="M585.7329,144.683 C585.7299,144.4171 585.7266,144.1509 585.7229,143.8843 C585.7154,143.3511 585.7062,142.8166 585.6953,142.2809 C585.6518,140.138 585.5807,137.9755 585.4788,135.7994 C583.8475,100.9806 574.32,62.6531 543.5,44.9531 C502.26,21.2631 373.69,27.3831 329.5,44.9531 C280.89,64.2831 238.12,104.7731 207.57,140.3031 " fill="none" id="vec3layout-GMN14" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><!--MD5=[86dfdf46dc6e398ece454f2b0cfda29d]
+link row0 to row1--><path d="M2737,223.9631 C2737,263.5831 2737,361.9931 2737,406.2631 " fill="none" id="row0-&gt;row1" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="2737,411.3831,2741,402.3831,2737,406.3831,2733,402.3831,2737,411.3831" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[aff6358809a934b899f15414b09a0b2e]
+link row1 to row2--><path d="M2737,447.5231 C2737,478.7231 2737,544.9431 2737,579.6631 " fill="none" id="row1-&gt;row2" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="2737,584.9531,2741,575.9531,2737,579.9531,2733,575.9531,2737,584.9531" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[9310867c514254de3b1dda9c801fd62c]
+link mat3layout to GMN26--><path d="M2626.9163,205.9531 C2626.5575,205.9531 2626.1988,205.9531 2625.84,205.9531 C2622.97,205.9531 2620.1,205.9531 2617.23,205.9531 C2611.49,205.9531 2605.75,205.9531 2600.01,205.9531 " fill="none" id="mat3layout-GMN26" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><!--MD5=[a67e5cdbb42891e7e8718df053682e77]
+link qx to qy--><path d="M3565.31,223.9631 C3566.02,263.5831 3567.8,361.9931 3568.6,406.2631 " fill="none" id="qx-&gt;qy" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="3568.69,411.3831,3572.5351,402.3159,3568.6043,406.3839,3564.5363,402.453,3568.69,411.3831" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[b172aaf4bacb49f74f5cd26277585101]
+link qy to qz--><path d="M3569.4,447.5231 C3570.13,478.7231 3571.67,544.9431 3572.48,579.6631 " fill="none" id="qy-&gt;qz" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="3572.6,584.9531,3576.3933,575.8641,3572.4857,579.9544,3568.3954,576.0469,3572.6,584.9531" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[d1d5d76483ba59bbc18ef37dc551b44e]
+link qz to qw--><path d="M3573.53,621.1931 C3574.44,651.1731 3576.32,712.8431 3577.33,745.8931 " fill="none" id="qz-&gt;qw" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="3577.48,750.9431,3581.1953,741.8219,3577.3229,745.9456,3573.1993,742.0732,3577.48,750.9431" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[4306837d660059bb9bca778383f5fd43]
+link quatlayout to GMN39--><path d="M3470.9346,205.9531 C3470.5767,205.9531 3470.2187,205.9531 3469.8608,205.9531 C3466.9972,205.9531 3464.1331,205.9531 3461.2688,205.9531 C3455.54,205.9531 3449.81,205.9531 3444.08,205.9531 " fill="none" id="quatlayout-GMN39" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><!--MD5=[93597bef83fcb7adf652022d5a35839d]
+link vec3layout to simd--><path d="M588.1793,207.3061 C588.5356,207.3216 588.9031,207.3376 589.2816,207.3541 C590.0386,207.3872 590.84,207.4223 591.6849,207.4594 C598.4441,207.7564 607.9913,208.1843 619.9477,208.7409 C643.8603,209.8541 677.4094,211.4823 717.5638,213.6083 C797.8725,217.8603 904.6025,224.1038 1013.505,232.2019 C1231.31,248.3981 1457.805,272.0131 1499,301.9531 C1523.48,319.7481 1537.4275,350.6706 1545.2813,377.4869 C1545.7721,379.1629 1546.2392,380.8229 1546.6835,382.4626 C1546.739,382.6676 1546.7942,382.8722 1546.8491,383.0765 " fill="none" id="vec3layout-&gt;simd" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1546.8491,383.0765,1548.3796,373.3473,1545.5531,378.2474,1540.653,375.4209,1546.8491,383.0765" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[8fc1e52d08fa8356f7a34390e50a22cb]
+link mat3layout to cache--><path d="M2626.7965,295.2832 C2626.3413,295.3636 2625.852,295.4424 2625.3294,295.5195 C2624.284,295.6739 2623.1048,295.8219 2621.7964,295.9638 C2616.5628,296.5314 2609.2619,297.0009 2600.1888,297.3862 C2582.0426,298.1567 2556.8077,298.5903 2526.8453,298.7975 C2466.9206,299.2119 2388.0863,298.7206 2309.2325,298.2081 C2151.525,297.1831 1993.74,296.0731 1987,301.9531 C1976.455,311.1481 1969.9494,323.4788 1966.1336,336.8448 C1964.2257,343.5279 1962.9903,350.4698 1962.2586,357.4081 C1962.1672,358.2753 1962.0836,359.1426 1962.0075,360.0092 C1961.9885,360.2259 1961.97,360.4425 1961.9519,360.6591 " fill="none" id="mat3layout-&gt;cache" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1961.9519,360.6591,1966.6865,352.0229,1962.3677,355.6764,1958.7142,351.3576,1961.9519,360.6591" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[ae53a72bcee52a08543994d9c50804df]
+link quatlayout to dma--><path d="M3470.2463,294.7335 C3469.2922,294.8155 3468.1985,294.896 3466.9674,294.9749 C3462.0431,295.2907 3454.9208,295.5822 3445.7471,295.8511 C3427.3995,296.3888 3400.8462,296.8358 3367.2591,297.2049 C3300.085,297.943 3204.7759,298.3695 3090.7086,298.5866 C2862.5741,299.0206 2559.4069,298.6169 2256.2213,298.1931 C1649.85,297.3456 1043.405,296.4181 1037,301.9531 C1026.4125,311.1006 1019.8856,323.4069 1016.0619,336.7633 C1014.15,343.4415 1012.9139,350.3822 1012.1839,357.3219 C1012.0927,358.1894 1012.0093,359.0568 1011.9335,359.9238 C1011.8957,360.3572 1011.8597,360.7905 1011.8255,361.2237 C1011.8085,361.4402 1011.7919,361.6568 1011.7757,361.8732 " fill="none" id="quatlayout-&gt;dma" style="stroke: #A80036; stroke-width: 1.0;"/><polygon fill="#A80036" points="1011.7757,361.8732,1016.4341,353.1957,1012.1477,356.8871,1008.4563,352.6006,1011.7757,361.8732" style="stroke: #A80036; stroke-width: 1.0;"/><!--MD5=[e88705b91ff35601ad813cfc5a3be7e2]
+link embedded to GMN58--><path d="M1089.77,452.9831 C1079.31,466.2631 1064.75,482.6231 1049,493.9531 C1022.71,512.8631 992.59,529.3831 962.57,543.4431 " fill="none" id="embedded-GMN58" style="stroke: #A80036; stroke-width: 1.0; stroke-dasharray: 7.0,7.0;"/><!--MD5=[72ff8e418e275f4f947882f8f1f7c795]
+link ld to st--><!--MD5=[64aa2303e6f2f1d7ac3f4008cc21ed9d]
+link ld to penalty--><!--MD5=[576e4740dca7da645a009edb341a3aa3]
+link cacheline to misses--><!--MD5=[b4afd4d3662c6b6ef7941d29cdb058e8]
+link cacheline to prefetch--><!--MD5=[0fdd69af62a168a2715d1ba6c3291906]
+@startuml
+title MicroLA Memory Layout & Alignment
+
+skinparam packageStyle rectangle
+
+package "Vec<T, N> Memory Layout" {
+    rectangle "Vec<float, 3>" as vec3layout #E6F3FF {
+        component "alignas(16)" as vec3align
+        storage "data[0]: x" as v3x #ADD8E6
+        storage "data[1]: y" as v3y #ADD8E6
+        storage "data[2]: z" as v3z #ADD8E6
+        storage "padding" as v3pad #DDDDDD
+
+        v3x -down-> v3y
+        v3y -down-> v3z
+        v3z -down-> v3pad
+    }
+
+    note right of vec3layout
+        **16-byte aligned**
+        12 bytes data + 4 bytes padding
+        SIMD-friendly: loads as float32x4_t
+
+        **Padding ensures:**
+        • NEON vld1q_f32 compatibility
+        • Cache line alignment
+        • DMA transfer efficiency
+    end note
+}
+
+package "Mat<T, R, C> Memory Layout" {
+    rectangle "Mat<float, 3, 3>" as mat3layout #FFE6F0 {
+        component "alignas(16)" as mat3align
+        storage "Row-major storage" as rowmajor
+        storage "data[0..2]: row 0" as row0 #FFB6C1
+        storage "data[3..5]: row 1" as row1 #FFB6C1
+        storage "data[6..8]: row 2" as row2 #FFB6C1
+
+        row0 -down-> row1
+        row1 -down-> row2
+    }
+
+    note right of mat3layout
+        **Row-major order:**
+        M(i,j) = data[i * C + j]
+
+        **Benefits:**
+        • Cache-friendly row access
+        • Natural C/C++ layout
+        • SIMD row operations
+        • Compatible with OpenGL (transpose)
+
+        **Size: 36 bytes (9 floats)**
+        Aligned to 16 bytes for SIMD
+    end note
+}
+
+package "Quaternion<T> Memory Layout" {
+    rectangle "Quaternion<float>" as quatlayout #F0FFE6 {
+        component "alignas(16)" as quatalign
+        storage "data[0]: x (i)" as qx #90EE90
+        storage "data[1]: y (j)" as qy #90EE90
+        storage "data[2]: z (k)" as qz #90EE90
+        storage "data[3]: w (real)" as qw #90EE90
+
+        qx -down-> qy
+        qy -down-> qz
+        qz -down-> qw
+    }
+
+    note right of quatlayout
+        **[x, y, z, w] layout**
+
+        **Rationale:**
+        • First 3 elements = Vec<T,3>
+        • Enables Vec3 SIMD operations
+        • Optimal for rotate(vector)
+        • Compatible with most libraries
+
+        **Size: 16 bytes (4 floats)**
+        Perfect SIMD register fit
+    end note
+}
+
+package "Alignment Benefits" {
+    rectangle "SIMD Performance" as simd #FFFACD {
+        usecase "Aligned loads\n(vld1q_f32)" as ld
+        usecase "Aligned stores\n(vst1q_f32)" as st
+        usecase "No unaligned\npenalty" as penalty
+    }
+
+    rectangle "Cache Efficiency" as cache #FFFACD {
+        usecase "Cache line\nalignment" as cacheline
+        usecase "Reduced\nmisses" as misses
+        usecase "Better\nprefetch" as prefetch
+    }
+
+    rectangle "DMA Compatibility" as dma #FFFACD {
+        usecase "Hardware\ntransfer ready" as hw
+        usecase "No alignment\nfaults" as faults
+        usecase "Embedded\nfriendly" as embedded
+    }
+}
+
+vec3layout - -> simd
+mat3layout - -> cache
+quatlayout - -> dma
+
+note bottom
+    **Memory Guarantees:**
+    • All types: alignas(16) for SIMD
+    • Standard layout (offsetof compatible)
+    • Contiguous memory (DMA safe)
+    • No virtual functions (POD-like)
+    • Trivially copyable (memcpy safe)
+
+    **Size Validation:**
+    static_assert(sizeof(Vec<float,3>) == 16)
+    static_assert(sizeof(Mat<float,3,3>) >= 36)
+    static_assert(sizeof(Quaternion<float>) == 16)
+end note
+
+@enduml
+
+PlantUML version 1.2020.02(Sun Mar 01 05:22:07 EST 2020)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Java Version: 21.0.10+7-Ubuntu-124.04
+Operating System: Linux
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>

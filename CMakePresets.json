@@ -1,0 +1,276 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Debug build with assertions and symbols",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
+        "CMAKE_CXX_FLAGS": "-DMICROLA_DEBUG -Wall -Wextra -Wpedantic"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Optimized release build",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON",
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG -march=native"
+      }
+    },
+    {
+      "name": "release-size",
+      "displayName": "Release (Size Optimized)",
+      "description": "Size-optimized release for embedded",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "MICROLA_LINEAR_BUILD_TESTS": "OFF",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "CMAKE_CXX_FLAGS": "-Os -DNDEBUG"
+      }
+    },
+    {
+      "name": "debug-sanitize",
+      "displayName": "Debug with Sanitizers",
+      "description": "Debug build with ASan and UBSan",
+      "inherits": "debug",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-DMICROLA_DEBUG -Wall -Wextra -fsanitize=address,undefined -fno-omit-frame-pointer -g"
+      }
+    },
+    {
+      "name": "coverage",
+      "displayName": "Coverage Analysis",
+      "description": "Build with code coverage instrumentation",
+      "inherits": "debug",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-DMICROLA_DEBUG --coverage -fprofile-arcs -ftest-coverage"
+      }
+    },
+    {
+      "name": "benchmark",
+      "displayName": "Benchmark",
+      "description": "Optimized build for benchmarking",
+      "inherits": "release",
+      "cacheVariables": {
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON",
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG -march=native -ffast-math"
+      }
+    },
+    {
+      "name": "neon",
+      "displayName": "ARM NEON Optimized",
+      "description": "Build with ARM NEON SIMD optimizations",
+      "inherits": "release",
+      "cacheVariables": {
+        "MICROLA_ENABLE_NEON": "ON",
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG -march=armv8-a+simd -mtune=cortex-a53"
+      }
+    },
+    {
+      "name": "cmsis",
+      "displayName": "CMSIS-DSP Optimized",
+      "description": "Build with CMSIS-DSP for Cortex-M",
+      "inherits": "release",
+      "cacheVariables": {
+        "MICROLA_ENABLE_CMSIS": "ON",
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug (MSVC)",
+      "description": "Debug build for Windows with MSVC",
+      "inherits": "debug",
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "/DMICROLA_DEBUG /W4 /permissive-"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release (MSVC)",
+      "description": "Release build for Windows with MSVC",
+      "inherits": "release",
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "/O2 /DNDEBUG /GL /arch:AVX2"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "clang-tidy",
+      "displayName": "Clang-Tidy Analysis",
+      "description": "Build with clang-tidy static analysis",
+      "inherits": "debug",
+      "cacheVariables": {
+        "CMAKE_CXX_CLANG_TIDY": "clang-tidy;-checks=*,-fuchsia-*,-google-*,-llvm-*,-modernize-use-trailing-return-type"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "displayName": "Build Debug",
+      "description": "Build in debug mode"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "displayName": "Build Release",
+      "description": "Build in release mode"
+    },
+    {
+      "name": "debug-sanitize",
+      "configurePreset": "debug-sanitize",
+      "displayName": "Build Debug with Sanitizers",
+      "description": "Build with sanitizers enabled"
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "displayName": "Build with Coverage",
+      "description": "Build with coverage instrumentation"
+    },
+    {
+      "name": "benchmark",
+      "configurePreset": "benchmark",
+      "displayName": "Build Benchmarks",
+      "description": "Build optimized benchmarks"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "displayName": "Test Debug",
+      "description": "Run tests in debug mode",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "displayName": "Test Release",
+      "description": "Run tests in release mode",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug-sanitize",
+      "configurePreset": "debug-sanitize",
+      "displayName": "Test with Sanitizers",
+      "description": "Run tests with sanitizers",
+      "output": {
+        "outputOnFailure": true
+      },
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=1:fast_unwind_on_malloc=0",
+        "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=1"
+      }
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "displayName": "Test with Coverage",
+      "description": "Run tests and collect coverage",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "debug-workflow",
+      "displayName": "Debug Workflow",
+      "description": "Configure, build, and test in debug mode",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "debug"
+        },
+        {
+          "type": "build",
+          "name": "debug"
+        },
+        {
+          "type": "test",
+          "name": "debug"
+        }
+      ]
+    },
+    {
+      "name": "release-workflow",
+      "displayName": "Release Workflow",
+      "description": "Configure, build, and test in release mode",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release"
+        },
+        {
+          "type": "build",
+          "name": "release"
+        },
+        {
+          "type": "test",
+          "name": "release"
+        }
+      ]
+    },
+    {
+      "name": "coverage-workflow",
+      "displayName": "Coverage Workflow",
+      "description": "Build and test with coverage analysis",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "coverage"
+        },
+        {
+          "type": "build",
+          "name": "coverage"
+        },
+        {
+          "type": "test",
+          "name": "coverage"
+        }
+      ]
+    }
+  ]
+}
