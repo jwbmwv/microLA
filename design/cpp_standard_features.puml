@@ -1,0 +1,89 @@
+@startuml cpp_standard_features
+title MicroLA C++ Standard Feature Progression
+
+skinparam packageStyle rectangle
+
+package "C++17 (Baseline - Required)" <<Rectangle>> #E6FFE6 {
+    component "Core C++17 Features" as cpp17
+    note right of cpp17
+        • if constexpr (compile-time branches)
+        • constexpr with loops and locals
+        • inline variables
+        • structured bindings
+
+        **MicroLA Usage:**
+        SIMD path selection
+        Optimized code generation
+        Zero runtime overhead
+    end note
+}
+
+package "C++20 Features" <<Rectangle>> #FFF0E6 {
+    component "Modern Features" as cpp20
+    note right of cpp20
+        • Concepts:
+          - Arithmetic<T>
+          - FloatingPoint<T>
+          - Integral<T>
+        • MICROLA_BIT_CAST (std::bit_cast)
+        • consteval (MICROLA_CONSTEVAL)
+
+        **MicroLA Usage:**
+        Type-safe templates
+        Branch optimization
+        Safe type punning
+        Compile-time validation
+        (stack-size config check)
+    end note
+}
+
+package "C++23 Enhancements" <<Rectangle>> #FFE6F3 {
+    component "MICROLA_IF_CONSTEVAL" as cpp23
+    note right of cpp23
+        • if consteval (MICROLA_IF_CONSTEVAL)
+
+        **MicroLA Usage:**
+        Dual compile/runtime paths
+        Optimized constexpr detection
+    end note
+}
+
+package "C++26 (Latest)" <<Rectangle>> #F0E6FF {
+    component "MICROLA_CONSTEXPR_TRIG" as cpp26
+    note right of cpp26
+        • constexpr math functions:
+          - std::sin, std::cos
+          - std::sqrt, std::atan2
+
+        **MicroLA Usage:**
+        Compile-time rotations
+        Compile-time vector/quaternion norms
+        Compile-time Euler extraction
+        Arbitrary angle matrices
+        Full constexpr transformation
+
+        **Example:**
+        constexpr auto rot =
+          Mat<float,2,2>::rotation(45°);
+    end note
+}
+
+cpp17 -down-> cpp20 : Adds
+cpp20 -down-> cpp23 : Adds
+cpp23 -down-> cpp26 : Adds
+
+note as FeatureDetection
+    **Automatic Feature Detection:**
+
+        C++17 is the required baseline.
+        Feature detection starts at C++20:
+        #if __cplusplus >= 202002L  // C++20
+        #if __cplusplus >= 202302L  // C++23
+        #if __cplusplus >= 202600L  // C++26
+
+    Features automatically enabled
+    based on compiler __cplusplus value
+end note
+
+@enduml
+

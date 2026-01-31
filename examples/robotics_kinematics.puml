@@ -1,0 +1,23 @@
+'" Robotics kinematics example `robotics_kinematics.cpp`
+@startuml robotics_kinematics
+title Robotics kinematics: planar arm FK/IK and Jacobian flow
+actor User as Main
+participant "Example (robotics_kinematics)" as Example
+participant "PlanarRobotArm" as Arm
+participant "Mat<float, 2, 2>" as Jacobian
+
+Main -> Example: run()
+Example -> Arm: forward_kinematics(theta1, theta2)
+Arm -> Example: end effector position
+Example -> Arm: inverse_kinematics(target, elbow_up)
+Arm -> Example: joint angles
+Example -> Arm: jacobian(theta1, theta2)
+Arm -> Jacobian: build velocity map
+Example -> Main: print FK, IK, and velocity results
+
+note right
+  The maintained example is a 2-link planar robot arm.
+  It demonstrates closed-form IK plus the Jacobian
+  for end-effector velocity mapping.
+end note
+@enduml

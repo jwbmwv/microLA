@@ -1,0 +1,20 @@
+'" Constexpr rotations example `constexpr_rotations.cpp`
+@startuml constexpr_rotations
+title Constexpr quaternion/rotation computations
+actor User as Main
+participant "Example (constexpr_rotations)" as Example
+participant "microla::Quaternion" as Quaternion
+participant "microla::Matrix3" as Matrix3
+
+Main -> Example: run()
+Example -> Quaternion: construct constexpr quaternion(q)
+Example -> Quaternion: normalize()  // constexpr path
+Example -> Matrix3: toMatrix(q)
+Example -> Example: apply rotation to compile-time vector
+Example -> Main: demonstrate/verify results
+
+note right
+  Demonstrates compile-time evaluation of rotation math
+  Useful for reducing runtime overhead in embedded contexts
+end note
+@enduml

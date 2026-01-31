@@ -1,0 +1,67 @@
+# Copyright (c) 2026 MicroLA Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+config MICROLA
+	bool "MicroLA - Linear Algebra Library"
+	help
+	  Enable MicroLA header-only linear algebra library.
+	  Provides Vec, Mat, SquareMat, and Quaternion classes
+	  optimized for embedded systems.
+
+if MICROLA
+
+config MICROLA_DEBUG
+	bool "Enable debug assertions and bounds checking"
+	default n
+	help
+	  Enable runtime assertions and bounds checking in MicroLA.
+	  When enabled, the at() accessor methods will perform bounds
+	  checking using assert() in debug builds. This adds minimal
+	  overhead but helps catch out-of-bounds access during development.
+	  Recommended for development and testing, disable for production.
+
+config MICROLA_NEON
+	bool "Enable ARM NEON optimizations"
+	depends on CPU_CORTEX_A || ARM64
+	help
+	  Enable ARM NEON SIMD acceleration for vector, matrix,
+	  and quaternion operations on ARM Cortex-A processors
+	  and ARM64 platforms (including Apple Silicon).
+	  Provides significant performance improvements for
+	  float32 operations on vectors of size 2, 3, and 4.
+	  Also defines MICROLA_ENABLE_NEON for compatibility
+	  with non-Zephyr build switches.
+
+config MICROLA_CMSIS
+	bool "Enable CMSIS-DSP optimizations"
+	depends on CMSIS_DSP
+	help
+	  Enable CMSIS-DSP hardware acceleration for vector,
+	  matrix, and quaternion operations on ARM Cortex-M
+	  processors. Requires CMSIS-DSP to be enabled.
+	  Also defines MICROLA_ENABLE_CMSIS for compatibility
+	  with non-Zephyr build switches.
+
+config MICROLA_MVE
+	bool "Enable ARM MVE (Helium) optimizations"
+	depends on CPU_CORTEX_M
+	help
+	  Enable ARM MVE (Helium) SIMD acceleration for vector,
+	  matrix, and quaternion operations on Cortex-M processors
+	  that support MVE. This option is intended for Cortex-M
+	  profiles with Helium extensions.
+	  Also defines MICROLA_ENABLE_MVE for compatibility
+	  with non-Zephyr build switches.
+
+config MICROLA_USE_LONG_DOUBLE_INTERMEDIATES
+	bool "Use long-double intermediates when beneficial"
+	default y
+	help
+	  When enabled, MicroLA will prefer using `long double` as a
+	  higher-precision intermediate (`hi_t`) where it provides more
+	  precision than `double`. This may improve numerical robustness
+	  on desktop compilers but can increase code size on targets where
+	  `long double` is software-emulated. Disable for strict embedded
+	  code-size constraints.
+
+endif # MICROLA

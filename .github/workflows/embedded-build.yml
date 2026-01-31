@@ -1,0 +1,35 @@
+name: Embedded examples preset build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-embedded-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache CMake FetchContent (_deps)
+        uses: actions/cache@v4
+        with:
+          path: build/embedded-examples/_deps
+          key: fcdeps-${{ runner.os }}-embedded-examples-preset-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            fcdeps-${{ runner.os }}-embedded-examples-preset-
+
+      - name: Install CMake and Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+
+      - name: Run embedded examples workflow preset
+        run: |
+          cmake --workflow --preset embedded-examples-workflow

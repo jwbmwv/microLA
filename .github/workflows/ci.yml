@@ -1,0 +1,581 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: ${{ matrix.os }} - ${{ matrix.compiler }} - C++${{ matrix.std }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        compiler: [gcc, clang, msvc]
+        std: [17, 20]
+        exclude:
+          # MSVC only on Windows
+          - os: ubuntu-latest
+            compiler: msvc
+          - os: macos-latest
+            compiler: msvc
+          # GCC not available on macOS runner
+          - os: macos-latest
+            compiler: gcc
+          # Limit Windows to MSVC to reduce matrix size
+          - os: windows-latest
+            compiler: gcc
+          - os: windows-latest
+            compiler: clang
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache CMake FetchContent (_deps)
+        uses: actions/cache@v4
+        with:
+          path: build/ci-release-cxx${{ matrix.std }}/_deps
+          key: fcdeps-${{ runner.os }}-${{ matrix.compiler }}-cxx${{ matrix.std }}-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            fcdeps-${{ runner.os }}-${{ matrix.compiler }}-cxx${{ matrix.std }}-
+
+      - name: Install Dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libgtest-dev libbenchmark-dev
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y clang
+          fi
+
+      - name: Install Dependencies (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install cmake ninja googletest google-benchmark
+
+      - name: Setup MSVC
+        if: matrix.os == 'windows-latest' && matrix.compiler == 'msvc'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Ninja (Windows)
+        if: matrix.os == 'windows-latest'
+        run: choco install ninja -y
+        shell: powershell
+
+      - name: Install Google Test (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone https://github.com/google/googletest.git -b v1.14.0
+          cd googletest
+          cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=C:/googletest -Dgtest_force_shared_crt=ON
+          cmake --build build --config Release
+          cmake --install build
+        shell: bash
+
+      - name: Install Google Benchmark (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          git clone https://github.com/google/benchmark.git -b v1.8.3
+          cd benchmark
+          cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_TESTING=OFF -DCMAKE_INSTALL_PREFIX=C:/benchmark
+          cmake --build build --config Release
+          cmake --install build
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cmake --preset ci-release-cxx${{ matrix.std }} \
+              -DCMAKE_PREFIX_PATH="C:/googletest;C:/benchmark"
+          else
+            if [ "${{ matrix.compiler }}" = "clang" ]; then
+              export CC=clang
+              export CXX=clang++
+            else
+              export CC=gcc
+              export CXX=g++
+            fi
+            cmake --preset ci-release-cxx${{ matrix.std }}
+          fi
+        shell: bash
+
+      - name: Build
+        run: cmake --build --preset ci-release-cxx${{ matrix.std }} --parallel 2
+
+      - name: Test
+        run: ctest --preset ci-release-cxx${{ matrix.std }}
+        shell: bash
+
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache CMake FetchContent (_deps)
+        uses: actions/cache@v4
+        with:
+          path: build/coverage-ci/_deps
+          key: fcdeps-${{ runner.os }}-coverage-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            fcdeps-${{ runner.os }}-coverage-
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ lcov libgtest-dev
+
+      - name: Configure with Coverage
+        run: cmake --preset coverage-ci
+
+      - name: Build
+        run: cmake --build --preset coverage-ci --parallel 2
+
+      - name: Test
+        run: ctest --preset coverage-ci
+
+      - name: Generate Coverage Report
+        run: |
+          cd build/coverage-ci
+          lcov --capture --directory . --output-file coverage.info --ignore-errors mismatch
+          lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
+          lcov --list coverage.info
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./build/coverage-ci/coverage.info
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  sanitizers:
+    name: Sanitizers (ASan + UBSan)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache CMake FetchContent (_deps)
+        uses: actions/cache@v4
+        with:
+          path: build/sanitizers-ci/_deps
+          key: fcdeps-${{ runner.os }}-sanitizers-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            fcdeps-${{ runner.os }}-sanitizers-
+
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build clang libgtest-dev libbenchmark-dev
+
+      - name: Configure with Sanitizers
+        run: |
+          export CC=clang
+          export CXX=clang++
+          cmake --preset sanitizers-ci
+
+      - name: Build
+        run: cmake --build --preset sanitizers-ci --parallel 2
+
+      - name: Test with Sanitizers
+        run: ctest --preset sanitizers-ci
+
+  host-embedded-matrix:
+    name: Host + Embedded Matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [host, embedded]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache CMake FetchContent (_deps)
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/host-tests/_deps
+            build/embedded-tests/_deps
+          key: fcdeps-${{ runner.os }}-ci-host-embedded-${{ matrix.variant }}-ninja-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            fcdeps-${{ runner.os }}-ci-host-embedded-${{ matrix.variant }}-ninja-
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ libgtest-dev
+
+      - name: Configure CMake (variant)
+        run: |
+          if [ "${{ matrix.variant }}" = "embedded" ]; then
+            cmake --preset embedded-tests
+          else
+            cmake --preset host-tests
+          fi
+        shell: bash
+
+      - name: Build (variant)
+        run: |
+          if [ "${{ matrix.variant }}" = "embedded" ]; then
+            cmake --build --preset embedded-tests --parallel 2
+          else
+            cmake --build --preset host-tests --parallel 2
+          fi
+        shell: bash
+
+      - name: Run tests (variant)
+        run: |
+          if [ "${{ matrix.variant }}" = "embedded" ]; then
+            ctest --preset embedded-tests
+          else
+            ctest --preset host-tests
+          fi
+        shell: bash
+
+  zephyr-qemu:
+    name: Zephyr QEMU Tests
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git cmake ninja-build gperf ccache dfu-util \
+            device-tree-compiler wget python3-dev python3-pip \
+            python3-setuptools python3-tk python3-wheel xz-utils file \
+            make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1 \
+            qemu-system-arm qemu-system-x86
+
+      - name: Install West and Python Dependencies
+        run: |
+          pip3 install --user -U west
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Setup Zephyr Workspace
+        run: |
+          west init -l .
+          west update --narrow -o=--depth=1
+          west zephyr-export
+
+      - name: Install Zephyr SDK
+        run: |
+          cd ~
+          wget -q https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.0/zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
+          tar xf zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
+          cd zephyr-sdk-0.17.0
+          ./setup.sh -t arm-zephyr-eabi -t x86_64-zephyr-elf -h -c
+
+      - name: Install Python Requirements
+        run: |
+          if [ -f zephyr-rtos/scripts/requirements.txt ]; then
+            pip3 install --user -r zephyr-rtos/scripts/requirements.txt
+            pip3 install --user natsort anytree ply intelhex pytest tabulate junitparser
+          else
+            echo "Warning: zephyr-rtos not found, installing minimal requirements"
+            pip3 install --user pyelftools PyYAML pykwalify canopen packaging progress psutil pylink-square natsort anytree ply intelhex pytest tabulate junitparser
+          fi
+
+      - name: Run Tests with Twister
+        working-directory: tests/zephyr
+        run: |
+          west twister \
+            -T . \
+            -p qemu_cortex_m3 \
+            -p qemu_cortex_m0 \
+            -p native_sim \
+            --inline-logs \
+            --verbose
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zephyr-test-results
+          path: tests/zephyr/twister-out/
+          retention-days: 30
+
+  static-analysis:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache CMake FetchContent (_deps)
+        uses: actions/cache@v4
+        with:
+          path: build/static-analysis/_deps
+          key: fcdeps-${{ runner.os }}-static-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            fcdeps-${{ runner.os }}-static-
+
+      - name: Install Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy cppcheck cmake ninja-build
+
+      - name: Configure CMake (for clang-tidy)
+        run: cmake --preset static-analysis
+
+      - name: Run clang-tidy
+        env:
+          BUILD_DIR: ${{ github.workspace }}/build/static-analysis
+        run: |
+          echo "Running clang-tidy (gating on include/microla/microla.hpp and examples/*.cpp)"
+          set -euo pipefail
+
+          test -f "$BUILD_DIR/compile_commands.json"
+
+          # 1) Header gate: run clang-tidy on a synthetic TU that includes the main public header.
+          cat > "$BUILD_DIR/clang_tidy_header_check.cpp" << 'EOF'
+          #include "microla/microla.hpp"
+          int main() { return 0; }
+          EOF
+
+          echo "Checking include/microla/microla.hpp (via $BUILD_DIR/clang_tidy_header_check.cpp)"
+          clang-tidy "$BUILD_DIR/clang_tidy_header_check.cpp" \
+            --config-file="${GITHUB_WORKSPACE}/.clang-tidy" \
+            --warnings-as-errors='*' \
+            -- \
+            -I"${GITHUB_WORKSPACE}/include" \
+            -std=c++17
+
+          # 2) Examples gate: run clang-tidy using compile_commands.json.
+          echo "Checking examples/*.cpp"
+          FAIL=0
+          while read -r f; do
+            [ -n "$f" ] || continue
+            echo "Checking $f"
+            clang-tidy "$f" -p "$BUILD_DIR" --config-file="${GITHUB_WORKSPACE}/.clang-tidy" --header-filter='^$' --warnings-as-errors='*' || { echo "clang-tidy issues in $f"; FAIL=1; }
+          done < <(git ls-files 'examples/*.cpp')
+
+          if [ "${FAIL-0}" -ne 0 ]; then
+            echo "clang-tidy detected issues in one or more example files"
+            exit 1
+          fi
+
+      - name: Run cppcheck
+        run: |
+          set -o pipefail
+          cppcheck \
+            --force \
+            --enable=warning,performance,portability \
+            --std=c++17 \
+            --suppress=missingIncludeSystem \
+            --error-exitcode=1 \
+            --inline-suppr \
+            -I include \
+            include/microla/*.hpp 2>&1 | tee cppcheck-report.txt
+
+  constexpr-tests:
+    name: Constexpr Validation (C++17+)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache CMake FetchContent (_deps)
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/constexpr-cxx17/_deps
+            build/constexpr-cxx20/_deps
+          key: fcdeps-${{ runner.os }}-constexpr-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            fcdeps-${{ runner.os }}-constexpr-
+
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libgtest-dev
+
+      - name: Build with C++17
+        run: |
+          cmake --preset constexpr-cxx17
+          cmake --build --preset constexpr-cxx17 --parallel 2
+          ctest --preset constexpr-cxx17
+
+      - name: Build with C++20
+        run: |
+          cmake --preset constexpr-cxx20
+          cmake --build --preset constexpr-cxx20 --parallel 2
+          ctest --preset constexpr-cxx20
+
+  plantuml-validation:
+    name: Validate PlantUML Diagrams
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Download PlantUML
+        run: |
+          wget https://github.com/plantuml/plantuml/releases/download/v1.2024.3/plantuml-1.2024.3.jar
+          mv plantuml-1.2024.3.jar plantuml.jar
+
+      - name: Validate PlantUML Files
+        run: |
+          cd design
+          for file in *.puml; do
+            echo "Validating $file..."
+            java -jar ../plantuml.jar -tsvg "$file" || echo "Warning: $file has syntax errors"
+          done
+
+      - name: Check for Errors
+        run: |
+          cd design
+          error_count=0
+          for file in *.svg; do
+            if grep -q "Syntax Error" "$file"; then
+              echo "ERROR: $file contains syntax errors"
+              error_count=$((error_count + 1))
+            fi
+          done
+          if [ $error_count -gt 0 ]; then
+            echo "$error_count diagram(s) have errors"
+            exit 1
+          fi
+
+  benchmark-regression:
+    name: Benchmark Regression Detection
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need history for comparison
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++ python3 python3-pip libbenchmark-dev
+          pip3 install pandas
+
+      - name: Build Benchmarks
+        run: |
+          cmake --preset benchmark-ci
+          cmake --build --preset benchmark-ci --parallel 2
+
+      - name: Run Benchmarks
+        run: |
+          cd build/benchmark-ci/benchmarks
+          ./bench_matrix_multiply --benchmark_format=json > bench_matrix_multiply.json || true
+          ./bench_vector_ops --benchmark_format=json > bench_vector_ops.json || true
+          ./bench_simd --benchmark_format=json > bench_simd.json || true
+          ./bench_constexpr --benchmark_format=json > bench_constexpr.json || true
+          ./bench_quaternion --benchmark_format=json > bench_quaternion.json || true
+          ./bench_algorithms --benchmark_format=json > bench_algorithms.json || true
+          ./bench_geometry --benchmark_format=json > bench_geometry.json || true
+          ./bench_large_matrices --benchmark_format=json > bench_large_matrices.json || true
+          ./bench_sensor_fusion --benchmark_format=json > bench_sensor_fusion.json || true
+
+          python3 << 'EOF'
+          import json
+          import glob
+          import os
+
+          merged = {"benchmarks": []}
+          for path in sorted(glob.glob("bench_*.json")):
+              if not os.path.exists(path):
+                  continue
+              with open(path) as f:
+                  data = json.load(f)
+              merged["benchmarks"].extend(data.get("benchmarks", []))
+
+          with open("current_results.json", "w") as f:
+              json.dump(merged, f)
+          EOF
+
+      - name: Fetch Baseline From Latest Main CI Run
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_API_URL: ${{ github.api_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 scripts/fetch_benchmark_baseline.py \
+            --workflow ci.yml \
+            --artifact benchmark-baseline \
+            --branch main \
+            --output-dir baseline
+
+      - name: Compare Results
+        run: |
+          python3 << 'EOF'
+          import json
+          import os
+
+          if os.path.exists('baseline/current_results.json'):
+            with open('baseline/current_results.json') as f:
+              baseline = json.load(f)
+            with open('build/benchmark-ci/benchmarks/current_results.json') as f:
+              current = json.load(f)
+
+            print("Benchmark comparison:")
+            # Simple comparison logic
+            for bench in current.get('benchmarks', []):
+              name = bench.get('name', '')
+              current_time = bench.get('real_time', 0)
+              # Find corresponding baseline
+              baseline_bench = next((b for b in baseline.get('benchmarks', []) if b.get('name') == name), None)
+              if baseline_bench:
+                baseline_time = baseline_bench.get('real_time', 0)
+                if baseline_time > 0:
+                  ratio = current_time / baseline_time
+                  if ratio > 1.1:  # 10% slower
+                    print(f"⚠️  {name}: {ratio:.2f}x slower ({current_time:.1f}ns vs {baseline_time:.1f}ns)")
+                  elif ratio < 0.9:  # 10% faster
+                    print(f"✅ {name}: {ratio:.2f}x faster ({current_time:.1f}ns vs {baseline_time:.1f}ns)")
+          else:
+            print("No baseline found, this will become the new baseline")
+          EOF
+
+      - name: Upload Current as Baseline
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-baseline
+          path: build/benchmark-ci/benchmarks/current_results.json
+          retention-days: 90
+
+  format-check:
+    name: Code Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format-18
+
+      - name: Check Formatting
+        run: |
+          # Check if formatting is needed
+          files_to_check=$(find include tests examples benchmarks \( -name '*.hpp' -o -name '*.cpp' \))
+          if [ ! -z "$files_to_check" ]; then
+            echo "$files_to_check" | xargs clang-format-18 -i
+            # Check if any files were modified
+            if ! git diff --quiet; then
+                echo "::error::Code formatting issues found. Run './scripts/format.sh' locally or see diff below:"
+              git diff
+              exit 1
+            fi
+          fi

@@ -1,0 +1,19 @@
+# West manifest for MicroLA CI testing
+# This manifest is used for CI testing with Zephyr RTOS
+
+manifest:
+  version: "0.13"
+
+  remotes:
+    - name: zephyrproject
+      url-base: https://github.com/zephyrproject-rtos
+
+  projects:
+    - name: zephyr
+      remote: zephyrproject
+      revision: v4.3.0
+      path: zephyr-rtos
+      import: true
+
+  self:
+    path: .

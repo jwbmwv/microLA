@@ -1,0 +1,20 @@
+'" Graphics pipeline example `graphics_pipeline.cpp`
+@startuml graphics_pipeline
+title Graphics pipeline: transform -> project -> raster
+actor Application as App
+participant "Example (graphics_pipeline)" as Example
+participant "microla::Matrix4" as Mat4
+participant "Renderer/Host" as Renderer
+
+App -> Example: run()
+Example -> Mat4: build model, view, projection matrices
+Example -> Mat4: multiply to obtain MVP
+Example -> Renderer: transform vertices with MVP
+Renderer -> Renderer: perform clipping & rasterization (host or external)
+Renderer -> App: draw frame
+
+note right
+  Shows typical use of matrix transforms in rendering pipelines
+  Emphasizes fast, small-matrix multiplications
+end note
+@enduml

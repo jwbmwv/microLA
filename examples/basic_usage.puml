@@ -1,0 +1,23 @@
+'" Basic Usage sequence diagram for `basic_usage.cpp`
+'" Shows typical creation and operations on small math objects
+@startuml basic_usage
+title Basic usage: vector and matrix ops
+actor User as Main
+participant "Example (basic_usage)" as Example
+participant "microla::Vector / microla::Matrix" as Microla
+
+Main -> Example: run()
+Example -> Microla: create Vector v1
+Example -> Microla: create Vector v2
+Example -> Microla: v3 = v1 + v2
+Example -> Microla: m = Matrix::identity()
+Example -> Microla: m *= scalar
+Example -> Microla: result = m * v3
+Example -> Main: print(result)
+
+note right
+  Key concepts:
+  - Construction and arithmetic for vectors & matrices
+  - Operator overloads are thin wrappers around efficient impl
+end note
+@enduml

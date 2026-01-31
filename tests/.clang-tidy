@@ -1,0 +1,14 @@
+# Local clang-tidy config for tests
+# Keep core static-analysis checks but disable two noisy readability checks
+# that are common and acceptable in short benchmark code (short loop
+# variable names, literal numeric constants used for test vectors, etc.).
+---
+# Local clang-tidy config for tests
+# Keep core static-analysis checks but disable noisy readability and
+# magic-number checks that are common and acceptable in short test
+# and benchmark code.
+Checks: 'cppcoreguidelines-*,bugprone-*,modernize-*,performance-*,-readability-magic-numbers,-readability-identifier-length,-cppcoreguidelines-avoid-magic-numbers'
+CheckOptions: []
+...
+CheckOptions: []
+...

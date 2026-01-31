@@ -1,0 +1,5 @@
+Checks: '-readability-magic-numbers'
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: false
+FormatStyle: none

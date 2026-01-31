@@ -1,0 +1,330 @@
+@startuml module_structure
+title MicroLA Module Structure & Dependencies
+
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+
+package "Core Headers (include/microla/)" {
+
+    [compiler_features.hpp] as compiler #E6F3FF
+    note right of compiler
+        **Feature Detection Macros:**
+        MICROLA_CONSTEXPR20/23/26
+        MICROLA_CONSTEVAL, MICROLA_IF_CONSTEVAL
+        MICROLA_UNREACHABLE, MICROLA_CONSTEXPR_TRIG
+        MICROLA_ASSUME, MICROLA_FORCEINLINE, MICROLA_BIT_CAST
+
+        **Minimal dependencies**
+        Mostly preprocessor macros +
+        compile-time config validation
+    end note
+
+    [constants.hpp] as constants #FFE6F0
+    note right of constants
+        **Mathematical Constants:**
+        pi, two_pi, deg_to_rad, rad_to_deg
+        e, golden_ratio, sqrt2, sqrt3
+        epsilon (float/double/generic)
+
+        **C++17+ variable templates**
+        **Callable constant proxies**
+
+        Depends: compiler_features.hpp
+    end note
+
+    [vector.hpp] as vector #F0FFE6
+    note right of vector
+        **Vec<T, N> Class:**
+        • N-dimensional vectors
+        • Arithmetic operators
+        • dot/cross products
+        • Normalization, lerp
+        • SIMD: NEON/CMSIS/RISC-V/AVX
+
+        Depends: compiler_features.hpp
+                constants.hpp
+                simd_helpers.hpp
+    end note
+
+    [matrix.hpp] as matrix #FFFACD
+    note right of matrix
+        **Mat<T, R, C> Class:**
+        • R×C matrices (row-major)
+        • Arithmetic operators
+        • transpose, trace, determinant
+        • inverse, block operations
+        • Rotation matrices
+        • SIMD: NEON/CMSIS/RISC-V/AVX optimized
+
+        Depends: compiler_features.hpp
+                constants.hpp
+                vector.hpp (for cross)
+                simd_helpers.hpp
+    end note
+
+    [quaternion.hpp] as quaternion #FFE6E6
+    note right of quaternion
+        **Quaternion<T> Class:**
+        • 3D rotation representation
+        • SLERP interpolation
+        • Matrix conversion
+        • Euler angles
+        • Full NEON/CMSIS/RISC-V support
+
+        Depends: compiler_features.hpp
+                constants.hpp
+                vector.hpp
+                matrix.hpp
+    end note
+
+    [geometry.hpp] as geometry #F0E6FF
+    note right of geometry
+        **Geometric Primitives:**
+        • Ray<T>, Plane<T>
+        • AABB<T>, Sphere<T>
+        • Triangle<T>, Frustum<T>
+        • Intersection tests
+        • Requires C++17 (std::optional)
+
+        Depends: vector.hpp, matrix.hpp
+    end note
+
+    [kalman.hpp] as kalman #E6FFF0
+    note right of kalman
+        **KalmanFilter<T, STATE_DIM, MEAS_DIM>:**
+        • Standard Kalman filter
+        • Joseph form covariance update
+        • Innovation & NIS computation
+        • Control input support
+        • Template defaults to float
+
+        Depends: vector.hpp, matrix.hpp
+    end note
+
+    [extended_kalman.hpp] as ekf #F0FFE6
+    note right of ekf
+        **ExtendedKalmanFilter<T, STATE_DIM, MEAS_DIM>:**
+        • Nonlinear system support
+        • Jacobian linearization
+        • User-provided models
+        • Joseph/simplified updates
+        • Template defaults to float
+
+        Depends: vector.hpp, matrix.hpp
+    end note
+
+    [safe_math.hpp] as safe_math #FFE6D0
+    note right of safe_math
+        **Safety-Critical Operations:**
+        • safe_divide (div-by-zero check)
+        • saturating_add/sub/mul
+        • safe_sqrt, safe_acos, safe_asin
+        • is_finite, is_nan checks
+        • All default to float
+
+        Depends: compiler_features.hpp
+    end note
+
+    [fast_math.hpp] as fast_math #D0FFFF
+    note right of fast_math
+        **Fast Approximations (fast::):**
+        • sin/cos (Bhaskara I, ~0.17% error)
+        • rsqrt (Quake III, 2-3× faster)
+        • exp/ln/pow (polynomial, 2-5× faster)
+        • lerp, smoothstep
+        • All default to float
+
+        Depends: compiler_features.hpp
+    end note
+
+    [numerical_stability.hpp] as numerical #FFD0FF
+    note right of numerical
+        **Numerical Stability:**
+        • kahan_sum<T, Iterator>(begin, end)
+        • hypot/hypot3 (stable magnitude)
+        • approx_equal (relative + absolute tolerance)
+        • log1p_safe, expm1_safe
+        • stable_dot_product (Kahan-compensated)
+        • condition_number_2x2, precision_loss_bits
+        • ulp_distance, horner_eval
+
+        Depends: compiler_features.hpp,
+                high_precision.hpp
+    end note
+
+    [resource_checks.hpp] as resource #FFE6B3
+    note right of resource
+        **Compile-Time Checks:**
+        • VecLayoutCheck<T, N>
+        • MatSizeInfo<T, R, C>
+        • QuaternionSizeInfo<T>
+        • POD/contiguity verification
+        • DMA compatibility
+
+        Depends: vector.hpp, matrix.hpp,
+                quaternion.hpp
+    end note
+
+    [matrix_view.hpp] as matview #E6FFD0
+    note right of matview
+        **Matrix Views:**
+        • Non-owning matrix slices
+        • Block operations
+        • Submatrix references
+
+        Depends: matrix.hpp
+    end note
+
+    [version.hpp] as version #E6E6FF
+    note right of version
+        **Version Information:**
+        MICROLA_VERSION_MAJOR/MINOR/PATCH
+        get_version_string()
+        get_version_number()
+        version_at_least(major, minor, patch)
+
+        **No dependencies**
+    end note
+
+    [microla.hpp] as main #D0D0FF
+    note right of main
+        **Main Include Header:**
+        • Includes all components
+        • Utility functions
+        • Angle wrapping
+        • memory_info namespace
+        • C++20 concepts (optional)
+
+        **Single-include convenience**
+    end note
+}
+
+compiler -down-> constants : used by
+compiler -down-> vector : used by
+compiler -down-> matrix : used by
+compiler -down-> quaternion : used by
+compiler -down-> safe_math : used by
+compiler -down-> fast_math : used by
+compiler -down-> numerical : used by
+compiler -down-> simd_help : used by
+compiler -down-> highprec : used by
+
+constants -down-> vector : used by
+constants -down-> matrix : used by
+constants -down-> quaternion : used by
+
+vector -down-> matrix : cross product
+vector -down-> quaternion : rotate vector
+vector -down-> geometry : used by
+vector -down-> kalman : used by
+vector -down-> ekf : used by
+
+matrix -down-> quaternion : to/from matrix
+matrix -down-> geometry : used by
+matrix -down-> kalman : used by
+matrix -down-> ekf : used by
+matrix -down-> matview : viewed by
+vector -down-> vecview : viewed by
+
+highprec -down-> geometry : used by
+highprec -down-> numerical : used by
+
+simd_help -down-> vector : used by
+simd_help -down-> matrix : used by
+
+quaternion -down-> resource : checked by
+vector -down-> resource : checked by
+matrix -down-> resource : checked by
+
+main -down-> compiler : includes
+main -down-> constants : includes
+main -down-> vector : includes
+main -down-> matrix : includes
+main -down-> quaternion : includes
+main -down-> kalman : includes
+main -down-> ekf : includes
+main -down-> safe_math : includes
+main -down-> fast_math : includes
+main -down-> numerical : includes
+main -down-> resource : includes
+main -down-> matview : includes
+main -down-> vecview : includes
+main -down-> simd_help : includes
+
+package "Optional SIMD Support" {
+    component "CONFIG_MICROLA_NEON" as neon #ADD8E6
+    component "CONFIG_MICROLA_CMSIS" as cmsis #90EE90
+    component "CONFIG_MICROLA_RISCV" as riscv #FFEB99
+    component "CONFIG_MICROLA_AVX" as avx #D6E6FF
+
+    note bottom of neon
+        **Enabled via:**
+        #define CONFIG_MICROLA_NEON
+
+        **Provides:**
+        <arm_neon.h> intrinsics
+        2-4× performance boost
+    end note
+
+    note bottom of cmsis
+        **Enabled via:**
+        #define CONFIG_MICROLA_CMSIS
+
+        **Provides:**
+        <arm_math.h> DSP functions
+        Cortex-M optimizations
+    end note
+
+    note bottom of riscv
+        **Enabled via:**
+        #define CONFIG_MICROLA_RISCV
+
+        **Provides:**
+        <riscv_vector.h> intrinsics
+        1.3-2× performance boost
+        Variable-length vectors
+    end note
+
+    note bottom of avx
+        **Enabled via:**
+        #define CONFIG_MICROLA_AVX
+
+        **Provides:**
+        <immintrin.h> intrinsics
+        256-bit loads/stores
+        AVX2 gather instructions
+    end note
+}
+
+neon ..> vector : optimizes
+neon ..> matrix : optimizes
+neon ..> quaternion : optimizes
+
+cmsis ..> vector : optimizes
+cmsis ..> matrix : optimizes
+cmsis ..> quaternion : optimizes
+
+riscv ..> vector : optimizes
+riscv ..> matrix : optimizes
+riscv ..> quaternion : optimizes
+
+package "Build Integration" {
+    [CMakeLists.txt] as cmake #F5F5F5
+    [vcpkg.json] as vcpkg #F5F5F5
+    [conanfile.py] as conan #F5F5F5
+    [west.yml] as zephyr #F5F5F5
+
+    note bottom of cmake
+        **Header-only library target**
+        INTERFACE library (no compilation)
+        Optional: examples, benchmarks
+    end note
+}
+
+main ..> cmake : configured by
+main ..> vcpkg : packaged by
+main ..> conan : packaged by
+main ..> zephyr : Zephyr module
+
+@enduml
+

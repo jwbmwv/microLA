@@ -1,0 +1,25 @@
+'" Kalman filter demo `kalman_demo.cpp`
+@startuml kalman_demo
+title Kalman demo: predict -> update cycle
+actor Agent as Main
+participant "Example (kalman_demo)" as Example
+participant "microla::KalmanFilter" as KF
+participant "Sensor" as Sensor
+participant "Actuator" as Actuator
+
+Main -> Example: run()
+loop each timestep
+  Example -> Sensor: read measurement z
+  Example -> KF: predict(control)
+  KF -> KF: propagate covariance
+  Example -> KF: update(z)
+  KF -> Example: state estimate x
+  Example -> Actuator: apply control from x
+end
+Example -> Main: final state / log
+
+note right
+  Shows typical discrete-time Kalman filter loop
+  Use `microla::KalmanFilter` APIs: predict(), update(), state()
+end note
+@enduml

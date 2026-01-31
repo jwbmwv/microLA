@@ -1,0 +1,21 @@
+'" Advanced features demo sequence diagram for `advanced_features_demo.cpp`
+@startuml advanced_features_demo
+title Advanced features: decompositions, pseudoinverse, and memory checks
+actor User as Main
+participant "Example (advanced_features_demo)" as Example
+participant "Mat<T, R, C>" as Matrix
+participant "memory_info" as MemoryInfo
+
+Main -> Example: run()
+Example -> Matrix: block<3, 3>(), cholesky(), condition_number()
+Example -> Matrix: pseudoinverse(), svd()
+Example -> MemoryInfo: matrix_size_bytes(), validate_matrix_stack_size()
+Example -> Main: print decomposition and footprint results
+
+note right
+  Highlights:
+  - Block extraction and fixed-size decomposition APIs
+  - Allocation-sensitive memory_info checks for embedded sizing
+  - Pseudoinverse and SVD demonstration on small matrices
+end note
+@enduml

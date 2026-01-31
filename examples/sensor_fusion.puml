@@ -1,0 +1,31 @@
+'" Sensor fusion example `sensor_fusion.cpp`
+@startuml sensor_fusion
+title Sensor fusion: relative angle estimation with mixed sensor sets
+actor System as Main
+participant "Example (sensor_fusion)" as Example
+participant "RelativeAngleEstimator" as Relative
+participant "OrientationEstimator<9-axis>" as Left
+participant "OrientationEstimator<6-axis>" as Right
+participant "Quaternion<float>" as Quaternion
+
+Main -> Example: run()
+Example -> Relative: capture_reference_pose()
+loop streaming sample pairs
+  Example -> Left: update(Imu9Sample)
+  Left -> Quaternion: align tilt + heading
+  Example -> Right: update(Imu6Sample)
+  Right -> Quaternion: integrate gyro + accel correction
+  Example -> Relative: compute()
+  Relative -> Example: hinge twist + drift/confidence
+  Example -> Relative: compute_scalar(tilt_angle)
+  Relative -> Example: secondary scalar output
+end
+Example -> Main: print drift-aware summary
+
+note right
+  The maintained example uses the public
+  sensor_fusion.hpp API directly.
+  Mixed 9-axis/6-axis pairs can publish
+  heading-derived outputs with drift metadata.
+end note
+@enduml

@@ -1,0 +1,17 @@
+'" Test defaults example `test_defaults.cpp`
+@startuml test_defaults
+title Test defaults: verifying library configuration
+actor TestRunner as Main
+participant "Example (test_defaults)" as Example
+participant "microla::Config" as Config
+
+Main -> Example: run tests
+Example -> Config: query default tolerances
+Example -> Config: run small deterministic cases
+Example -> Example: assert results within tolerances
+Example -> Main: report pass/fail
+
+note right
+  Used to validate API stability & default parameter choices
+end note
+@enduml

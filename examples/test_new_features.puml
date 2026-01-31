@@ -1,0 +1,17 @@
+'" Test new features example `test_new_features.cpp`
+@startuml test_new_features
+title Test new features: smoke tests for new APIs
+actor CI as Main
+participant "Example (test_new_features)" as Example
+participant "microla::NewAPI" as NewAPI
+
+Main -> Example: run smoke tests
+Example -> NewAPI: call new functions with simple inputs
+NewAPI -> Example: return outputs
+Example -> Example: basic assertions
+Example -> Main: summary (failures if any)
+
+note right
+  Quick checks to catch regressions early in CI
+end note
+@enduml

@@ -1,0 +1,8 @@
+# Build directories (contain external dependency docs)
+build/
+build-*/
+build_*/
+
+# External dependencies
+node_modules/
+_deps/

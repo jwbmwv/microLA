@@ -1,0 +1,539 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Debug build with assertions and symbols",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
+        "CMAKE_CXX_FLAGS": "-DMICROLA_DEBUG -Wall -Wextra -Wpedantic"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "description": "Optimized release build",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON",
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG -march=native"
+      }
+    },
+    {
+      "name": "release-size",
+      "displayName": "Release (Size Optimized)",
+      "description": "Size-optimized release for embedded",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "MICROLA_LINEAR_BUILD_TESTS": "OFF",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "CMAKE_CXX_FLAGS": "-Os -DNDEBUG"
+      }
+    },
+    {
+      "name": "ci-release-cxx17",
+      "displayName": "CI Release C++17",
+      "description": "Cross-platform release build for CI with tests, examples, and benchmarks enabled",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "17",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON"
+      }
+    },
+    {
+      "name": "ci-release-cxx20",
+      "displayName": "CI Release C++20",
+      "description": "Cross-platform release build for CI with tests, examples, and benchmarks enabled",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "20",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON"
+      }
+    },
+    {
+      "name": "host-tests",
+      "displayName": "Host Tests",
+      "description": "Release build of the host-side test suite",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "17",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF"
+      }
+    },
+    {
+      "name": "embedded-examples",
+      "displayName": "Embedded Examples",
+      "description": "Build the shipped examples with MICROLA_EMBEDDED enabled and size-focused defaults",
+      "inherits": "release-size",
+      "cacheVariables": {
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
+        "MICROLA_LINEAR_BUILD_TESTS": "OFF",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF"
+      }
+    },
+    {
+      "name": "embedded-tests",
+      "displayName": "Embedded Tests",
+      "description": "Build and run the host-side test suite with MICROLA_EMBEDDED enabled",
+      "inherits": "release-size",
+      "cacheVariables": {
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF"
+      }
+    },
+    {
+      "name": "coverage-ci",
+      "displayName": "Coverage CI",
+      "description": "Coverage-instrumented test build for CI",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "17",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF",
+        "CMAKE_CXX_FLAGS": "--coverage -fprofile-arcs -ftest-coverage"
+      }
+    },
+    {
+      "name": "sanitizers-ci",
+      "displayName": "Sanitizers CI",
+      "description": "ASan and UBSan build for CI",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "17",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer"
+      }
+    },
+    {
+      "name": "static-analysis",
+      "displayName": "Static Analysis",
+      "description": "Build configuration used to generate compile commands for clang-tidy and cppcheck",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "17",
+        "MICROLA_LINEAR_BUILD_TESTS": "OFF",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF"
+      }
+    },
+    {
+      "name": "constexpr-cxx17",
+      "displayName": "Constexpr C++17",
+      "description": "Compile and test the library with C++17",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "17",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF"
+      }
+    },
+    {
+      "name": "constexpr-cxx20",
+      "displayName": "Constexpr C++20",
+      "description": "Compile and test the library with C++20",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "20",
+        "MICROLA_LINEAR_BUILD_TESTS": "ON",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF"
+      }
+    },
+    {
+      "name": "benchmark-ci",
+      "displayName": "Benchmark CI",
+      "description": "Release benchmark build for benchmark-regression CI",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "17",
+        "MICROLA_LINEAR_BUILD_TESTS": "OFF",
+        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
+        "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON"
+      }
+    },
+    {
+      "name": "benchmark",
+      "displayName": "Benchmark",
+      "description": "Developer-focused benchmark build with host-tuned optimization flags",
+      "inherits": "benchmark-ci",
+      "binaryDir": "${sourceDir}/build/benchmark-native",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG -march=native -ffast-math"
+      }
+    },
+    {
+      "name": "neon",
+      "displayName": "ARM NEON Optimized",
+      "description": "Build with ARM NEON SIMD optimizations",
+      "inherits": "release",
+      "cacheVariables": {
+        "MICROLA_ENABLE_NEON": "ON",
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG -march=armv8-a+simd -mtune=cortex-a53"
+      }
+    },
+    {
+      "name": "cmsis",
+      "displayName": "CMSIS-DSP Optimized",
+      "description": "Build with CMSIS-DSP for Cortex-M",
+      "inherits": "release",
+      "cacheVariables": {
+        "MICROLA_ENABLE_CMSIS": "ON",
+        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug (MSVC)",
+      "description": "Debug build for Windows with MSVC",
+      "inherits": "debug",
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "/DMICROLA_DEBUG /W4 /permissive-"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release (MSVC)",
+      "description": "Release build for Windows with MSVC",
+      "inherits": "release",
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "/O2 /DNDEBUG /GL /arch:AVX2"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "clang-tidy",
+      "displayName": "Clang-Tidy Analysis",
+      "description": "Developer-focused clang-tidy build based on the canonical static-analysis preset",
+      "inherits": "static-analysis",
+      "cacheVariables": {
+        "CMAKE_CXX_CLANG_TIDY": "clang-tidy;-checks=*,-fuchsia-*,-google-*,-llvm-*,-modernize-use-trailing-return-type"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ci-release-cxx17",
+      "configurePreset": "ci-release-cxx17",
+      "displayName": "Build CI Release C++17",
+      "description": "Build tests, examples, and benchmarks in release mode for CI"
+    },
+    {
+      "name": "ci-release-cxx20",
+      "configurePreset": "ci-release-cxx20",
+      "displayName": "Build CI Release C++20",
+      "description": "Build tests, examples, and benchmarks in release mode for CI"
+    },
+    {
+      "name": "host-tests",
+      "configurePreset": "host-tests",
+      "displayName": "Build Host Tests",
+      "description": "Build the host-side test suite"
+    },
+    {
+      "name": "embedded-examples",
+      "configurePreset": "embedded-examples",
+      "displayName": "Build Embedded Examples",
+      "description": "Build all examples with MICROLA_EMBEDDED enabled"
+    },
+    {
+      "name": "embedded-tests",
+      "configurePreset": "embedded-tests",
+      "displayName": "Build Embedded Tests",
+      "description": "Build the host-side test suite with MICROLA_EMBEDDED enabled"
+    },
+    {
+      "name": "coverage-ci",
+      "configurePreset": "coverage-ci",
+      "displayName": "Build Coverage CI",
+      "description": "Build the coverage-instrumented test suite"
+    },
+    {
+      "name": "sanitizers-ci",
+      "configurePreset": "sanitizers-ci",
+      "displayName": "Build Sanitizers CI",
+      "description": "Build the ASan and UBSan CI configuration"
+    },
+    {
+      "name": "benchmark-ci",
+      "configurePreset": "benchmark-ci",
+      "displayName": "Build Benchmark CI",
+      "description": "Build the benchmark-regression configuration"
+    },
+    {
+      "name": "benchmark",
+      "configurePreset": "benchmark",
+      "displayName": "Build Benchmarks",
+      "description": "Build the developer-focused benchmark preset"
+    },
+    {
+      "name": "constexpr-cxx17",
+      "configurePreset": "constexpr-cxx17",
+      "displayName": "Build Constexpr C++17",
+      "description": "Build the C++17 constexpr validation configuration"
+    },
+    {
+      "name": "constexpr-cxx20",
+      "configurePreset": "constexpr-cxx20",
+      "displayName": "Build Constexpr C++20",
+      "description": "Build the C++20 constexpr validation configuration"
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "displayName": "Build Debug",
+      "description": "Build in debug mode"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "displayName": "Build Release",
+      "description": "Build in release mode"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "ci-release-cxx17",
+      "configurePreset": "ci-release-cxx17",
+      "displayName": "Test CI Release C++17",
+      "description": "Run tests for the C++17 CI release configuration",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci-release-cxx20",
+      "configurePreset": "ci-release-cxx20",
+      "displayName": "Test CI Release C++20",
+      "description": "Run tests for the C++20 CI release configuration",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "host-tests",
+      "configurePreset": "host-tests",
+      "displayName": "Test Host Tests",
+      "description": "Run tests for the host-side release test configuration",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "embedded-tests",
+      "configurePreset": "embedded-tests",
+      "displayName": "Test Embedded Build",
+      "description": "Run host-side tests for the MICROLA_EMBEDDED profile",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "coverage-ci",
+      "configurePreset": "coverage-ci",
+      "displayName": "Test Coverage CI",
+      "description": "Run tests for the coverage-instrumented configuration",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "sanitizers-ci",
+      "configurePreset": "sanitizers-ci",
+      "displayName": "Test Sanitizers CI",
+      "description": "Run tests for the sanitizer configuration",
+      "output": {
+        "outputOnFailure": true
+      },
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1",
+        "UBSAN_OPTIONS": "print_stacktrace=1"
+      }
+    },
+    {
+      "name": "constexpr-cxx17",
+      "configurePreset": "constexpr-cxx17",
+      "displayName": "Test Constexpr C++17",
+      "description": "Run tests for the C++17 constexpr validation configuration",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "constexpr-cxx20",
+      "configurePreset": "constexpr-cxx20",
+      "displayName": "Test Constexpr C++20",
+      "description": "Run tests for the C++20 constexpr validation configuration",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "displayName": "Test Debug",
+      "description": "Run tests in debug mode",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "displayName": "Test Release",
+      "description": "Run tests in release mode",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "embedded-examples-workflow",
+      "displayName": "Embedded Examples Workflow",
+      "description": "Configure and build the example set with MICROLA_EMBEDDED enabled",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "embedded-examples"
+        },
+        {
+          "type": "build",
+          "name": "embedded-examples"
+        }
+      ]
+    },
+    {
+      "name": "embedded-tests-workflow",
+      "displayName": "Embedded Tests Workflow",
+      "description": "Configure, build, and test the host-side suite with MICROLA_EMBEDDED enabled",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "embedded-tests"
+        },
+        {
+          "type": "build",
+          "name": "embedded-tests"
+        },
+        {
+          "type": "test",
+          "name": "embedded-tests"
+        }
+      ]
+    },
+    {
+      "name": "debug-workflow",
+      "displayName": "Debug Workflow",
+      "description": "Configure, build, and test in debug mode",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "debug"
+        },
+        {
+          "type": "build",
+          "name": "debug"
+        },
+        {
+          "type": "test",
+          "name": "debug"
+        }
+      ]
+    },
+    {
+      "name": "release-workflow",
+      "displayName": "Release Workflow",
+      "description": "Configure, build, and test in release mode",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release"
+        },
+        {
+          "type": "build",
+          "name": "release"
+        },
+        {
+          "type": "test",
+          "name": "release"
+        }
+      ]
+    },
+    {
+      "name": "coverage-workflow",
+      "displayName": "Coverage Workflow",
+      "description": "Build and test with coverage analysis",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "coverage-ci"
+        },
+        {
+          "type": "build",
+          "name": "coverage-ci"
+        },
+        {
+          "type": "test",
+          "name": "coverage-ci"
+        }
+      ]
+    }
+  ]
+}
