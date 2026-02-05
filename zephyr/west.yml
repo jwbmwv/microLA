@@ -1,0 +1,22 @@
+# West manifest for MicroLA Zephyr module
+# This manifest is used for CI testing with Zephyr RTOS
+
+manifest:
+  version: "0.13"
+
+  remotes:
+    - name: zephyrproject
+      url-base: https://github.com/zephyrproject-rtos
+
+  projects:
+    - name: zephyr
+      remote: zephyrproject
+      revision: v3.6.0
+      import:
+        # Import only minimal dependencies needed for testing
+        name-allowlist:
+          - cmsis
+          - hal_cmsis
+
+  self:
+    path: .

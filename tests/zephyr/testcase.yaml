@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: MIT
+# Zephyr Test Case Metadata for MicroLA
+
+tests:
+  libraries.microla.all:
+    platform_allow:
+      - qemu_cortex_m3
+      - qemu_cortex_m0
+      - qemu_cortex_a53
+    tags:
+      - library
+      - math
+      - microla
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: false
+      regex:
+        - "TESTSUITE microla_vector"
+        - "TESTSUITE microla_matrix"
+        - "TESTSUITE microla_quaternion"
+        - "TESTSUITE microla_integration"
+    integration_platforms:
+      - qemu_cortex_m3
+    min_ram: 32
+    min_flash: 64
+
+  libraries.microla.all.native:
+    extra_args: "CONF_FILE=prj_native_sim.conf"
+    platform_allow:
+      - native_sim
+    tags:
+      - library
+      - math
+      - microla
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: false
+      regex:
+        - "TESTSUITE microla_vector"
+        - "TESTSUITE microla_matrix"
+        - "TESTSUITE microla_quaternion"
+        - "TESTSUITE microla_integration"
+    integration_platforms:
+      - native_sim
+    min_ram: 32
+    min_flash: 64
