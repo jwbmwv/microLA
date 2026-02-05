@@ -22,10 +22,11 @@ static bool float_eq(float a, float b, float eps = epsilon)
 ZTEST(microla_matrix, test_default_constructor)
 {
     Mat<float, 2, 2> m;
-    for (size_t i = 0; i < 2; i++) {
-        for (size_t j = 0; j < 2; j++) {
-            zassert_true(float_eq(m(i, j), 0.0f),
-                "Default constructor should initialize to zero");
+    for (size_t i = 0; i < 2; i++)
+    {
+        for (size_t j = 0; j < 2; j++)
+        {
+            zassert_true(float_eq(m(i, j), 0.0f), "Default constructor should initialize to zero");
         }
     }
 }
@@ -154,8 +155,7 @@ ZTEST(microla_matrix, test_matrix_vector_multiplication)
 
 ZTEST(microla_matrix, test_transpose)
 {
-    Mat<float, 2, 3> m{1.0f, 2.0f, 3.0f,
-                       4.0f, 5.0f, 6.0f};
+    Mat<float, 2, 3> m{1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
 
     Mat<float, 3, 2> result = m.transpose();
 
@@ -179,9 +179,7 @@ ZTEST(microla_matrix, test_determinant_2x2)
 
 ZTEST(microla_matrix, test_determinant_3x3)
 {
-    Mat<float, 3, 3> m{1.0f, 2.0f, 3.0f,
-                       0.0f, 1.0f, 4.0f,
-                       5.0f, 6.0f, 0.0f};
+    Mat<float, 3, 3> m{1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 4.0f, 5.0f, 6.0f, 0.0f};
 
     float det = m.determinant();
 
@@ -197,11 +195,16 @@ ZTEST(microla_matrix, test_inverse_identity)
     auto inv = m.inverse();
 
     // Inverse of identity should be identity
-    for (size_t i = 0; i < 3; i++) {
-        for (size_t j = 0; j < 3; j++) {
-            if (i == j) {
+    for (size_t i = 0; i < 3; i++)
+    {
+        for (size_t j = 0; j < 3; j++)
+        {
+            if (i == j)
+            {
                 zassert_true(float_eq(inv(i, j), 1.0f), "Identity inverse diagonal failed");
-            } else {
+            }
+            else
+            {
                 zassert_true(float_eq(inv(i, j), 0.0f), "Identity inverse off-diagonal failed");
             }
         }

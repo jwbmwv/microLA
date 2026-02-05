@@ -33,7 +33,8 @@ int main()
     Quaternion<> q1;  // Equivalent to Quaternion<float>
     Quaternion<> q2 = Quaternion<>::from_axis_angle(Vec<>(0.0f, 0.0f, 1.0f), 1.57f);
     std::cout << "Quaternion<> (defaults to Quaternion<float>):" << std::endl;
-    std::cout << "  q1 (identity) = (" << q1.w() << ", " << q1.x() << ", " << q1.y() << ", " << q1.z() << ")" << std::endl;
+    std::cout << "  q1 (identity) = (" << q1.w() << ", " << q1.x() << ", " << q1.y() << ", " << q1.z() << ")"
+              << std::endl;
     std::cout << std::endl;
 
     // Geometry types default to float (in microla::geometry namespace)
@@ -41,8 +42,10 @@ int main()
     ray.origin = Vec<>(0.0f, 0.0f, 0.0f);
     ray.direction = Vec<>(1.0f, 0.0f, 0.0f);
     std::cout << "microla::geometry::Ray<> (defaults to Ray<float>):" << std::endl;
-    std::cout << "  Origin: (" << ray.origin.x() << ", " << ray.origin.y() << ", " << ray.origin.z() << ")" << std::endl;
-    std::cout << "  Direction: (" << ray.direction.x() << ", " << ray.direction.y() << ", " << ray.direction.z() << ")" << std::endl;
+    std::cout << "  Origin: (" << ray.origin.x() << ", " << ray.origin.y() << ", " << ray.origin.z() << ")"
+              << std::endl;
+    std::cout << "  Direction: (" << ray.direction.x() << ", " << ray.direction.y() << ", " << ray.direction.z() << ")"
+              << std::endl;
     std::cout << std::endl;
 
     // Kalman filters default to float

@@ -182,7 +182,7 @@ T relative_error(T computed, T exact) noexcept
 /// @brief Compute condition number estimate for a 2x2 matrix
 /// @details Ratio of largest to smallest singular value using SVD approach
 /// @param a Matrix element (0,0)
-/// @param b Matrix element (0,1)  
+/// @param b Matrix element (0,1)
 /// @param c Matrix element (1,0)
 /// @param d Matrix element (1,1)
 /// @return Approximate condition number
@@ -197,29 +197,29 @@ T condition_number_2x2(T a, T b, T c, T d) noexcept
     T aa = a * a + c * c;
     T bb = b * b + d * d;
     T ab = a * b + c * d;
-    
+
     // Eigenvalues of A^T A: λ = (trace ± sqrt(trace² - 4*det)) / 2
     T trace = aa + bb;
     T det_ata = aa * bb - ab * ab;
-    
+
     // Check for singular matrix
     T eps = epsilon<T>() * trace * trace;
     if (det_ata <= eps || det_ata <= T(0))
         return std::numeric_limits<T>::infinity();
-    
+
     T discriminant = trace * trace - T(4) * det_ata;
     // Protect against numerical noise making discriminant negative
     if (discriminant < T(0))
         discriminant = T(0);
-    
+
     T sqrt_d = std::sqrt(discriminant);
     T lambda_max = (trace + sqrt_d) / T(2);
     T lambda_min = (trace - sqrt_d) / T(2);
-    
+
     // Check if minimum eigenvalue is too small
     if (lambda_min <= eps || lambda_min <= T(0))
         return std::numeric_limits<T>::infinity();
-    
+
     // Condition number κ = σ_max / σ_min = sqrt(λ_max / λ_min)
     T ratio = lambda_max / lambda_min;
     return std::sqrt(ratio);

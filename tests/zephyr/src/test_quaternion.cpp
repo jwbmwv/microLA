@@ -111,10 +111,8 @@ ZTEST(microla_quaternion, test_quaternion_multiplication)
     // Quaternion multiplication is non-commutative
     // This test just ensures the operation executes without error
     // and produces a valid quaternion
-    float norm_sq = result.w() * result.w() +
-                    result.x() * result.x() +
-                    result.y() * result.y() +
-                    result.z() * result.z();
+    float norm_sq =
+        result.w() * result.w() + result.x() * result.x() + result.y() * result.y() + result.z() * result.z();
 
     zassert_true(norm_sq > 0.0f, "Quaternion multiplication produced invalid result");
 }
@@ -175,12 +173,10 @@ ZTEST(microla_quaternion, test_from_axis_angle)
     Quaternion<float> q = Quaternion<float>::from_axis_angle(axis, angle);
 
     // For 90 degrees around Z: w = cos(45°) ≈ 0.707, z = sin(45°) ≈ 0.707
-    zassert_true(float_eq(q.w(), std::cos(angle / 2.0f), 1e-4f),
-        "Axis-angle w failed");
+    zassert_true(float_eq(q.w(), std::cos(angle / 2.0f), 1e-4f), "Axis-angle w failed");
     zassert_true(float_eq(q.x(), 0.0f, 1e-4f), "Axis-angle x failed");
     zassert_true(float_eq(q.y(), 0.0f, 1e-4f), "Axis-angle y failed");
-    zassert_true(float_eq(q.z(), std::sin(angle / 2.0f), 1e-4f),
-        "Axis-angle z failed");
+    zassert_true(float_eq(q.z(), std::sin(angle / 2.0f), 1e-4f), "Axis-angle z failed");
 }
 
 ZTEST(microla_quaternion, test_rotate_vector)

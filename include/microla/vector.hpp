@@ -560,7 +560,8 @@ public:
             vfloat32m1_t a = vle32_v_f32m1(reinterpret_cast<const float*>(data), vl);
             vfloat32m1_t b = vle32_v_f32m1(reinterpret_cast<const float*>(other.data), vl);
             vfloat32m1_t mul = vfmul_vv_f32m1(a, b, vl);
-            vfloat32m1_t sum = vfredsum_vs_f32m1_f32m1(vundefined_f32m1(), mul, vfmv_s_f_f32m1(vundefined_f32m1(), 0.0f, vl), vl);
+            vfloat32m1_t sum =
+                vfredsum_vs_f32m1_f32m1(vundefined_f32m1(), mul, vfmv_s_f_f32m1(vundefined_f32m1(), 0.0f, vl), vl);
             return static_cast<T>(vfmv_f_s_f32m1_f32(sum));
         }
 #endif
@@ -622,7 +623,8 @@ public:
     /// \param other The other vector.
     /// \return The cross product.
     template<std::uint32_t NN = N>
-    MICROLA_NODISCARD MICROLA_CONSTEXPR typename std::enable_if<NN == 3, Vec>::type cross(const Vec& other) const noexcept
+    MICROLA_NODISCARD MICROLA_CONSTEXPR typename std::enable_if<NN == 3, Vec>::type
+    cross(const Vec& other) const noexcept
     {
 #ifdef CONFIG_MICROLA_NEON
         MICROLA_IF_CONSTEXPR(std::is_same<T, float>::value)

@@ -37,7 +37,7 @@ void test_safe_math()
     std::int16_t a = 30000;
     std::int16_t b = 10000;
     std::int16_t sum = safe::saturating_add(a, b);
-    std::cout << "saturating_add(30000, 10000) [int16_t] = " << sum 
+    std::cout << "saturating_add(30000, 10000) [int16_t] = " << sum
               << " (max: " << std::numeric_limits<std::int16_t>::max() << ")\n\n";
 }
 
@@ -56,7 +56,7 @@ void test_fast_math()
     std::cout << "Angle: " << angle << " rad (45°)\n";
     std::cout << "std::sin()  = " << std_sin << "\n";
     std::cout << "fast::sin() = " << fast_sin_val << "\n";
-    std::cout << "Error: " << error << " (" << (error/std_sin * 100) << "%)\n\n";
+    std::cout << "Error: " << error << " (" << (error / std_sin * 100) << "%)\n\n";
 
     // Fast atan2
     float y = 1.0f, x = 1.0f;
@@ -91,13 +91,13 @@ void test_numerical_stability()
     // Condition number estimation
     float cond = numerical::condition_number_2x2(1.0f, 0.0f, 0.0f, 1.0f);
     std::cout << "condition_number(identity 2x2) = " << cond << "\n";
-    
+
     float cond_ill = numerical::condition_number_2x2(1.0f, 1.0f, 1.0f, 1.000001f);
     std::cout << "condition_number(nearly singular) = " << cond_ill << "\n";
     std::cout << "is_ill_conditioned? " << (numerical::is_ill_conditioned(cond_ill) ? "yes" : "no") << "\n\n";
 
     // Horner's method for polynomial evaluation
-    float coeffs[] = {1.0f, 2.0f, 3.0f};  // 1 + 2x + 3x²
+    float coeffs[] = {1.0f, 2.0f, 3.0f};                          // 1 + 2x + 3x²
     float poly_result = numerical::horner_eval(coeffs, 3, 2.0f);  // Evaluate at x=2
     std::cout << "P(x) = 1 + 2x + 3x², P(2) = " << poly_result << " (expected: 17)\n\n";
 }

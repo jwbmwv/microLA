@@ -58,8 +58,7 @@ ZTEST(microla_integration, test_coordinate_system_transformation)
     float cos_a = std::cos(angle);
     float sin_a = std::sin(angle);
 
-    Mat<float, 2, 2> rotation{cos_a, -sin_a,
-                              sin_a,  cos_a};
+    Mat<float, 2, 2> rotation{cos_a, -sin_a, sin_a, cos_a};
 
     // Rotate unit X vector
     Vec<float, 2> v(1.0f, 0.0f);
@@ -174,10 +173,10 @@ ZTEST(microla_integration, test_reflection_vector)
 ZTEST(microla_integration, test_projectile_motion)
 {
     // Calculate projectile position: p = p0 + v*t + 0.5*a*t^2
-    Vec<float, 3> p0(0.0f, 0.0f, 0.0f);         // Initial position
-    Vec<float, 3> v(1.0f, 1.0f, 0.0f);          // Initial velocity
-    Vec<float, 3> a(0.0f, -9.8f, 0.0f);         // Gravity
-    float t = 1.0f;                              // Time
+    Vec<float, 3> p0(0.0f, 0.0f, 0.0f);  // Initial position
+    Vec<float, 3> v(1.0f, 1.0f, 0.0f);   // Initial velocity
+    Vec<float, 3> a(0.0f, -9.8f, 0.0f);  // Gravity
+    float t = 1.0f;                      // Time
 
     Vec<float, 3> position = p0 + v * t + a * (0.5f * t * t);
 
@@ -194,9 +193,7 @@ ZTEST(microla_integration, test_matrix_transform_chain)
     // Test applying multiple matrix transformations
 
     // Create scaling matrix (2x scale)
-    Mat<float, 3, 3> scale{2.0f, 0.0f, 0.0f,
-                           0.0f, 2.0f, 0.0f,
-                           0.0f, 0.0f, 2.0f};
+    Mat<float, 3, 3> scale{2.0f, 0.0f, 0.0f, 0.0f, 2.0f, 0.0f, 0.0f, 0.0f, 2.0f};
 
     // Create rotation matrix (identity for simplicity)
     auto rotation = Mat<float, 3, 3>::identity();

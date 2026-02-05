@@ -129,8 +129,8 @@
 #define MICROLA_UNREACHABLE() __assume(0)
 #else
 #define MICROLA_UNREACHABLE() \
-    do                       \
-    {                        \
+    do                        \
+    {                         \
     } while (0)
 #endif
 #endif
@@ -185,9 +185,9 @@ inline To bit_cast_memcpy(const From& src) noexcept
 #define MICROLA_ASSUME(cond) __attribute__((assume(cond)))
 #else
 #define MICROLA_ASSUME(cond)       \
-    do                            \
-    {                             \
-        if (!(cond))              \
+    do                             \
+    {                              \
+        if (!(cond))               \
             MICROLA_UNREACHABLE(); \
     } while (0)
 #endif

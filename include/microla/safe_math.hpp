@@ -162,7 +162,10 @@ bool is_well_conditioned(T condition_number, T threshold = T(1e6)) noexcept
 #else
 
 // No-op implementations when not in safe mode
-inline constexpr bool check_bounds(std::uint32_t, std::uint32_t) noexcept { return true; }
+inline constexpr bool check_bounds(std::uint32_t, std::uint32_t) noexcept
+{
+    return true;
+}
 
 template<typename T>
 MICROLA_CONSTEXPR T assert_finite(T value) noexcept

@@ -36,22 +36,18 @@ public:
     using StateToMeasMat = Mat<T, STATE_DIM, MEAS_DIM>;
 
 private:
-    StateVec x_;          ///< State estimate vector
-    StateMat P_;          ///< State covariance matrix
-    StateMat F_;          ///< State transition matrix
-    MeasToStateMat H_;    ///< Measurement matrix (maps state to measurement)
-    StateMat Q_;          ///< Process noise covariance
-    MeasMat R_;           ///< Measurement noise covariance
+    StateVec x_;        ///< State estimate vector
+    StateMat P_;        ///< State covariance matrix
+    StateMat F_;        ///< State transition matrix
+    MeasToStateMat H_;  ///< Measurement matrix (maps state to measurement)
+    StateMat Q_;        ///< Process noise covariance
+    MeasMat R_;         ///< Measurement noise covariance
 
 public:
     /// @brief Default constructor with identity initialization
     KalmanFilter() noexcept
-        : x_()
-        , P_(StateMat::identity())
-        , F_(StateMat::identity())
-        , H_()
-        , Q_(StateMat::identity() * T(0.01))
-        , R_(MeasMat::identity() * T(0.1))
+        : x_(), P_(StateMat::identity()), F_(StateMat::identity()), H_(), Q_(StateMat::identity() * T(0.01)),
+          R_(MeasMat::identity() * T(0.1))
     {
     }
 
@@ -59,12 +55,7 @@ public:
     /// @param process_noise Process noise covariance (Q)
     /// @param measurement_noise Measurement noise covariance (R)
     KalmanFilter(const StateMat& process_noise, const MeasMat& measurement_noise) noexcept
-        : x_()
-        , P_(StateMat::identity())
-        , F_(StateMat::identity())
-        , H_()
-        , Q_(process_noise)
-        , R_(measurement_noise)
+        : x_(), P_(StateMat::identity()), F_(StateMat::identity()), H_(), Q_(process_noise), R_(measurement_noise)
     {
     }
 
@@ -171,7 +162,10 @@ public:
     T get_state(std::size_t index) const noexcept { return x_[static_cast<std::uint32_t>(index)]; }
 
     /// @brief Get state variance for specific variable
-    T get_variance(std::size_t index) const noexcept { return P_(static_cast<std::uint32_t>(index), static_cast<std::uint32_t>(index)); }
+    T get_variance(std::size_t index) const noexcept
+    {
+        return P_(static_cast<std::uint32_t>(index), static_cast<std::uint32_t>(index));
+    }
 
     /// @brief Get state standard deviation
     T get_std_dev(std::size_t index) const noexcept
@@ -230,16 +224,10 @@ public:
     }
 
     /// @brief Compute innovation (measurement residual)
-    MeasVec compute_innovation(const MeasVec& z) const noexcept
-    {
-        return z - H_ * x_;
-    }
+    MeasVec compute_innovation(const MeasVec& z) const noexcept { return z - H_ * x_; }
 
     /// @brief Compute innovation covariance
-    MeasMat compute_innovation_covariance() const noexcept
-    {
-        return H_ * P_ * H_.transpose() + R_;
-    }
+    MeasMat compute_innovation_covariance() const noexcept { return H_ * P_ * H_.transpose() + R_; }
 
     /// @brief Compute normalized innovation squared (NIS) for measurement validation
     /// @details NIS follows chi-squared distribution with MEAS_DIM degrees of freedom.
@@ -256,7 +244,9 @@ public:
         {
             for (std::size_t j = 0; j < MEAS_DIM; ++j)
             {
-                nis += y[static_cast<std::uint32_t>(i)] * S_inv(static_cast<std::uint32_t>(i), static_cast<std::uint32_t>(j)) * y[static_cast<std::uint32_t>(j)];
+                nis += y[static_cast<std::uint32_t>(i)] *
+                       S_inv(static_cast<std::uint32_t>(i), static_cast<std::uint32_t>(j)) *
+                       y[static_cast<std::uint32_t>(j)];
             }
         }
         return nis;

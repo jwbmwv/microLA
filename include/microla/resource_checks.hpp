@@ -30,16 +30,14 @@ template<typename T, std::uint32_t N>
 struct VecLayoutCheck
 {
     using VecType = Vec<T, N>;
-    
+
     // Vec must be standard layout for DMA and C compatibility
-    static_assert(std::is_standard_layout<VecType>::value,
-                  "Vec must be standard layout for DMA compatibility");
-    
+    static_assert(std::is_standard_layout<VecType>::value, "Vec must be standard layout for DMA compatibility");
+
     // Vec should have minimal padding (aligned to 16 bytes or size of elements)
-    static_assert(sizeof(VecType) == sizeof(T) * N || 
-                  sizeof(VecType) == ((sizeof(T) * N + 15) & ~15),
+    static_assert(sizeof(VecType) == sizeof(T) * N || sizeof(VecType) == ((sizeof(T) * N + 15) & ~15),
                   "Vec has unexpected padding - check alignment settings");
-                  
+
 #ifdef MICROLA_STACK_SIZE_LIMIT
     static_assert(sizeof(VecType) <= MICROLA_STACK_SIZE_LIMIT,
                   "Vec size exceeds MICROLA_STACK_SIZE_LIMIT - consider reducing dimension");
@@ -52,21 +50,19 @@ template<typename T, std::uint32_t R, std::uint32_t C>
 struct MatLayoutCheck
 {
     using MatType = Mat<T, R, C>;
-    
+
     static_assert(R > 0 && C > 0, "Matrix dimensions must be greater than 0");
-    
+
     // Mat must be standard layout for DMA and C compatibility
-    static_assert(std::is_standard_layout<MatType>::value,
-                  "Mat must be standard layout for DMA compatibility");
-    
+    static_assert(std::is_standard_layout<MatType>::value, "Mat must be standard layout for DMA compatibility");
+
 #ifdef MICROLA_STACK_SIZE_LIMIT
     static_assert(sizeof(T) * R * C <= MICROLA_STACK_SIZE_LIMIT,
                   "Matrix size exceeds MICROLA_STACK_SIZE_LIMIT - consider reducing dimensions");
 #endif
-    
+
     // Verify contiguous row-major storage
-    static_assert(sizeof(MatType) >= sizeof(T) * R * C,
-                  "Matrix storage is too small for elements");
+    static_assert(sizeof(MatType) >= sizeof(T) * R * C, "Matrix storage is too small for elements");
 };
 
 /// @brief Validate Quaternion<T> memory layout for DMA compatibility
@@ -75,22 +71,18 @@ template<typename T>
 struct QuaternionLayoutCheck
 {
     using QuatType = Quaternion<T>;
-    
-    static_assert(std::is_floating_point<T>::value,
-                  "Quaternion requires floating-point type");
-    
+
+    static_assert(std::is_floating_point<T>::value, "Quaternion requires floating-point type");
+
     // Quaternion must be standard layout for DMA and C compatibility
-    static_assert(std::is_standard_layout<QuatType>::value,
-                  "Quaternion must be standard layout for DMA compatibility");
-    
+    static_assert(std::is_standard_layout<QuatType>::value, "Quaternion must be standard layout for DMA compatibility");
+
 #ifdef MICROLA_STACK_SIZE_LIMIT
-    static_assert(sizeof(QuatType) <= MICROLA_STACK_SIZE_LIMIT,
-                  "Quaternion size exceeds MICROLA_STACK_SIZE_LIMIT");
+    static_assert(sizeof(QuatType) <= MICROLA_STACK_SIZE_LIMIT, "Quaternion size exceeds MICROLA_STACK_SIZE_LIMIT");
 #endif
-    
+
     // Verify expected size (4 components + alignment)
-    static_assert(sizeof(QuatType) == sizeof(T) * 4 || 
-                  sizeof(QuatType) == ((sizeof(T) * 4 + 15) & ~15),
+    static_assert(sizeof(QuatType) == sizeof(T) * 4 || sizeof(QuatType) == ((sizeof(T) * 4 + 15) & ~15),
                   "Quaternion has unexpected size");
 };
 
@@ -155,12 +147,10 @@ template<typename T, std::uint32_t N>
 struct VecDMACheck
 {
     // Verify Vec is trivially copyable (required for DMA)
-    static_assert(std::is_trivially_copyable<Vec<T, N>>::value,
-                  "Vec must be trivially copyable for DMA compatibility");
-    
+    static_assert(std::is_trivially_copyable<Vec<T, N>>::value, "Vec must be trivially copyable for DMA compatibility");
+
     // Verify proper alignment for DMA (typically 16 bytes for SIMD)
-    static_assert(alignof(Vec<T, N>) >= alignof(T),
-                  "Vec alignment must be at least as strict as element type");
+    static_assert(alignof(Vec<T, N>) >= alignof(T), "Vec alignment must be at least as strict as element type");
 };
 
 template<typename T, std::uint32_t R, std::uint32_t C>
@@ -169,10 +159,9 @@ struct MatDMACheck
     // Verify Mat is trivially copyable (required for DMA)
     static_assert(std::is_trivially_copyable<Mat<T, R, C>>::value,
                   "Mat must be trivially copyable for DMA compatibility");
-    
+
     // Verify proper alignment for DMA
-    static_assert(alignof(Mat<T, R, C>) >= alignof(T),
-                  "Mat alignment must be at least as strict as element type");
+    static_assert(alignof(Mat<T, R, C>) >= alignof(T), "Mat alignment must be at least as strict as element type");
 };
 
 template<typename T>
@@ -181,7 +170,7 @@ struct QuaternionDMACheck
     // Verify Quaternion is trivially copyable (required for DMA)
     static_assert(std::is_trivially_copyable<Quaternion<T>>::value,
                   "Quaternion must be trivially copyable for DMA compatibility");
-    
+
     // Verify proper alignment for DMA
     static_assert(alignof(Quaternion<T>) >= alignof(T),
                   "Quaternion alignment must be at least as strict as element type");

@@ -50,15 +50,15 @@ public:
     using MeasurementJacobianFunc = MeasToStateMat (*)(const StateVec&);
 
 private:
-    StateVec x_;                         ///< State estimate vector
-    StateMat P_;                         ///< State covariance matrix
-    StateMat Q_;                         ///< Process noise covariance
-    MeasMat R_;                          ///< Measurement noise covariance
-    
-    StateTransitionFunc f_;              ///< Nonlinear state transition function
-    MeasurementFunc h_;                  ///< Nonlinear measurement function
-    StateJacobianFunc F_jacobian_;       ///< State transition Jacobian
-    MeasurementJacobianFunc H_jacobian_; ///< Measurement Jacobian
+    StateVec x_;  ///< State estimate vector
+    StateMat P_;  ///< State covariance matrix
+    StateMat Q_;  ///< Process noise covariance
+    MeasMat R_;   ///< Measurement noise covariance
+
+    StateTransitionFunc f_;               ///< Nonlinear state transition function
+    MeasurementFunc h_;                   ///< Nonlinear measurement function
+    StateJacobianFunc F_jacobian_;        ///< State transition Jacobian
+    MeasurementJacobianFunc H_jacobian_;  ///< Measurement Jacobian
 
 public:
     /// @brief Constructor with function pointers
@@ -68,34 +68,18 @@ public:
     /// @param meas_jac Measurement Jacobian function
     /// @param process_noise Process noise covariance
     /// @param measurement_noise Measurement noise covariance
-    ExtendedKalmanFilter(
-        StateTransitionFunc state_func,
-        MeasurementFunc meas_func,
-        StateJacobianFunc state_jac,
-        MeasurementJacobianFunc meas_jac,
-        const StateMat& process_noise,
-        const MeasMat& measurement_noise) noexcept
-        : x_()
-        , P_(StateMat::identity())
-        , Q_(process_noise)
-        , R_(measurement_noise)
-        , f_(state_func)
-        , h_(meas_func)
-        , F_jacobian_(state_jac)
-        , H_jacobian_(meas_jac)
+    ExtendedKalmanFilter(StateTransitionFunc state_func, MeasurementFunc meas_func, StateJacobianFunc state_jac,
+                         MeasurementJacobianFunc meas_jac, const StateMat& process_noise,
+                         const MeasMat& measurement_noise) noexcept
+        : x_(), P_(StateMat::identity()), Q_(process_noise), R_(measurement_noise), f_(state_func), h_(meas_func),
+          F_jacobian_(state_jac), H_jacobian_(meas_jac)
     {
     }
 
     /// @brief Default constructor (requires function pointers to be set later)
     ExtendedKalmanFilter() noexcept
-        : x_()
-        , P_(StateMat::identity())
-        , Q_(StateMat::identity() * T(0.01))
-        , R_(MeasMat::identity() * T(0.1))
-        , f_(nullptr)
-        , h_(nullptr)
-        , F_jacobian_(nullptr)
-        , H_jacobian_(nullptr)
+        : x_(), P_(StateMat::identity()), Q_(StateMat::identity() * T(0.01)), R_(MeasMat::identity() * T(0.1)),
+          f_(nullptr), h_(nullptr), F_jacobian_(nullptr), H_jacobian_(nullptr)
     {
     }
 
@@ -206,8 +190,14 @@ public:
     const StateVec& get_state() const noexcept { return x_; }
     const StateMat& get_covariance() const noexcept { return P_; }
     T get_state(std::size_t index) const noexcept { return x_[static_cast<std::uint32_t>(index)]; }
-    T get_variance(std::size_t index) const noexcept { return P_(static_cast<std::uint32_t>(index), static_cast<std::uint32_t>(index)); }
-    T get_std_dev(std::size_t index) const noexcept { return std::sqrt(P_(static_cast<std::uint32_t>(index), static_cast<std::uint32_t>(index))); }
+    T get_variance(std::size_t index) const noexcept
+    {
+        return P_(static_cast<std::uint32_t>(index), static_cast<std::uint32_t>(index));
+    }
+    T get_std_dev(std::size_t index) const noexcept
+    {
+        return std::sqrt(P_(static_cast<std::uint32_t>(index), static_cast<std::uint32_t>(index)));
+    }
 
     // ==================== Setters ====================
 
@@ -266,7 +256,9 @@ public:
         {
             for (std::size_t j = 0; j < MEAS_DIM; ++j)
             {
-                nis += y[static_cast<std::uint32_t>(i)] * S_inv(static_cast<std::uint32_t>(i), static_cast<std::uint32_t>(j)) * y[static_cast<std::uint32_t>(j)];
+                nis += y[static_cast<std::uint32_t>(i)] *
+                       S_inv(static_cast<std::uint32_t>(i), static_cast<std::uint32_t>(j)) *
+                       y[static_cast<std::uint32_t>(j)];
             }
         }
         return nis;

@@ -673,7 +673,8 @@ public:
                     float b_col[4] = {b[j], b[4 + j], b[8 + j], b[12 + j]};
                     vfloat32m1_t b_col_v = vle32_v_f32m1(b_col, vl);
                     vfloat32m1_t prod = vfmul_vv_f32m1(a_row, b_col_v, vl);
-                    vfloat32m1_t sum = vfredsum_vs_f32m1_f32m1(vundefined_f32m1(), prod, vfmv_s_f_f32m1(vundefined_f32m1(), 0.0f, vl), vl);
+                    vfloat32m1_t sum = vfredsum_vs_f32m1_f32m1(vundefined_f32m1(), prod,
+                                                               vfmv_s_f_f32m1(vundefined_f32m1(), 0.0f, vl), vl);
                     r[i * 4 + j] = vfmv_f_s_f32m1_f32(sum);
                 }
             }
@@ -764,7 +765,8 @@ public:
             {
                 vfloat32m1_t row = vle32_v_f32m1(&m[i * 4], vl);
                 vfloat32m1_t prod = vfmul_vv_f32m1(row, vec_val, vl);
-                vfloat32m1_t sum = vfredsum_vs_f32m1_f32m1(vundefined_f32m1(), prod, vfmv_s_f_f32m1(vundefined_f32m1(), 0.0f, vl), vl);
+                vfloat32m1_t sum =
+                    vfredsum_vs_f32m1_f32m1(vundefined_f32m1(), prod, vfmv_s_f_f32m1(vundefined_f32m1(), 0.0f, vl), vl);
                 r[i] = vfmv_f_s_f32m1_f32(sum);
             }
             return result;
@@ -782,7 +784,8 @@ public:
             {
                 vfloat32m1_t row = vle32_v_f32m1(&m[i * 3], vl);
                 vfloat32m1_t prod = vfmul_vv_f32m1(row, vec_val, vl);
-                vfloat32m1_t sum = vfredsum_vs_f32m1_f32m1(vundefined_f32m1(), prod, vfmv_s_f_f32m1(vundefined_f32m1(), 0.0f, vl), vl);
+                vfloat32m1_t sum =
+                    vfredsum_vs_f32m1_f32m1(vundefined_f32m1(), prod, vfmv_s_f_f32m1(vundefined_f32m1(), 0.0f, vl), vl);
                 r[i] = vfmv_f_s_f32m1_f32(sum);
             }
             return result;
@@ -1088,7 +1091,8 @@ public:
     ///          Uses the axis-angle approach: axis = from × to, angle = acos(from · to).
     ///          Handles the special cases of parallel and antiparallel vectors.
     ///          In C++26+, this function is constexpr when parameters are known at compile-time.
-    MICROLA_NODISCARD static MICROLA_CONSTEXPR26 Mat<T, 3, 3> rotation_from_to(const Vec<T, 3>& from, const Vec<T, 3>& to)
+    MICROLA_NODISCARD static MICROLA_CONSTEXPR26 Mat<T, 3, 3> rotation_from_to(const Vec<T, 3>& from,
+                                                                               const Vec<T, 3>& to)
     {
         static_assert(R == 3 && C == 3, "rotation_from_to is only defined for 3x3 matrices.");
 
@@ -1540,7 +1544,7 @@ public:
     /// @note For non-square matrices, this uses the covariance method: A^T*A for tall matrices
     ///       or A*A^T for wide matrices. For best accuracy, prefer square or nearly-square matrices.
     MICROLA_NODISCARD std::tuple<Mat<T, R, R>, Mat<T, R, C>, Mat<T, C, C>> svd(std::uint32_t maxIterations = 100,
-                                                                              T tolerance = 1e-9) const
+                                                                               T tolerance = 1e-9) const
     {
         // Initialize result matrices
         Mat<T, R, R> U = Mat<T, R, R>::identity();

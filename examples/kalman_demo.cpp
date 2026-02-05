@@ -27,10 +27,7 @@ void demo_standard_kalman()
     // position_k = position_{k-1} + velocity_{k-1} * dt
     // velocity_k = velocity_{k-1}
     float dt = 0.1f;  // 100ms time step
-    Mat<float, 2, 2> F({
-        1.0f, dt,
-        0.0f, 1.0f
-    });
+    Mat<float, 2, 2> F({1.0f, dt, 0.0f, 1.0f});
     kf.set_state_transition(F);
 
     // Measurement matrix (measure position only)
@@ -39,10 +36,7 @@ void demo_standard_kalman()
     kf.set_measurement_matrix(H);
 
     // Process noise (model uncertainty)
-    Mat<float, 2, 2> Q({
-        0.01f, 0.0f,
-        0.0f,  0.01f
-    });
+    Mat<float, 2, 2> Q({0.01f, 0.0f, 0.0f, 0.01f});
     kf.set_process_noise(Q);
 
     // Measurement noise (sensor uncertainty)
@@ -51,10 +45,7 @@ void demo_standard_kalman()
 
     // Initial state: position = 0, velocity = 1 m/s
     Vec<float, 2> x0({0.0f, 1.0f});
-    Mat<float, 2, 2> P0({
-        1.0f, 0.0f,
-        0.0f, 1.0f
-    });
+    Mat<float, 2, 2> P0({1.0f, 0.0f, 0.0f, 1.0f});
     kf.reset(x0, P0);
 
     // Simulate 10 time steps
@@ -65,7 +56,7 @@ void demo_standard_kalman()
     for (int i = 0; i < 10; ++i)
     {
         float t = i * dt;
-        
+
         // True state (constant velocity motion)
         float true_pos = 0.0f + 1.0f * t;  // position = initial_pos + velocity * time
         float true_vel = 1.0f;
@@ -86,13 +77,9 @@ void demo_standard_kalman()
         float est_vel = kf.get_state(1);
         float pos_std = kf.get_std_dev(0);
 
-        std::cout << std::setw(6) << t << " | "
-                  << std::setw(8) << true_pos << " | "
-                  << std::setw(8) << measured_pos << " | "
-                  << std::setw(8) << est_pos << " | "
-                  << std::setw(8) << true_vel << " | "
-                  << std::setw(8) << est_vel << " | "
-                  << std::setw(7) << pos_std << std::endl;
+        std::cout << std::setw(6) << t << " | " << std::setw(8) << true_pos << " | " << std::setw(8) << measured_pos
+                  << " | " << std::setw(8) << est_pos << " | " << std::setw(8) << true_vel << " | " << std::setw(8)
+                  << est_vel << " | " << std::setw(7) << pos_std << std::endl;
     }
 
     std::cout << "\n✓ Filter converges: estimated velocity approaches true velocity (1.0 m/s)" << std::endl;
@@ -111,8 +98,8 @@ Vec<float, 4> state_transition_nonlinear(const Vec<float, 4>& x, float dt)
     Vec<float, 4> x_new;
     x_new[0] = x[0] + x[2] * dt;  // x = x + vx * dt
     x_new[1] = x[1] + x[3] * dt;  // y = y + vy * dt
-    x_new[2] = x[2];               // vx remains constant
-    x_new[3] = x[3];               // vy remains constant
+    x_new[2] = x[2];              // vx remains constant
+    x_new[3] = x[3];              // vy remains constant
     return x_new;
 }
 
@@ -120,12 +107,8 @@ Vec<float, 4> state_transition_nonlinear(const Vec<float, 4>& x, float dt)
 Mat<float, 4, 4> state_jacobian(const Vec<float, 4>& x, float dt)
 {
     (void)x;  // Not used in linear velocity model
-    return Mat<float, 4, 4>({
-        1.0f, 0.0f, dt,   0.0f,
-        0.0f, 1.0f, 0.0f, dt,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    });
+    return Mat<float, 4, 4>(
+        {1.0f, 0.0f, dt, 0.0f, 0.0f, 1.0f, 0.0f, dt, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f});
 }
 
 // Nonlinear measurement model: [range, bearing] from [x, y]
@@ -142,17 +125,17 @@ Mat<float, 2, 4> measurement_jacobian(const Vec<float, 4>& x)
     float px = x[0];
     float py = x[1];
     float range = std::sqrt(px * px + py * py);
-    
+
     if (range < 1e-6f)
         range = 1e-6f;  // Avoid division by zero
 
     // ∂range/∂x = x/r,  ∂range/∂y = y/r
     // ∂bearing/∂x = -y/r², ∂bearing/∂y = x/r²
     float r2 = range * range;
-    
+
     return Mat<float, 2, 4>({
-        px / range,     py / range,     0.0f, 0.0f,  // ∂range/∂[x,y,vx,vy]
-        -py / r2,       px / r2,        0.0f, 0.0f   // ∂bearing/∂[x,y,vx,vy]
+        px / range, py / range, 0.0f, 0.0f,  // ∂range/∂[x,y,vx,vy]
+        -py / r2, px / r2, 0.0f, 0.0f        // ∂bearing/∂[x,y,vx,vy]
     });
 }
 
@@ -164,18 +147,12 @@ void demo_extended_kalman()
     // Create EKF: 4 states [x, y, vx, vy], 2 measurements [range, bearing]
     Mat<float, 4, 4> Q = Mat<float, 4, 4>::identity() * 0.01f;  // Process noise
     Mat<float, 2, 2> R({
-        0.1f, 0.0f,    // Range measurement noise
-        0.0f, 0.05f    // Bearing measurement noise (radians)
+        0.1f, 0.0f,  // Range measurement noise
+        0.0f, 0.05f  // Bearing measurement noise (radians)
     });
 
-    ExtendedKalmanFilter<float, 4, 2> ekf(
-        state_transition_nonlinear,
-        measurement_model,
-        state_jacobian,
-        measurement_jacobian,
-        Q,
-        R
-    );
+    ExtendedKalmanFilter<float, 4, 2> ekf(state_transition_nonlinear, measurement_model, state_jacobian,
+                                          measurement_jacobian, Q, R);
 
     // Initial state: position (10, 5), velocity (2, 1) m/s
     Vec<float, 4> x0({10.0f, 5.0f, 2.0f, 1.0f});
@@ -215,14 +192,10 @@ void demo_extended_kalman()
         Vec<float, 4> x_est = ekf.get_state();
         float est_range = std::sqrt(x_est[0] * x_est[0] + x_est[1] * x_est[1]);
 
-        std::cout << std::setw(6) << t << " | "
-                  << std::setw(6) << true_x << " | "
-                  << std::setw(6) << true_y << " | "
-                  << std::setw(6) << x_est[0] << " | "
-                  << std::setw(6) << x_est[1] << " | "
-                  << std::setw(10) << true_range << " | "
-                  << std::setw(10) << meas_range << " | "
-                  << std::setw(9) << est_range << std::endl;
+        std::cout << std::setw(6) << t << " | " << std::setw(6) << true_x << " | " << std::setw(6) << true_y << " | "
+                  << std::setw(6) << x_est[0] << " | " << std::setw(6) << x_est[1] << " | " << std::setw(10)
+                  << true_range << " | " << std::setw(10) << meas_range << " | " << std::setw(9) << est_range
+                  << std::endl;
     }
 
     std::cout << "\n✓ EKF handles nonlinear measurement model (polar coordinates)" << std::endl;
@@ -240,17 +213,14 @@ void demo_sensor_fusion()
     // Simple 1D tilt angle estimation
     // State: [angle, bias] - tilt angle and gyro bias
     // Measurements: accelerometer angle (from gravity vector)
-    
+
     KalmanFilter<float, 2, 1> kf;
 
     float dt = 0.02f;  // 50 Hz update rate
-    
+
     // State transition: angle_k = angle_{k-1} + (gyro - bias) * dt
     // This is simplified - gyro input comes through update
-    Mat<float, 2, 2> F({
-        1.0f, -dt,
-        0.0f, 1.0f
-    });
+    Mat<float, 2, 2> F({1.0f, -dt, 0.0f, 1.0f});
     kf.set_state_transition(F);
 
     // Measurement: accelerometer angle
@@ -259,11 +229,10 @@ void demo_sensor_fusion()
 
     // Tuning parameters
     Mat<float, 2, 2> Q({
-        0.001f, 0.0f,
-        0.0f,   0.00001f  // Bias changes slowly
+        0.001f, 0.0f, 0.0f, 0.00001f  // Bias changes slowly
     });
     Mat<float, 1, 1> R({0.3f});  // Accelerometer noise
-    
+
     kf.set_process_noise(Q);
     kf.set_measurement_noise(R);
 
@@ -294,11 +263,8 @@ void demo_sensor_fusion()
         float est_angle = kf.get_state(0);
         float est_bias = kf.get_state(1);
 
-        std::cout << std::setw(6) << t << " | "
-                  << std::setw(10) << true_angle << " | "
-                  << std::setw(11) << accel_angle << " | "
-                  << std::setw(9) << est_angle << " | "
-                  << std::setw(8) << est_bias << std::endl;
+        std::cout << std::setw(6) << t << " | " << std::setw(10) << true_angle << " | " << std::setw(11) << accel_angle
+                  << " | " << std::setw(9) << est_angle << " | " << std::setw(8) << est_bias << std::endl;
     }
 
     std::cout << "\n✓ Kalman filter fuses noisy accelerometer with gyroscope" << std::endl;
