@@ -23,6 +23,7 @@ file(GLOB_RECURSE TEST_SOURCES
     "google/test_fast_math.cpp"
     "google/test_numerical.cpp"
     "google/test_resource.cpp"
+    "google/test_matrix_view.cpp"
 )
 
 # Create test executable
