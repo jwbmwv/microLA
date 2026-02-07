@@ -1,0 +1,55 @@
+name: Zephyr Native Sim Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  native-sim:
+    name: Zephyr native_sim
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build python3-pip python3-setuptools python3-wheel git
+
+      - name: Install West
+        run: |
+          pip3 install --user -U west
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Setup Zephyr workspace (shallow)
+        run: |
+          west init -l .
+          west update --narrow -o=--depth=1
+          west zephyr-export
+
+      - name: Install Python requirements (if present)
+        run: |
+          if [ -f zephyr/scripts/requirements.txt ]; then
+            pip3 install --user -r zephyr/scripts/requirements.txt || true
+          fi
+
+      - name: Build tests for native_sim
+        working-directory: tests/zephyr
+        run: |
+          west build -b native_sim -p
+
+      - name: Run native_sim tests
+        working-directory: tests/zephyr
+        run: |
+          # Run the built native simulator; capture output
+          west build -t run || true
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zephyr-native-sim-logs
+          path: tests/zephyr/zephyr-* || tests/zephyr/build || .

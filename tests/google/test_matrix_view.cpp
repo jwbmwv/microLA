@@ -4,7 +4,7 @@
 /// @copyright Copyright (c) 2026 James Baldwin
 
 #include <gtest/gtest.h>
-#include "../../include/microla/matrix_view.hpp"
+#include <microla/matrix_view.hpp>
 
 using namespace microla;
 
@@ -39,8 +39,12 @@ TEST(MatrixViewTest, SetCopiesIntoParent)
 
     // Parent should contain src values at rows 1..2 and cols 0..2
     for (std::uint32_t i = 0; i < 2; ++i)
+    {
         for (std::uint32_t j = 0; j < 3; ++j)
+        {
             EXPECT_FLOAT_EQ(m(i + 1, j + 0), src(i, j));
+        }
+    }
 }
 
 TEST(MatrixViewTest, ToMatrixReturnsCopy)

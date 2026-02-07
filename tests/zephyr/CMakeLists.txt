@@ -18,6 +18,7 @@ target_sources(app PRIVATE
     src/test_matrix.cpp
     src/test_quaternion.cpp
     src/test_integration.cpp
+    src/test_matrix_view.cpp
 )
 
 # Enable C++17 for MicroLA
