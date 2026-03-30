@@ -7,7 +7,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "MicroLA"
 PROJECT_NUMBER         = 1.0.0
-PROJECT_BRIEF          = "Header-only C++17 linear algebra library for embedded systems"
+PROJECT_BRIEF          = "Header-only C++20 linear algebra library for embedded systems"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = docs/doxygen
 CREATE_SUBDIRS         = NO
@@ -270,11 +270,12 @@ EXPAND_ONLY_PREDEF     = YES
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = include
 INCLUDE_FILE_PATTERNS  =
-PREDEFINED             = __cplusplus=201703L \
+PREDEFINED             = __cplusplus=202002L \
                          MICROLA_CONSTEXPR=constexpr \
                          MICROLA_CONSTEXPR14=constexpr \
                          MICROLA_CONSTEXPR17=constexpr \
                          MICROLA_CONSTEXPR20=constexpr \
+                         MICROLA_CONSTEVAL=consteval \
                          MICROLA_NODISCARD=[[nodiscard]] \
                          MICROLA_INLINE_VAR=inline \
                          MICROLA_IF_CONSTEXPR="if constexpr" \

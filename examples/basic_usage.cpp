@@ -62,6 +62,9 @@ auto main() -> int
 {
     std::cout << "=== MicroLA Basic Usage Examples ===\n\n";
 
+    constexpr float pi = constants::pi<float>();
+    constexpr float radians_to_degrees = 180.0F / pi;
+
     // ==================== Vector Operations ====================
     std::cout << "--- Vector Operations ---\n";
 
@@ -83,13 +86,13 @@ auto main() -> int
     print_vec3("v1 × v2", cross);
 
     float angle = v1.angle(v2);
-    std::cout << "   angle: " << angle << " rad (" << (angle * 180.0F / 3.14159F) << "°)\n\n";
+    std::cout << "   angle: " << angle << " rad (" << (angle * radians_to_degrees) << "°)\n\n";
 
     // ==================== Matrix Operations ====================
     std::cout << "--- Matrix Operations ---\n";
 
     // Create 90° rotation around Z-axis
-    Mat<float, 3, 3> rz = Mat<float, 3, 3>::rotation_z(3.14159F / 2.0F);
+    Mat<float, 3, 3> rz = Mat<float, 3, 3>::rotation_z(pi / 2.0F);
 
     std::cout << "   Mat3 dimensions: " << microla::Mat<float, 3, 3>::rows() << "x" << microla::Mat<float, 3, 3>::cols()
               << " (" << microla::Mat<float, 3, 3>::size() << " elements)\n";
@@ -118,7 +121,7 @@ auto main() -> int
 
     // Create quaternion for 45° rotation around Z-axis
     Vec<float, 3> axis(0.0F, 0.0F, 1.0F);
-    float quat_angle = 3.14159F / 4.0F;  // 45 degrees
+    float quat_angle = pi / 4.0F;  // 45 degrees
     Quaternion<float> q(axis, quat_angle);
 
     std::cout << "Quaternion (45° around Z): " << "w=" << q.w() << ", " << "x=" << q.x() << ", " << "y=" << q.y()
@@ -133,7 +136,7 @@ auto main() -> int
     std::cout << "\n--- SLERP Interpolation ---\n";
 
     Quaternion<float> q_start = Quaternion<float>::identity();
-    Quaternion<float> q_end(axis, 3.14159F / 2.0F);  // 90 degrees
+    Quaternion<float> q_end(axis, pi / 2.0F);  // 90 degrees
 
     std::cout << "Interpolating from 0° to 90°:\n";
     for (int step = 0; step <= 4; ++step)
@@ -156,7 +159,7 @@ auto main() -> int
     print_vec3("Accel 2", accel2);
 
     float accel_angle = accel1.angle(accel2);
-    std::cout << "Angle between: " << accel_angle << " rad (" << (accel_angle * 180.0F / 3.14159F) << "°)\n";
+    std::cout << "Angle between: " << accel_angle << " rad (" << (accel_angle * radians_to_degrees) << "°)\n";
 
     // Create rotation to align accel1 to accel2
     Mat<float, 3, 3> r_align = Mat<float, 3, 3>::rotation_from_to(accel1, accel2);
@@ -194,14 +197,14 @@ auto main() -> int
     Vec<float, 3> v_z(0.0F, 0.0F, 1.0F);
 
     float signed_ang = v_x.signed_angle(v_y, v_z);
-    std::cout << "Signed angle (x→y, around z): " << signed_ang << " rad (" << (signed_ang * 180.0F / 3.14159F)
+    std::cout << "Signed angle (x→y, around z): " << signed_ang << " rad (" << (signed_ang * radians_to_degrees)
               << "°)\n";
 
     // ==================== Matrix Operations Extended ====================
     std::cout << "\n--- Extended Matrix Operations ---\n";
 
     // 2D rotation
-    SquareMat<float, 2> r2d = SquareMat<float, 2>::rotation(3.14159F / 6.0F);  // 30°
+    SquareMat<float, 2> r2d = SquareMat<float, 2>::rotation(pi / 6.0F);  // 30°
     print_mat("2D Rotation (30°)", r2d);
 
     Vec<float, 2> v2d(1.0F, 0.0F);
@@ -209,9 +212,9 @@ auto main() -> int
     std::cout << "2D vector rotated: (" << v2d_rot[0] << ", " << v2d_rot[1] << ")\n";
 
     // 3D rotations around each axis
-    SquareMat<float, 3> rx_45 = SquareMat<float, 3>::rotation_x(3.14159F / 4.0F);  // 45° around X
-    SquareMat<float, 3> ry_45 = SquareMat<float, 3>::rotation_y(3.14159F / 4.0F);  // 45° around Y
-    SquareMat<float, 3> rz_45 = SquareMat<float, 3>::rotation_z(3.14159F / 4.0F);  // 45° around Z
+    SquareMat<float, 3> rx_45 = SquareMat<float, 3>::rotation_x(pi / 4.0F);  // 45° around X
+    SquareMat<float, 3> ry_45 = SquareMat<float, 3>::rotation_y(pi / 4.0F);  // 45° around Y
+    SquareMat<float, 3> rz_45 = SquareMat<float, 3>::rotation_z(pi / 4.0F);  // 45° around Z
 
     print_mat("Rotation X (45°)", rx_45);
     print_mat("Rotation Y (45°)", ry_45);
@@ -220,7 +223,7 @@ auto main() -> int
     // Rotation around arbitrary axis
     Vec<float, 3> arb_axis(1.0F, 1.0F, 1.0F);
     arb_axis = arb_axis.normalized();
-    SquareMat<float, 3> r_arb = SquareMat<float, 3>::rotation_axis_angle(arb_axis, 3.14159F / 3.0F);  // 60°
+    SquareMat<float, 3> r_arb = SquareMat<float, 3>::rotation_axis_angle(arb_axis, pi / 3.0F);  // 60°
     print_mat("Rotation around (1,1,1) axis (60°)", r_arb);
 
     // Look-at matrix
@@ -276,8 +279,8 @@ auto main() -> int
     std::cout << "\n--- Extended Quaternion Operations ---\n";
 
     // Create various quaternions
-    Quaternion<float> q1(Vec<float, 3>(0.0F, 0.0F, 1.0F), 3.14159F / 2.0F);  // 90° around Z
-    Quaternion<float> q2(Vec<float, 3>(1.0F, 0.0F, 0.0F), 3.14159F / 2.0F);  // 90° around X
+    Quaternion<float> q1(Vec<float, 3>(0.0F, 0.0F, 1.0F), pi / 2.0F);  // 90° around Z
+    Quaternion<float> q2(Vec<float, 3>(1.0F, 0.0F, 0.0F), pi / 2.0F);  // 90° around X
 
     print_quat("q1 (90° Z)", q1);
     print_quat("q2 (90° X)", q2);
@@ -318,7 +321,7 @@ auto main() -> int
     std::cout << "\n--- Advanced SLERP ---\n";
 
     Quaternion<float> q_start2 = Quaternion<float>::identity();
-    Quaternion<float> q_end2(Vec<float, 3>(1.0F, 1.0F, 0.0F).normalized(), 3.14159F);  // 180° around diagonal
+    Quaternion<float> q_end2(Vec<float, 3>(1.0F, 1.0F, 0.0F).normalized(), pi);  // 180° around diagonal
 
     std::cout << "Interpolating complex rotation:\n";
     for (int step = 0; step <= 5; ++step)
@@ -372,8 +375,8 @@ auto main() -> int
 
     // Extract orientation angles
     Vec<float, 3> orientation = r_body_to_world.euler_angles();
-    std::cout << "Roll, Pitch, Yaw: (" << (orientation[0] * 180.0F / 3.14159F) << "°, "
-              << (orientation[1] * 180.0F / 3.14159F) << "°, " << (orientation[2] * 180.0F / 3.14159F) << "°)\n";
+    std::cout << "Roll, Pitch, Yaw: (" << (orientation[0] * radians_to_degrees) << "°, "
+              << (orientation[1] * radians_to_degrees) << "°, " << (orientation[2] * radians_to_degrees) << "°)\n";
 
     std::cout << "\n=== All examples completed successfully! ===\n";
 

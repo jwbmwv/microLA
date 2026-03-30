@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 /// @file constants.hpp
-/// @brief Mathematical constants with C++17-C++26 optimizations
+/// @brief Mathematical constants with C++20-C++26 optimizations
 /// @details Provides compile-time mathematical constants for various numeric types.
 ///          This header is independent and can be used by any component.
 /// @copyright Copyright (c) 2026 James Baldwin. AI-assisted — see NOTICE.
@@ -10,6 +10,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <numbers>
 #include <type_traits>
 
 #include "compiler_features.hpp"
@@ -28,7 +29,11 @@ namespace detail
 template<typename T>
 constexpr auto pi_value() noexcept -> T
 {
-    return T(3.14159265358979323846);
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return std::numbers::pi_v<T>;
+    }
+    return static_cast<T>(std::numbers::pi_v<long double>);
 }
 
 template<typename T>
@@ -52,37 +57,61 @@ constexpr auto quarter_pi_value() noexcept -> T
 template<typename T>
 constexpr auto e_value() noexcept -> T
 {
-    return T(2.71828182845904523536);
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return std::numbers::e_v<T>;
+    }
+    return static_cast<T>(std::numbers::e_v<long double>);
 }
 
 template<typename T>
 constexpr auto golden_ratio_value() noexcept -> T
 {
-    return T(1.61803398874989484820);
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return std::numbers::phi_v<T>;
+    }
+    return static_cast<T>(std::numbers::phi_v<long double>);
 }
 
 template<typename T>
 constexpr auto sqrt2_value() noexcept -> T
 {
-    return T(1.41421356237309504880);
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return std::numbers::sqrt2_v<T>;
+    }
+    return static_cast<T>(std::numbers::sqrt2_v<long double>);
 }
 
 template<typename T>
 constexpr auto sqrt3_value() noexcept -> T
 {
-    return T(1.73205080756887729352);
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return std::numbers::sqrt3_v<T>;
+    }
+    return static_cast<T>(std::numbers::sqrt3_v<long double>);
 }
 
 template<typename T>
 constexpr auto ln2_value() noexcept -> T
 {
-    return T(0.69314718055994530942);
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return std::numbers::ln2_v<T>;
+    }
+    return static_cast<T>(std::numbers::ln2_v<long double>);
 }
 
 template<typename T>
 constexpr auto ln10_value() noexcept -> T
 {
-    return T(2.30258509299404568402);
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return std::numbers::ln10_v<T>;
+    }
+    return static_cast<T>(std::numbers::ln10_v<long double>);
 }
 
 constexpr auto epsilon_f_value() noexcept -> float

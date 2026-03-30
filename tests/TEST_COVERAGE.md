@@ -1,37 +1,35 @@
 # Test Coverage
 
-**Date:** March 7, 2026  
-**Baseline:** C++17 minimum, Linux local CI-equivalent validation
+**Date:** March 29, 2026  
+**Baseline:** C++20 minimum, Linux local migration validation
 
 ## Current Validation Summary
 
 | Lane | Result | Notes |
 |------|--------|-------|
-| `format-check` | Pass | `clang-format-18 --dry-run -Werror` over `include/`, `tests/`, `examples/`, `benchmarks/` |
-| `host-tests` | `517/517` | Host Google Tests plus embedded-contract tests |
-| `embedded-tests` | `517/517` | Host-side tests built with `MICROLA_EMBEDDED` |
-| `ci-release-cxx17` | `518/518` | Includes `sensor_fusion_example_smoke` |
-| `ci-release-cxx20` | `519/519` | Includes `sensor_fusion_example_smoke` and C++20-only coverage |
-| `coverage-ci` | `517/517` | Coverage-instrumented tests pass |
-| `sanitizers-ci` | `517/517` | ASan + UBSan lane passes |
-| `constexpr-cxx17` | `517/517` | C++17 constexpr validation |
-| `constexpr-cxx20` | `518/518` | C++20 constexpr validation |
-| `embedded-examples` | Build passes | Embedded examples compile cleanly |
-| `static-analysis` | Pass | `clang-tidy` umbrella-header gate, example TUs, and `cppcheck --force` |
-| `plantuml-validation` | Pass | CI-equivalent design validation passes; local rerun also validated example diagrams |
+| `format-check` | Pass | `clang-format-18 --dry-run -Werror` over `include/`, `tests/`, `examples/`, and `benchmarks/` |
+| `host-tests` | `530/530` | Host Google Tests plus embedded-contract tests |
+| `embedded-tests` | `530/530` | Host-side tests built with `MICROLA_EMBEDDED` |
+| `ci-release-cxx20` | `531/531` | Includes `sensor_fusion_example_smoke` |
+| `coverage-ci` | `530/530` | Coverage-instrumented tests pass |
+| `sanitizers-ci` | `530/530` | ASan + UBSan lane passes |
+| `constexpr-cxx20` | `530/530` | Dedicated C++20 constexpr validation |
+| `static-analysis` | Pass | Exact CI-style `clang-tidy` header gate, `examples/*.cpp` gate, and `cppcheck --force` all completed cleanly after the C++20 modernization follow-up |
+| `diagram-regeneration` | Pass | `scripts/generate_diagrams.sh` regenerated PNG, SVG, and PDF assets successfully |
 
 ## Coverage Highlights
 
 - `sensor_fusion.hpp` now has direct automated host coverage through `tests/google/test_sensor_fusion.cpp`.
-- The sensor-fusion coverage includes invalid-startup handling, magnetometer rejection fallback, drift-aware heading output, hinge twist, swing extraction, reference-pose capture, and stale/skew flagging.
-- The maintained `examples/sensor_fusion.cpp` program is now exercised by `sensor_fusion_example_smoke` in the release presets, so the documented fusion flow is not compile-only.
+- The sensor-fusion coverage now also includes arbitrary-unit magnetometer acceptance, directional magnetic disturbance rejection, shared Mahony or EKF gyro-dropout fallback, calibration-reset behavior, and recent-skew compensation.
+- The maintained `examples/sensor_fusion.cpp` program is now exercised by `sensor_fusion_example_smoke` in the release preset, so the documented fusion flow is not compile-only.
 - Embedded allocation-contract coverage remains explicit through the dedicated embedded-contract suite.
 
 ## Local Limits
 
 - The Windows and macOS matrix jobs were not run locally in this Linux workspace.
 - The Zephyr QEMU workflow was not run locally because it requires the external Zephyr workspace and SDK setup performed by CI.
-- `lcov` is not installed in this environment, so the coverage preset was executed but the local HTML or summary coverage report was not regenerated here.
+- Windows, macOS, and Zephyr-QEMU remain the only CI surfaces not rerun in this Linux workspace.
+- The exact CI-style `static-analysis` lane was rerun locally after the modernization cleanup and now passes in this Linux workspace.
 
 ## Recommended Canonical References
 

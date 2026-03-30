@@ -35,6 +35,13 @@ auto make_mag_body(const Quaternion<T>& body_to_world, T field_strength = static
 }
 
 template<typename T>
+auto quaternion_distance(const Quaternion<T>& lhs, const Quaternion<T>& rhs) noexcept -> T
+{
+    const Quaternion<T> delta = (lhs.inverse_unit() * rhs).normalized();
+    return T(2) * std::acos(std::min(T(1), std::abs(delta.w())));
+}
+
+template<typename T>
 struct LeftAccelConfig : DefaultAccelOnlyConfig<T>
 {
 };
@@ -54,6 +61,12 @@ template<typename T>
 struct HeadingRelativeConfig : DefaultRelativeAngleConfig<T>
 {
     static constexpr PrimaryScalarOutput default_output = PrimaryScalarOutput::heading_delta;
+};
+
+template<typename T>
+struct SkewTolerantHeadingRelativeConfig : HeadingRelativeConfig<T>
+{
+    static constexpr T min_confidence_to_publish = static_cast<T>(0.2);
 };
 
 template<typename T>
@@ -122,6 +135,101 @@ TEST(SensorFusionOrientationTest, Imu9MagRejectionFallsBackToHeadingWithDrift)
     EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::mag_rejected));
     EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::propagation_only));
     EXPECT_GT(estimate.estimated_drift_rad, 0.0F);
+}
+
+TEST(SensorFusionOrientationTest, Imu9AcceptsMagnetometerSamplesInArbitraryConsistentUnits)
+{
+    OrientationEstimator<float, DefaultImu9MahonyConfig<float>> estimator;
+
+    const Quaternion<float> orientation =
+        Quaternion<float>::from_axis_angle(Vec<float, 3>(0.0F, 0.0F, 1.0F), deg_to_rad_local(30.0F));
+
+    estimator.update(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F), make_accel_body(orientation),
+                                       make_mag_body(orientation, 0.8F)});
+
+    const OrientationEstimate<float>& estimate = estimator.estimate();
+    EXPECT_TRUE(estimate.valid);
+    EXPECT_TRUE(estimate.heading_referenced);
+    EXPECT_EQ(estimate.observability, Observability::full_3d);
+    EXPECT_FALSE(has_flag(estimate.flags, StatusFlag::mag_rejected));
+    EXPECT_NEAR(quaternion_distance(estimate.orientation, orientation), 0.0F, 1e-3F);
+}
+
+TEST(SensorFusionOrientationTest, DirectionalMagneticDisturbanceIsRejectedAfterHeadingLock)
+{
+    OrientationEstimator<float, DefaultImu9MahonyConfig<float>> estimator;
+
+    estimator.update(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                       Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
+                                       Vec<float, 3>(0.8F, 0.0F, 0.0F)});
+    estimator.update(Imu9Sample<float>{0.1F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                       Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
+                                       Vec<float, 3>(-0.8F, 0.0F, 0.0F)});
+
+    const OrientationEstimate<float>& estimate = estimator.estimate();
+    EXPECT_TRUE(estimate.valid);
+    EXPECT_FALSE(estimate.heading_referenced);
+    EXPECT_EQ(estimate.observability, Observability::heading_with_drift);
+    EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::mag_rejected));
+    EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::propagation_only));
+}
+
+template<typename Config>
+void expect_gyro_dropout_uses_measurement_only_fallback()
+{
+    OrientationEstimator<float, Config> estimator;
+
+    estimator.update(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                       Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
+                                       Vec<float, 3>(0.8F, 0.0F, 0.0F)});
+
+    const Quaternion<float> target =
+        Quaternion<float>::from_axis_angle(Vec<float, 3>(0.0F, 0.0F, 1.0F), deg_to_rad_local(45.0F));
+
+    estimator.update(Imu9Sample<float>{0.1F, Vec<float, 3>(100.0F, 0.0F, 0.0F), make_accel_body(target),
+                                       make_mag_body(target, 0.8F)});
+
+    const OrientationEstimate<float>& estimate = estimator.estimate();
+    EXPECT_TRUE(estimate.valid);
+    EXPECT_TRUE(estimate.heading_referenced);
+    EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::gyro_rejected));
+    EXPECT_LT(quaternion_distance(estimate.orientation, target), deg_to_rad_local(35.0F));
+    EXPECT_GT(quaternion_distance(estimate.orientation, Quaternion<float>::identity()), deg_to_rad_local(5.0F));
+}
+
+TEST(SensorFusionOrientationTest, MahonyGyroDropoutUsesMeasurementOnlyFallback)
+{
+    expect_gyro_dropout_uses_measurement_only_fallback<DefaultImu9MahonyConfig<float>>();
+}
+
+TEST(SensorFusionOrientationTest, EkfGyroDropoutUsesMeasurementOnlyFallback)
+{
+    expect_gyro_dropout_uses_measurement_only_fallback<DefaultImu9EkfConfig<float>>();
+}
+
+TEST(SensorFusionOrientationTest, CalibrationUpdateResetsStateAndAllowsMagReferenceRelearn)
+{
+    OrientationEstimator<float, DefaultImu9MahonyConfig<float>> estimator;
+
+    estimator.update(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                       Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
+                                       Vec<float, 3>(50.0F, 0.0F, 0.0F)});
+    ASSERT_TRUE(estimator.estimate().valid);
+
+    estimator.set_calibration(SensorCalibration<float>{});
+
+    const OrientationEstimate<float>& after_reset = estimator.estimate();
+    EXPECT_FALSE(after_reset.valid);
+    EXPECT_EQ(after_reset.observability, Observability::none);
+
+    estimator.update(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                       Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
+                                       Vec<float, 3>(0.8F, 0.0F, 0.0F)});
+
+    const OrientationEstimate<float>& estimate = estimator.estimate();
+    EXPECT_TRUE(estimate.valid);
+    EXPECT_TRUE(estimate.heading_referenced);
+    EXPECT_FALSE(has_flag(estimate.flags, StatusFlag::mag_rejected));
 }
 
 TEST(SensorFusionTest, AccelOnlyTiltAngleTracksRelativeTilt)
@@ -261,6 +369,29 @@ TEST(SensorFusionTest, PairSkewAndStaleFlagsAreReported)
     EXPECT_TRUE(has_flag(result.primary.flags, StatusFlag::left_sample_stale));
     EXPECT_TRUE(has_flag(result.primary.flags, StatusFlag::pair_time_skew_exceeded));
     EXPECT_EQ(result.primary.quality, SolutionQuality::degraded);
+}
+
+TEST(SensorFusionTest, RelativeHeadingCompensatesRecentPairSkewUsingEntityRates)
+{
+    RelativeAngleEstimator<float, LeftImu6Config<float>, RightImu6Config<float>,
+                           SkewTolerantHeadingRelativeConfig<float>>
+        estimator;
+
+    estimator.update_left(Imu6Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 1.0F),
+                                            Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>())});
+    estimator.update_right(Imu6Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 1.0F),
+                                             Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>())});
+
+    estimator.update_left(Imu6Sample<float>{0.04F, Vec<float, 3>(0.0F, 0.0F, 1.0F),
+                                            Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>())});
+
+    const RelativeAngleResult<float> result = estimator.compute();
+
+    EXPECT_TRUE(result.valid);
+    EXPECT_TRUE(result.primary.valid);
+    EXPECT_TRUE(has_flag(result.primary.flags, StatusFlag::pair_time_skew_exceeded));
+    EXPECT_EQ(result.primary.observability, Observability::heading_with_drift);
+    EXPECT_NEAR(result.primary.angle_rad, 0.0F, 1.5e-2F);
 }
 
 TEST(SensorFusionTest, DriftDisabledPolicyRejectsHeadingOnlyDriftResult)

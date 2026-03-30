@@ -18,13 +18,13 @@ Common issues, solutions, and debugging strategies for MicroLA.
 
 ### Error: "no member named 'MICROLA_CONSTEXPR' in namespace 'microla'"
 
-**Cause**: Using C++ standard below C++17.
+**Cause**: Using a C++ standard below C++20.
 
 **Solution**:
 
 ```cmake
 # CMakeLists.txt
-target_compile_features(your_target PRIVATE cxx_std_17)
+target_compile_features(your_target PRIVATE cxx_std_20)
 
 # Or set compiler flag
 set(CMAKE_CXX_STANDARD 17)
@@ -33,10 +33,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ```bash
 # GCC/Clang command line
-g++ -std=c++17 main.cpp
+g++ -std=c++20 main.cpp
 
 # MSVC
-cl /std:c++17 main.cpp
+cl /std:c++20 main.cpp
 ```
 
 ---
@@ -74,7 +74,7 @@ for (int i = 0; i < 3; ++i) {
 // ❌ Wrong (only works in C++26)
 constexpr auto m = Mat3f::rotation(45.0f * constants::deg_to_rad<float>);
 
-// ✅ Correct for C++17-23 (use special angle helpers)
+// ✅ Correct for C++20-23 (use special angle helpers)
 constexpr auto m = Mat3f::rotation_45();  // Precomputed
 constexpr auto m2 = Mat3f::rotation_90();
 
@@ -94,7 +94,7 @@ const auto m3 = Mat3f::rotation(45.0f * constants::deg_to_rad<float>);
 // ❌ Triggers warning
 Vec3f temp = a + b;
 
-// ✅ Mark as intentionally unused (C++17)
+// ✅ Mark as intentionally unused (C++20)
 [[maybe_unused]] Vec3f temp = a + b;
 
 // ✅ Or use directly
@@ -214,14 +214,14 @@ target_include_directories(your_target PRIVATE ${MICROLA_INCLUDE_DIR})
 
 ### Error: "multiple definition of 'microla::constants::pi'"
 
-**Cause**: Constants not properly inlined (pre-C++17).
+**Cause**: Building some translation units below the required C++20 mode or mixing inconsistent dialect settings.
 
 **Solution**:
 
 ```cpp
-// If using C++17+, this is automatic
+// If using C++20+, this is automatic
 
-// For C++17+, prefer inline constexpr constants in headers:
+// For C++20+, prefer inline constexpr constants in headers:
 namespace microla {
 namespace constants {
 namespace {  // Anonymous namespace
@@ -463,7 +463,7 @@ Vec3f transform(const Vec3f& v, const Mat3f& m) {
 // ❌ Runtime computation
 Mat4f proj = Mat4f::perspective(60.0f * constants::deg_to_rad<float>, 1.0f, 0.1f, 100.0f);
 
-// ✅ Compile-time (C++17+)
+// ✅ Compile-time (C++20+)
 constexpr Mat4f identity = Mat4f::identity();
 ```
 
@@ -640,7 +640,7 @@ lib_deps =
     https://github.com/jwbmwv/microla.git
 
 build_flags =
-    -std=c++17
+    -std=c++20
     -I include
 ```
 

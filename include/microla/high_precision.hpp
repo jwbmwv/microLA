@@ -14,7 +14,7 @@
 namespace microla::detail
 {
 // Prefer `long double` when it provides strictly more precision than `double`.
-// Use `std::conditional_t` under the C++17 baseline.
+// `std::conditional_t` keeps the alias selection compile-time only.
 #if defined(MICROLA_USE_LONG_DOUBLE_INTERMEDIATES) && (MICROLA_USE_LONG_DOUBLE_INTERMEDIATES)
 using high_prec_base =
     std::conditional_t<(std::numeric_limits<long double>::digits > std::numeric_limits<double>::digits), long double,

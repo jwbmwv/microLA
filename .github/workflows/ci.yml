@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build-test:
-    name: ${{ matrix.os }} - ${{ matrix.compiler }} - C++${{ matrix.std }}
+    name: ${{ matrix.os }} - ${{ matrix.compiler }} - C++20
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -21,7 +21,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         compiler: [gcc, clang, msvc]
-        std: [17, 20]
         exclude:
           # MSVC only on Windows
           - os: ubuntu-latest
@@ -43,10 +42,10 @@ jobs:
       - name: Cache CMake FetchContent (_deps)
         uses: actions/cache@v4
         with:
-          path: build/ci-release-cxx${{ matrix.std }}/_deps
-          key: fcdeps-${{ runner.os }}-${{ matrix.compiler }}-cxx${{ matrix.std }}-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          path: build/ci-release-cxx20/_deps
+          key: fcdeps-${{ runner.os }}-${{ matrix.compiler }}-cxx20-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
           restore-keys: |
-            fcdeps-${{ runner.os }}-${{ matrix.compiler }}-cxx${{ matrix.std }}-
+            fcdeps-${{ runner.os }}-${{ matrix.compiler }}-cxx20-
 
       - name: Install Dependencies (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
@@ -93,7 +92,7 @@ jobs:
       - name: Configure CMake
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            cmake --preset ci-release-cxx${{ matrix.std }} \
+            cmake --preset ci-release-cxx20 \
               -DCMAKE_PREFIX_PATH="C:/googletest;C:/benchmark"
           else
             if [ "${{ matrix.compiler }}" = "clang" ]; then
@@ -103,15 +102,15 @@ jobs:
               export CC=gcc
               export CXX=g++
             fi
-            cmake --preset ci-release-cxx${{ matrix.std }}
+            cmake --preset ci-release-cxx20
           fi
         shell: bash
 
       - name: Build
-        run: cmake --build --preset ci-release-cxx${{ matrix.std }} --parallel 2
+        run: cmake --build --preset ci-release-cxx20 --parallel 2
 
       - name: Test
-        run: ctest --preset ci-release-cxx${{ matrix.std }}
+        run: ctest --preset ci-release-cxx20
         shell: bash
 
   coverage:
@@ -349,7 +348,7 @@ jobs:
             --warnings-as-errors='*' \
             -- \
             -I"${GITHUB_WORKSPACE}/include" \
-            -std=c++17
+            -std=c++20
 
           # 2) Examples gate: run clang-tidy using compile_commands.json.
           echo "Checking examples/*.cpp"
@@ -371,7 +370,7 @@ jobs:
           cppcheck \
             --force \
             --enable=warning,performance,portability \
-            --std=c++17 \
+            --std=c++20 \
             --suppress=missingIncludeSystem \
             --error-exitcode=1 \
             --inline-suppr \
@@ -379,7 +378,7 @@ jobs:
             include/microla/*.hpp 2>&1 | tee cppcheck-report.txt
 
   constexpr-tests:
-    name: Constexpr Validation (C++17+)
+    name: Constexpr Validation (C++20)
     runs-on: ubuntu-latest
 
     steps:
@@ -388,21 +387,13 @@ jobs:
       - name: Cache CMake FetchContent (_deps)
         uses: actions/cache@v4
         with:
-          path: |
-            build/constexpr-cxx17/_deps
-            build/constexpr-cxx20/_deps
+          path: build/constexpr-cxx20/_deps
           key: fcdeps-${{ runner.os }}-constexpr-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
           restore-keys: |
             fcdeps-${{ runner.os }}-constexpr-
 
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install -y cmake ninja-build g++ libgtest-dev
-
-      - name: Build with C++17
-        run: |
-          cmake --preset constexpr-cxx17
-          cmake --build --preset constexpr-cxx17 --parallel 2
-          ctest --preset constexpr-cxx17
 
       - name: Build with C++20
         run: |

@@ -161,7 +161,7 @@ set(CMAKE_CXX_COMPILER_WORKS 1)
 #### IAR-Specific Configuration
 
 **Compiler Settings:**
-- **Language**: C++17 or later (Options → C/C++ Compiler → Language → C++ → C++17)
+- **Language**: C++20 or later (Options → C/C++ Compiler → Language → C++ → C++20)
 - **Optimization**: High for performance (Options → C/C++ Compiler → Optimizations)
 - **NEON**: Enable VFPv4_sp for NEON support (Options → C/C++ Compiler → Code)
 
@@ -254,7 +254,7 @@ To validate embedded constraints locally (disable exceptions and dynamic allocat
 
 ```bash
 # Create an embedded-style build directory
-cmake -S . -B build-embedded -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-DMICROLA_NO_EXCEPTIONS -DMICROLA_NO_DYNAMIC_ALLOC -DMICROLA_EMBEDDED -std=c++17"
+cmake -S . -B build-embedded -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-DMICROLA_NO_EXCEPTIONS -DMICROLA_NO_DYNAMIC_ALLOC -DMICROLA_EMBEDDED -std=c++20"
 cmake --build build-embedded --target microla_gtests -j
 ./build-embedded/tests/microla_gtests --gtest_color=yes
 ```
@@ -308,7 +308,7 @@ int main() {
 
 ## Requirements
 
-- C++17 or later
+- C++20 or later
 - CMake 3.13.1+ (for building)
 - Optional: ARM NEON (for Cortex-A/ARM64 optimization)
 - Optional: CMSIS-DSP (for Cortex-M optimization)

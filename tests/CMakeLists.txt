@@ -66,7 +66,7 @@ target_link_libraries(microla_gtests
 )
 
 # Set C++ standard
-target_compile_features(microla_gtests PRIVATE cxx_std_17)
+target_compile_features(microla_gtests PRIVATE cxx_std_20)
 
 # When the project-level benchmark preset enables -ffast-math, standard
 # library predicates like std::isfinite may be incorrectly optimized to
@@ -87,7 +87,7 @@ target_link_libraries(microla_embedded_contract_gtests
     GTest::gtest_main
 )
 
-target_compile_features(microla_embedded_contract_gtests PRIVATE cxx_std_17)
+target_compile_features(microla_embedded_contract_gtests PRIVATE cxx_std_20)
 target_compile_definitions(microla_embedded_contract_gtests PRIVATE MICROLA_EMBEDDED)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")

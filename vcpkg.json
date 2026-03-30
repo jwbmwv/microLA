@@ -2,7 +2,7 @@
   "name": "microla",
   "version": "1.0.0",
   "port-version": 0,
-  "description": "High-performance C++17 linear algebra library for embedded systems with SIMD optimizations",
+  "description": "High-performance C++20 linear algebra library for embedded systems with SIMD optimizations",
   "homepage": "https://github.com/jwbmwv/microla",
   "license": "Apache-2.0",
   "dependencies": [

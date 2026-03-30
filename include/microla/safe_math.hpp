@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <cstdint>
 #include <cstring>
+#include <numbers>
 
 namespace microla
 {
@@ -147,7 +148,7 @@ inline auto safe_acos(T value) noexcept -> T
     static_assert(std::is_floating_point_v<T>, "safe_acos requires floating-point type");
     if (value <= T(-1))
     {
-        return T(3.14159265358979323846);  // pi
+        return std::numbers::pi_v<T>;
     }
     if (value >= T(1))
     {

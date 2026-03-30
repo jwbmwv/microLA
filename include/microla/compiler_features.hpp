@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /// @file compiler_features.hpp
 /// @brief Compiler feature detection and cross-version C++ feature macros
-/// @details Provides MICROLA_* macros for C++17-C++26 features and platform/compiler hints.
+/// @details Provides MICROLA_* macros for the required C++20 baseline plus optional C++23/C++26
+///          features and platform/compiler hints.
 ///          This header centralizes all compiler feature detection to avoid duplication.
 /// @copyright Copyright (c) 2026 James Baldwin. AI-assisted — see NOTICE.
 /// @author James Baldwin
@@ -9,6 +10,15 @@
 #pragma once
 
 #include <type_traits>
+
+#if defined(__has_include)
+#if __has_include(<bit>)
+#include <bit>
+#endif
+#if __has_include(<utility>)
+#include <utility>
+#endif
+#endif
 
 // ==================== Library Configuration ====================
 // MICROLA_AUTODETECT_SIMD: Enable automatic SIMD feature detection
@@ -88,27 +98,28 @@
 #define MICROLA_DYNAMIC_ALLOC_ONLY(...)
 #endif
 
-// ==================== C++17 Baseline ====================
-
-// ==================== C++20 Features ====================
-#if __cplusplus >= 202002L
+// ==================== C++20 Minimum ====================
 #define MICROLA_CONSTEXPR20 constexpr
+
+#if defined(__cpp_consteval) && (__cpp_consteval >= 201811L)
 #define MICROLA_CONSTEVAL consteval
 #else
-#define MICROLA_CONSTEXPR20 inline
 #define MICROLA_CONSTEVAL constexpr
 #endif
 
 // ==================== C++23 Features ====================
-#if __cplusplus >= 202302L
+#if defined(__cpp_if_consteval) && (__cpp_if_consteval >= 202106L)
 #define MICROLA_CONSTEXPR23 constexpr
 #define MICROLA_IF_CONSTEVAL if consteval
-#include <utility>
-#define MICROLA_UNREACHABLE() std::unreachable()
 #else
 #define MICROLA_CONSTEXPR23
 #define MICROLA_IF_CONSTEVAL if (false)
-// Compiler-specific unreachable hints for older standards
+#endif
+
+#if defined(__cpp_lib_unreachable) && (__cpp_lib_unreachable >= 202202L)
+#define MICROLA_UNREACHABLE() std::unreachable()
+#else
+// Compiler-specific unreachable hints when std::unreachable is unavailable.
 #if defined(__GNUC__) || defined(__clang__)
 #define MICROLA_UNREACHABLE() __builtin_unreachable()
 #elif defined(_MSC_VER)
@@ -248,14 +259,12 @@ static_assert(stack_size_limit_is_valid(), "MICROLA_STACK_SIZE_LIMIT must be gre
 #define MICROLA_CONSTANT_TIME    // Documentation marker for constant-time operations
 // ==================== Type Conversion ====================
 
-#if __cplusplus >= 202002L
-#include <bit>
+#if defined(__cpp_lib_bit_cast) && (__cpp_lib_bit_cast >= 201806L)
 #define MICROLA_BIT_CAST(T, val) std::bit_cast<T>(val)
 #else
-// C++17-C++23 fallback: Use memcpy-based type conversion (safe, well-defined)
+// Fallback: use memcpy-based type conversion (safe, well-defined)
 // This avoids strict aliasing violations that reinterpret_cast can cause
 #include <cstring>
-#include <type_traits>
 
 namespace microla
 {

@@ -1,6 +1,6 @@
 # MicroLA Documentation
 
-Comprehensive documentation for MicroLA - a header-only C++17 linear algebra library.
+Comprehensive documentation for MicroLA - a header-only C++20 linear algebra library.
 
 ## Quick Links
 
@@ -20,7 +20,7 @@ Comprehensive documentation for MicroLA - a header-only C++17 linear algebra lib
 ### Advanced Topics
 
 - **[SIMD_Optimizations.md](SIMD_Optimizations.md)** - NEON and CMSIS-DSP optimization details
-- **[Cpp_Standard_Optimizations.md](Cpp_Standard_Optimizations.md)** - C++17-C++26 feature usage
+- **[Cpp_Standard_Optimizations.md](Cpp_Standard_Optimizations.md)** - C++20-C++26 feature usage
 
 ### Integration Guides
 

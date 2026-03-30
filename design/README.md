@@ -14,7 +14,7 @@ Documents the current SIMD strategy across NEON, CMSIS-DSP, AVX, RISC-V, and sca
 
 ### 3. C++ Standard Features (`cpp_standard_features.puml`)
 
-Illustrates progressive enhancement from C++17 through C++26.
+Illustrates the required C++20 baseline plus optional C++23/C++26 enhancements.
 
 ### 4. Memory Layout (`memory_layout.puml`)
 

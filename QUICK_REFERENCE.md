@@ -215,12 +215,12 @@ Vec3f safe_norm = v.safe_normalized();  // Zero vector if too small
 ## Compile-Time Operations
 
 ```cpp
-// C++17+ constexpr factory methods
+// C++20+ constexpr factory methods
 constexpr Vec3f zero = Vec3f::zero();
 constexpr Mat4f identity = Mat4f::identity();
 constexpr Quaternion<float> quat_id = Quaternion<float>::identity();
 
-// C++17+ constexpr special angle rotations
+// C++20+ constexpr special angle rotations
 constexpr Mat2f rot90 = Mat2f::rotation_deg<90>();
 constexpr Mat3f rotX180 = SquareMat<float,3>::rotation_x_deg<180>();
 

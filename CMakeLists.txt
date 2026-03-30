@@ -12,8 +12,8 @@ target_include_directories(microla INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 
-# Require C++17
-target_compile_features(microla INTERFACE cxx_std_17)
+# Require C++20
+target_compile_features(microla INTERFACE cxx_std_20)
 
 # Embedded profile (small footprint defaults)
 option(MICROLA_EMBEDDED "Enable embedded-friendly defaults" OFF)

@@ -75,7 +75,7 @@ The test suite is organized into the following test files:
 
 - CMake 3.14 or higher
 - Google Test library
-- C++17 or higher compiler
+- C++20 or higher compiler
 
 ### Building
 
@@ -116,7 +116,7 @@ Run with verbose output:
 
 ## Test Coverage
 
-The current host-side validation surface is anchored by the `host-tests` preset, which now passes **517/517** tests in a clean C++17 build.
+The current host-side validation surface is anchored by the `host-tests` preset, which now passes **530/530** tests in a clean C++20 build.
 
 That host surface covers:
 

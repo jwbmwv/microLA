@@ -23,6 +23,19 @@ The API is designed for embedded use:
 - `SensorCalibration<T>`: runtime mounting and bias calibration
 - `RelativeAngleResult<T>`: relative quaternion, selected scalar output, drift estimate, confidence, and status flags
 
+Changing runtime calibration with `set_calibration()` intentionally resets the affected estimator state so orientation, drift, and any learned magnetic-field reference are rebuilt under the new calibration frame.
+
+## Units Policy
+
+The sensor-fusion API uses explicit scalar SI conventions instead of a mandatory units-library dependency.
+
+- Timestamps are in seconds
+- Gyroscope samples are in rad/s
+- Accelerometer samples are in m/s^2
+- Relative angles and drift estimates are in radians
+- Magnetometer samples may use any consistent field-strength unit after calibration (for example uT)
+- The estimator learns the calibrated magnetic-field norm online, so those magnetometer units do not need to match the default policy constants
+
 ## Maintained Example
 
 The shipped example in `examples/sensor_fusion.cpp` uses the public API directly rather than a private complementary filter. It demonstrates:
@@ -172,6 +185,10 @@ The following knobs are implemented in the public policy types and affect runtim
 - `RelativeConfig::max_pair_skew_s`
   - Degrades the relative result when left and right estimates are too far apart in time
 
+- `RelativeConfig::max_alignment_horizon_s`
+  - Allows `compute()` to predict a recent entity state forward to the latest pair timestamp before extracting the relative angle
+  - This compensates recent skew when a valid angular-rate state is available, while still preserving the skew flags and confidence penalties
+
 ### Validity gates
 
 - `accel_norm_min` and `accel_norm_max`
@@ -181,9 +198,19 @@ The following knobs are implemented in the public policy types and affect runtim
 - `gyro_norm_max`
   - Rejects saturated or physically implausible angular-rate samples
 
-- `mag_norm_min` and `mag_norm_max`
-  - Reject magnetometer samples outside the expected field-strength envelope
-  - Useful for hard disturbance rejection
+- `expected_mag_norm`, `mag_norm_min`, and `mag_norm_max`
+  - Optional bootstrap hints when your calibrated magnetometer values already use a known field-strength unit
+  - The default estimator path also learns the local field norm online, so these no longer need to match a fixed uT-scale deployment
+
+- `mag_relative_norm_tolerance`
+  - Allowed fractional deviation from the learned magnetic-field norm before a sample is rejected
+
+- `mag_reference_learning_alpha`
+  - Update rate for the learned magnetic-field norm
+
+- `mag_alignment_max_error_rad`
+  - Directional gate applied while heading is currently trusted
+  - Rejects large magnetic direction jumps without blocking later heading reacquisition from a previously drift-only state
 
 - `stationary_gyro_norm_max`
 - `stationary_accel_error_max`

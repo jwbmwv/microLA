@@ -12,11 +12,18 @@ namespace
 
 using MahonyConfig = DefaultImu9MahonyConfig<float>;
 using EkfConfig = DefaultImu9EkfConfig<float>;
+using Imu6Config = DefaultImu6MahonyConfig<float>;
 
 struct ReferencedHeadingConfig : DefaultRelativeAngleConfig<float>
 {
     static constexpr bool apply_reference_pose = true;
     static constexpr PrimaryScalarOutput default_output = PrimaryScalarOutput::heading_delta;
+};
+
+struct SkewAlignedHeadingConfig : DefaultRelativeAngleConfig<float>
+{
+    static constexpr PrimaryScalarOutput default_output = PrimaryScalarOutput::heading_delta;
+    static constexpr float min_confidence_to_publish = 0.2F;
 };
 
 struct MotionState
@@ -119,6 +126,11 @@ auto make_identity_sample(const MotionState& motion, const Vec<float, 3>& gyro_b
 {
     return Imu9Sample<float>{motion.timestamp_s, gyro_body, make_accel_body(motion.orientation),
                              make_mag_body(motion.orientation)};
+}
+
+auto make_imu6_sample(const MotionState& motion, const Vec<float, 3>& gyro_body) noexcept -> Imu6Sample<float>
+{
+    return Imu6Sample<float>{motion.timestamp_s, gyro_body, make_accel_body(motion.orientation)};
 }
 
 auto make_calibrated_sample(const MotionState& motion, const Vec<float, 3>& gyro_body,
@@ -232,6 +244,36 @@ static void bm_sensor_fusion_relative_compute(benchmark::State& state)
     }
 }
 BENCHMARK(bm_sensor_fusion_relative_compute)->Unit(benchmark::kMicrosecond);
+
+static void bm_sensor_fusion_relative_compute_with_alignment(benchmark::State& state)
+{
+    constexpr float dt = 0.04F;
+    const Vec<float, 3> shared_gyro(0.0F, 0.0F, 0.75F);
+    MotionState left_motion;
+    MotionState right_motion;
+    RelativeAngleEstimator<float, Imu6Config, Imu6Config, SkewAlignedHeadingConfig> estimator;
+
+    estimator.update_left(make_imu6_sample(left_motion, shared_gyro));
+    estimator.update_right(make_imu6_sample(right_motion, shared_gyro));
+    Imu6Sample<float> lagged_right_sample = make_imu6_sample(right_motion, shared_gyro);
+
+    for (auto _ : state)
+    {
+        state.PauseTiming();
+        advance_motion(left_motion, shared_gyro, dt);
+        advance_motion(right_motion, shared_gyro, dt);
+        const Imu6Sample<float> left_sample = make_imu6_sample(left_motion, shared_gyro);
+        const Imu6Sample<float> next_right_sample = make_imu6_sample(right_motion, shared_gyro);
+        state.ResumeTiming();
+
+        estimator.update_left(left_sample);
+        estimator.update_right(lagged_right_sample);
+        benchmark::DoNotOptimize(estimator.compute());
+
+        lagged_right_sample = next_right_sample;
+    }
+}
+BENCHMARK(bm_sensor_fusion_relative_compute_with_alignment)->Unit(benchmark::kMicrosecond);
 
 }  // namespace
 

@@ -1,6 +1,6 @@
 # Linear Algebra Library Documentation
 
-A header-only C++17 linear algebra library providing efficient vector, matrix, and quaternion operations for embedded systems and real-time applications.
+A header-only C++20 linear algebra library providing efficient vector, matrix, and quaternion operations for embedded systems and real-time applications.
 
 ## Features
 
@@ -56,7 +56,7 @@ using namespace microla;
 
 - **compiler_features.hpp** - C++ feature detection macros (MICROLA_CONSTEXPR, MICROLA_NODISCARD, MICROLA_BIT_CAST, etc.) - **independent**, provides centralized feature detection
 - **microla.hpp** - Convenience header that includes all components and utility functions
-- **constants.hpp** - Mathematical constants (pi, e, sqrt2, golden_ratio, etc.) with C++17-C++26 optimizations - **independent**, can be used standalone
+- **constants.hpp** - Mathematical constants (pi, e, sqrt2, golden_ratio, etc.) with C++20-C++26 optimizations - **independent**, can be used standalone
 - **vector.hpp** - Generic `Vec<T,N>` template with all vector operations
 - **vec2D.hpp** - 2D vector type aliases (`Vec2<T>`, `Vec2f`, `Vec2d`, `Vec2i`, `Vec2u`)
 - **vec3D.hpp** - 3D vector type aliases (`Vec3<T>`, `Vec3f`, `Vec3d`, `Vec3i`, `Vec3u`)
@@ -80,7 +80,7 @@ using namespace microla;
 
 ## Constants Namespace
 
-The `constants` namespace provides mathematical constants as template variables with C++17-C++26 optimizations.
+The `constants` namespace provides mathematical constants as template variables with C++20-C++26 optimizations.
 
 ### Usage
 
@@ -132,7 +132,7 @@ float degrees = radians * constants::rad_to_deg<float>;
 
 - **Type-safe**: Template variables ensure correct type usage
 - **Compile-time**: All constants are `constexpr` and can be used in compile-time expressions
-- **C++17 optimization**: Uses `inline` variables when available to avoid ODR violations
+- **C++20 baseline**: Uses `inline constexpr` variables in the required language mode
 - **Independent**: Can be used without other library components
 - **High precision**: 20 decimal places for maximum accuracy
 
@@ -1220,7 +1220,7 @@ namespace microla {
 
 ## Build Requirements
 
-- **C++ Standard**: C++17 or later
+- **C++ Standard**: C++20 or later
 - **Dependencies**: None (ARM NEON/CMSIS-DSP optional)
 - **Compiler Support**: GCC, Clang, MSVC, ARM Compiler 6, IAR Embedded Workbench for ARM
 - **SIMD Support**: ARM NEON (Cortex-A/ARM64), CMSIS-DSP (Cortex-M)
