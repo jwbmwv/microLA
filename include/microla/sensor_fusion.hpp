@@ -710,8 +710,8 @@ inline auto initialize_from_accel(const Vec<T, 3>& accel, const Vec<T, 3>& world
 /// @brief Applies magnetic heading alignment to a tilt-only orientation estimate.
 template<typename T>
 inline auto apply_heading_alignment(const Quaternion<T>& tilt_orientation, const Vec<T, 3>& mag_body,
-                                    const Vec<T, 3>& world_gravity,
-                                    const Vec<T, 3>& world_mag) noexcept -> Quaternion<T>
+                                    const Vec<T, 3>& world_gravity, const Vec<T, 3>& world_mag) noexcept
+    -> Quaternion<T>
 {
     const Vec<T, 3> world_up = normalized_or(-world_gravity, Vec<T, 3>(T(0), T(0), T(1)));
     const Vec<T, 3> predicted_mag_world = tilt_orientation.rotate(normalized_or(mag_body, world_mag));
@@ -1144,7 +1144,8 @@ private:
             !scalar_is_finite(Config::max_sample_age_s) || !scalar_is_finite(Config::expected_gravity_norm) ||
             !scalar_is_finite(Config::accel_norm_min) || !scalar_is_finite(Config::accel_norm_max) ||
             !scalar_is_finite(Config::gyro_norm_max) || !scalar_is_finite(Config::gravity_filter_alpha) ||
-            !scalar_is_finite(Config::stationary_gyro_norm_max) || !scalar_is_finite(Config::stationary_accel_error_max) ||
+            !scalar_is_finite(Config::stationary_gyro_norm_max) ||
+            !scalar_is_finite(Config::stationary_accel_error_max) ||
             !scalar_is_finite(Config::drift_rate_without_heading_rad_per_s) ||
             !scalar_is_finite(Config::drift_confidence_limit_rad))
         {
@@ -1163,9 +1164,9 @@ private:
 
         if constexpr (Config::sensor_model == SensorModel::imu9 && Config::enable_mag_correction)
         {
-            if (!config_axis_is_valid(Config::world_magnetic_reference()) || !scalar_is_finite(Config::expected_mag_norm) ||
-                !scalar_is_finite(Config::mag_norm_min) || !scalar_is_finite(Config::mag_norm_max) ||
-                !scalar_is_finite(Config::mag_relative_norm_tolerance) ||
+            if (!config_axis_is_valid(Config::world_magnetic_reference()) ||
+                !scalar_is_finite(Config::expected_mag_norm) || !scalar_is_finite(Config::mag_norm_min) ||
+                !scalar_is_finite(Config::mag_norm_max) || !scalar_is_finite(Config::mag_relative_norm_tolerance) ||
                 !scalar_is_finite(Config::mag_reference_learning_alpha) ||
                 !scalar_is_finite(Config::mag_alignment_max_error_rad))
             {
@@ -2003,7 +2004,8 @@ private:
 
     [[nodiscard]] static auto policy_is_valid(PrimaryScalarOutput mode) noexcept -> bool
     {
-        if (!scalar_is_finite(RelativeConfig::max_pair_skew_s) || !scalar_is_finite(RelativeConfig::max_alignment_horizon_s) ||
+        if (!scalar_is_finite(RelativeConfig::max_pair_skew_s) ||
+            !scalar_is_finite(RelativeConfig::max_alignment_horizon_s) ||
             !scalar_is_finite(RelativeConfig::min_confidence_to_publish) ||
             !scalar_is_finite(RelativeConfig::nominal_drift_limit_rad))
         {
@@ -2034,8 +2036,8 @@ private:
 
     [[nodiscard]] static auto frames_are_consistent(PrimaryScalarOutput mode) noexcept -> bool
     {
-        const T gravity_alignment =
-            detail::direction_cosine(LeftConfig::world_gravity_direction(), RightConfig::world_gravity_direction(), T(-1));
+        const T gravity_alignment = detail::direction_cosine(LeftConfig::world_gravity_direction(),
+                                                             RightConfig::world_gravity_direction(), T(-1));
         if (gravity_alignment < frame_alignment_min_cosine_)
         {
             return false;
@@ -2077,9 +2079,10 @@ private:
             return false;
         }
 
-        const Vec<T, 3> left_axis = detail::normalized_or(RelativeConfig::hinge_axis_left(), Vec<T, 3>(T(0), T(0), T(1)));
-        Vec<T, 3> right_axis_left = q_left_to_right.inverse_unit().rotate(
-            detail::normalized_or(RelativeConfig::hinge_axis_right(), left_axis));
+        const Vec<T, 3> left_axis =
+            detail::normalized_or(RelativeConfig::hinge_axis_left(), Vec<T, 3>(T(0), T(0), T(1)));
+        Vec<T, 3> right_axis_left =
+            q_left_to_right.inverse_unit().rotate(detail::normalized_or(RelativeConfig::hinge_axis_right(), left_axis));
         if (!axis_is_valid(right_axis_left))
         {
             return false;
@@ -2164,7 +2167,8 @@ private:
             detail::project_onto_plane(left_orientation.rotate(LeftConfig::body_heading_axis()), world_up);
         const Vec<T, 3> right_heading_world =
             detail::project_onto_plane(right_orientation.rotate(RightConfig::body_heading_axis()), world_up);
-        Vec<T, 3> hinge_axis_left = detail::normalized_or(RelativeConfig::hinge_axis_left(), Vec<T, 3>(T(0), T(0), T(1)));
+        Vec<T, 3> hinge_axis_left =
+            detail::normalized_or(RelativeConfig::hinge_axis_left(), Vec<T, 3>(T(0), T(0), T(1)));
         const bool hinge_axes_consistent = resolve_hinge_axis_left(q_left_to_right, hinge_axis_left);
 
         result.shortest_3d_angle_rad = detail::shortest_angle_from_quaternion(q_left_to_right);
@@ -2260,8 +2264,8 @@ private:
     }
 
     /// @brief Extracts the selected scalar output from a populated relative-angle result.
-    [[nodiscard]] static auto extract_scalar(PrimaryScalarOutput mode,
-                                             const RelativeAngleResult<T>& result) noexcept -> T
+    [[nodiscard]] static auto extract_scalar(PrimaryScalarOutput mode, const RelativeAngleResult<T>& result) noexcept
+        -> T
     {
         switch (mode)
         {
