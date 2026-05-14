@@ -710,8 +710,8 @@ inline auto initialize_from_accel(const Vec<T, 3>& accel, const Vec<T, 3>& world
 /// @brief Applies magnetic heading alignment to a tilt-only orientation estimate.
 template<typename T>
 inline auto apply_heading_alignment(const Quaternion<T>& tilt_orientation, const Vec<T, 3>& mag_body,
-                                    const Vec<T, 3>& world_gravity, const Vec<T, 3>& world_mag) noexcept
-    -> Quaternion<T>
+                                    const Vec<T, 3>& world_gravity,
+                                    const Vec<T, 3>& world_mag) noexcept -> Quaternion<T>
 {
     const Vec<T, 3> world_up = normalized_or(-world_gravity, Vec<T, 3>(T(0), T(0), T(1)));
     const Vec<T, 3> predicted_mag_world = tilt_orientation.rotate(normalized_or(mag_body, world_mag));
@@ -2264,8 +2264,8 @@ private:
     }
 
     /// @brief Extracts the selected scalar output from a populated relative-angle result.
-    [[nodiscard]] static auto extract_scalar(PrimaryScalarOutput mode, const RelativeAngleResult<T>& result) noexcept
-        -> T
+    [[nodiscard]] static auto extract_scalar(PrimaryScalarOutput mode,
+                                             const RelativeAngleResult<T>& result) noexcept -> T
     {
         switch (mode)
         {

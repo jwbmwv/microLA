@@ -521,7 +521,8 @@ TEST(SensorFusionTest, ReferencePoseCanZeroRelativeOutput)
 
 TEST(SensorFusionTest, MismatchedWorldFramesAreRejected)
 {
-    RelativeAngleEstimator<float, LeftImu9EkfConfig<float>, MismatchedWorldImu9Config<float>, HeadingRelativeConfig<float>>
+    RelativeAngleEstimator<float, LeftImu9EkfConfig<float>, MismatchedWorldImu9Config<float>,
+                           HeadingRelativeConfig<float>>
         estimator;
 
     const Quaternion<float> orientation = Quaternion<float>::identity();
@@ -540,7 +541,8 @@ TEST(SensorFusionTest, MismatchedWorldFramesAreRejected)
 
 TEST(SensorFusionTest, InconsistentRightHingeAxisIsRejected)
 {
-    RelativeAngleEstimator<float, LeftImu9EkfConfig<float>, RightImu9EkfConfig<float>, InconsistentHingeRelativeConfig<float>>
+    RelativeAngleEstimator<float, LeftImu9EkfConfig<float>, RightImu9EkfConfig<float>,
+                           InconsistentHingeRelativeConfig<float>>
         estimator;
 
     const Quaternion<float> left_orientation = Quaternion<float>::identity();
