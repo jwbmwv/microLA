@@ -86,7 +86,9 @@ enum class StatusFlag : std::uint32_t
     pair_time_skew_exceeded = 1U << 8,
     heading_unobservable = 1U << 9,
     drift_exceeds_nominal = 1U << 10,
-    output_not_supported = 1U << 11
+    output_not_supported = 1U << 11,
+    calibration_invalid = 1U << 12,
+    configuration_invalid = 1U << 13
 };
 
 using StatusFlags = std::uint32_t;
@@ -572,6 +574,37 @@ inline auto is_finite(const Vec<T, 3>& value) noexcept -> bool
     return std::isfinite(value[0]) && std::isfinite(value[1]) && std::isfinite(value[2]);
 }
 
+/// @brief Checks whether every component of a quaternion is finite.
+template<typename T>
+inline auto is_finite(const Quaternion<T>& value) noexcept -> bool
+{
+    return std::isfinite(value.w()) && std::isfinite(value.x()) && std::isfinite(value.y()) && std::isfinite(value.z());
+}
+
+/// @brief Checks whether every component of a matrix is finite.
+template<typename T, std::size_t Rows, std::size_t Cols>
+inline auto is_finite(const Mat<T, Rows, Cols>& value) noexcept -> bool
+{
+    for (std::size_t row = 0; row < Rows; ++row)
+    {
+        for (std::size_t col = 0; col < Cols; ++col)
+        {
+            if (!std::isfinite(value(row, col)))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/// @brief Reports whether a vector is finite and non-degenerate.
+template<typename T>
+inline auto is_usable_direction(const Vec<T, 3>& value) noexcept -> bool
+{
+    return is_finite(value) && value.length_squared() > std::numeric_limits<T>::epsilon();
+}
+
 /// @brief Normalizes a vector or returns a fallback when the input is degenerate.
 template<typename T>
 inline auto normalized_or(const Vec<T, 3>& value, const Vec<T, 3>& fallback) noexcept -> Vec<T, 3>
@@ -582,6 +615,17 @@ inline auto normalized_or(const Vec<T, 3>& value, const Vec<T, 3>& fallback) noe
         return fallback;
     }
     return value / std::sqrt(length_sq);
+}
+
+/// @brief Computes the cosine between two directions or returns a fallback for degenerate inputs.
+template<typename T>
+inline auto direction_cosine(const Vec<T, 3>& lhs, const Vec<T, 3>& rhs, T fallback = T(1)) noexcept -> T
+{
+    if (!is_usable_direction(lhs) || !is_usable_direction(rhs))
+    {
+        return fallback;
+    }
+    return clamp_unit(normalized_or(lhs, rhs).dot(normalized_or(rhs, lhs)));
 }
 
 /// @brief Converts a small rotation vector into a quaternion increment.
@@ -853,10 +897,11 @@ public:
     using Sample = detail::SampleTypeT<T, Config::sensor_model>;
 
     /// @brief Creates an estimator with default runtime calibration.
-    OrientationEstimator() noexcept { refresh_calibration_flags(); }
+    OrientationEstimator() noexcept : config_valid_(validate_configuration()) { refresh_calibration_flags(); }
 
     /// @brief Creates an estimator with caller-supplied runtime calibration.
-    explicit OrientationEstimator(const SensorCalibration<T>& calibration) noexcept : calibration_(calibration)
+    explicit OrientationEstimator(const SensorCalibration<T>& calibration) noexcept
+        : calibration_(calibration), config_valid_(validate_configuration())
     {
         refresh_calibration_flags();
     }
@@ -869,21 +914,48 @@ public:
     void update(const Sample& sample) noexcept
     {
         estimate_ = OrientationEstimate<T>();
-        estimate_.timestamp_s = detail::SampleTraits<Sample>::timestamp(sample);
         estimate_.orientation = orientation_;
+        if (!config_valid_)
+        {
+            reject_current_sample(StatusFlag::configuration_invalid);
+            return;
+        }
+        if (!calibration_valid_)
+        {
+            reject_current_sample(StatusFlag::calibration_invalid);
+            return;
+        }
+
+        const T sample_timestamp_s = detail::SampleTraits<Sample>::timestamp(sample);
+        if (!std::isfinite(sample_timestamp_s))
+        {
+            reject_current_sample(StatusFlag::sample_time_invalid);
+            return;
+        }
+        estimate_.timestamp_s = sample_timestamp_s;
 
         T dt = T(0);
+        bool accept_sample_timestamp = true;
         if (have_timestamp_)
         {
             dt = estimate_.timestamp_s - last_timestamp_s_;
-            if (!std::isfinite(dt) || dt < Config::min_dt_s || dt > Config::max_dt_s)
+            if (dt < Config::min_dt_s)
+            {
+                set_flag(estimate_.flags, StatusFlag::sample_time_invalid);
+                accept_sample_timestamp = false;
+                dt = T(0);
+            }
+            else if (dt > Config::max_dt_s)
             {
                 set_flag(estimate_.flags, StatusFlag::sample_time_invalid);
                 dt = T(0);
             }
         }
-        last_timestamp_s_ = estimate_.timestamp_s;
-        have_timestamp_ = true;
+        if (!have_timestamp_ || accept_sample_timestamp)
+        {
+            last_timestamp_s_ = estimate_.timestamp_s;
+            have_timestamp_ = true;
+        }
 
         const Vec<T, 3> accel = calibrate_accel(detail::SampleTraits<Sample>::accel(sample));
         const Vec<T, 3> gyro = calibrate_gyro(detail::SampleTraits<Sample>::gyro(sample));
@@ -988,6 +1060,8 @@ private:
     bool mag_calibration_passthrough_{true};
     bool have_mag_reference_norm_{};
     bool can_predict_forward_{};
+    bool calibration_valid_{true};
+    bool config_valid_{true};
     T last_timestamp_s_{};
     T estimated_drift_rad_{};
     T last_accel_confidence_{};
@@ -998,6 +1072,22 @@ private:
     /// @brief Recomputes calibration fast-path flags from the current runtime calibration.
     void refresh_calibration_flags() noexcept
     {
+        calibration_valid_ = normalize_and_validate_calibration();
+        if (!calibration_valid_)
+        {
+            sensor_to_body_is_identity_ = false;
+            accel_bias_is_zero_ = false;
+            accel_scale_is_identity_ = false;
+            gyro_bias_is_zero_ = false;
+            gyro_scale_is_identity_ = false;
+            mag_bias_is_zero_ = false;
+            mag_soft_iron_is_identity_ = false;
+            accel_calibration_passthrough_ = false;
+            gyro_calibration_passthrough_ = false;
+            mag_calibration_passthrough_ = false;
+            return;
+        }
+
         sensor_to_body_is_identity_ = calibration_.sensor_to_body.is_identity();
         accel_bias_is_zero_ = calibration_.accel_bias.is_zero();
         accel_scale_is_identity_ = calibration_.accel_scale.is_one();
@@ -1009,6 +1099,138 @@ private:
         accel_calibration_passthrough_ = sensor_to_body_is_identity_ && accel_bias_is_zero_ && accel_scale_is_identity_;
         gyro_calibration_passthrough_ = sensor_to_body_is_identity_ && gyro_bias_is_zero_ && gyro_scale_is_identity_;
         mag_calibration_passthrough_ = sensor_to_body_is_identity_ && mag_bias_is_zero_ && mag_soft_iron_is_identity_;
+    }
+
+    /// @brief Rejects a malformed sample while preserving the last valid state.
+    void reject_current_sample(StatusFlag reason) noexcept
+    {
+        set_flag(estimate_.flags, reason);
+        if (!initialized_)
+        {
+            set_flag(estimate_.flags, StatusFlag::startup_not_initialized);
+        }
+        estimate_.orientation = orientation_;
+        estimate_.timestamp_s = have_timestamp_ ? last_timestamp_s_ : T(0);
+        estimate_.heading_referenced = heading_referenced_;
+        estimate_.estimated_drift_rad = estimated_drift_rad_;
+        estimate_.observability = current_observability();
+        estimate_.confidence = T(0);
+        estimate_.quality = SolutionQuality::invalid;
+        estimate_.valid = false;
+        last_accel_confidence_ = T(0);
+        last_mag_confidence_ = T(0);
+        update_prediction_rate(Vec<T, 3>(), false);
+    }
+
+    /// @brief Returns whether a scalar configuration value is finite.
+    [[nodiscard]] static auto scalar_is_finite(T value) noexcept -> bool { return std::isfinite(value); }
+
+    /// @brief Returns whether a configuration axis is finite and non-degenerate.
+    [[nodiscard]] static auto config_axis_is_valid(const Vec<T, 3>& axis) noexcept -> bool
+    {
+        return detail::is_usable_direction(axis);
+    }
+
+    /// @brief Validates the estimator's compile-time policy values.
+    [[nodiscard]] static auto validate_configuration() noexcept -> bool
+    {
+        if (!config_axis_is_valid(Config::body_down_axis()) || !config_axis_is_valid(Config::body_heading_axis()) ||
+            !config_axis_is_valid(Config::world_gravity_direction()))
+        {
+            return false;
+        }
+
+        if (!scalar_is_finite(Config::min_dt_s) || !scalar_is_finite(Config::max_dt_s) ||
+            !scalar_is_finite(Config::max_sample_age_s) || !scalar_is_finite(Config::expected_gravity_norm) ||
+            !scalar_is_finite(Config::accel_norm_min) || !scalar_is_finite(Config::accel_norm_max) ||
+            !scalar_is_finite(Config::gyro_norm_max) || !scalar_is_finite(Config::gravity_filter_alpha) ||
+            !scalar_is_finite(Config::stationary_gyro_norm_max) || !scalar_is_finite(Config::stationary_accel_error_max) ||
+            !scalar_is_finite(Config::drift_rate_without_heading_rad_per_s) ||
+            !scalar_is_finite(Config::drift_confidence_limit_rad))
+        {
+            return false;
+        }
+
+        if (!(Config::min_dt_s > T(0)) || Config::max_dt_s < Config::min_dt_s || Config::max_sample_age_s < T(0) ||
+            !(Config::expected_gravity_norm > T(0)) || !(Config::accel_norm_min > T(0)) ||
+            Config::accel_norm_max < Config::accel_norm_min || !(Config::gyro_norm_max > T(0)) ||
+            Config::gravity_filter_alpha < T(0) || Config::gravity_filter_alpha > T(1) ||
+            Config::stationary_gyro_norm_max < T(0) || Config::stationary_accel_error_max < T(0) ||
+            Config::drift_rate_without_heading_rad_per_s < T(0) || !(Config::drift_confidence_limit_rad > T(0)))
+        {
+            return false;
+        }
+
+        if constexpr (Config::sensor_model == SensorModel::imu9 && Config::enable_mag_correction)
+        {
+            if (!config_axis_is_valid(Config::world_magnetic_reference()) || !scalar_is_finite(Config::expected_mag_norm) ||
+                !scalar_is_finite(Config::mag_norm_min) || !scalar_is_finite(Config::mag_norm_max) ||
+                !scalar_is_finite(Config::mag_relative_norm_tolerance) ||
+                !scalar_is_finite(Config::mag_reference_learning_alpha) ||
+                !scalar_is_finite(Config::mag_alignment_max_error_rad))
+            {
+                return false;
+            }
+
+            if (!(Config::expected_mag_norm > T(0)) || !(Config::mag_norm_min > T(0)) ||
+                Config::mag_norm_max < Config::mag_norm_min || Config::mag_relative_norm_tolerance < T(0) ||
+                Config::mag_reference_learning_alpha < T(0) || Config::mag_reference_learning_alpha > T(1) ||
+                Config::mag_alignment_max_error_rad < T(0))
+            {
+                return false;
+            }
+        }
+
+        if constexpr (Config::backend == FusionBackend::mahony)
+        {
+            if (!scalar_is_finite(Config::kp_accel) || !scalar_is_finite(Config::kp_mag) ||
+                !scalar_is_finite(Config::ki_gyro_bias))
+            {
+                return false;
+            }
+
+            return Config::kp_accel >= T(0) && Config::kp_mag >= T(0) && Config::ki_gyro_bias >= T(0);
+        }
+
+        if (!scalar_is_finite(Config::q_attitude) || !scalar_is_finite(Config::q_gyro_bias) ||
+            !scalar_is_finite(Config::r_accel) || !scalar_is_finite(Config::r_mag) ||
+            !scalar_is_finite(Config::accel_nis_gate) || !scalar_is_finite(Config::mag_nis_gate))
+        {
+            return false;
+        }
+
+        return Config::q_attitude > T(0) && Config::q_gyro_bias >= T(0) && Config::r_accel > T(0) &&
+               Config::r_mag > T(0) && Config::accel_nis_gate > T(0) && Config::mag_nis_gate > T(0);
+    }
+
+    /// @brief Normalizes and validates runtime calibration values before use.
+    auto normalize_and_validate_calibration() noexcept -> bool
+    {
+        if (!detail::is_finite(calibration_.sensor_to_body) || !detail::is_finite(calibration_.accel_bias) ||
+            !detail::is_finite(calibration_.accel_scale) || !detail::is_finite(calibration_.gyro_bias) ||
+            !detail::is_finite(calibration_.gyro_scale) || !detail::is_finite(calibration_.mag_bias) ||
+            !detail::is_finite(calibration_.mag_soft_iron))
+        {
+            return false;
+        }
+
+        const T quaternion_norm_sq = calibration_.sensor_to_body.norm_squared();
+        if (!std::isfinite(quaternion_norm_sq) || !(quaternion_norm_sq > std::numeric_limits<T>::epsilon()))
+        {
+            return false;
+        }
+        calibration_.sensor_to_body = calibration_.sensor_to_body.normalized();
+
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            if (!(std::abs(calibration_.accel_scale[i]) > std::numeric_limits<T>::epsilon()) ||
+                !(std::abs(calibration_.gyro_scale[i]) > std::numeric_limits<T>::epsilon()))
+            {
+                return false;
+            }
+        }
+
+        return detail::matrix_determinant_is_invertible(calibration_.mag_soft_iron);
     }
 
     /// @brief Updates the cached body-rate used for short forward prediction.
@@ -1056,10 +1278,19 @@ private:
         }
 
         if (Config::expected_mag_norm > std::numeric_limits<T>::epsilon() &&
-            Config::mag_norm_max > Config::mag_norm_min && norm >= Config::mag_norm_min && norm <= Config::mag_norm_max)
+            Config::mag_norm_max > Config::mag_norm_min)
         {
-            return detail::confidence_from_norm(norm, Config::expected_mag_norm, Config::mag_norm_min,
-                                                Config::mag_norm_max);
+            const T expected = Config::expected_mag_norm;
+            const T ratio = std::max(norm / expected, expected / norm);
+            if (ratio > static_cast<T>(64))
+            {
+                return T(0);
+            }
+            if (norm >= Config::mag_norm_min && norm <= Config::mag_norm_max)
+            {
+                return detail::confidence_from_norm(norm, expected, Config::mag_norm_min, Config::mag_norm_max);
+            }
+            return static_cast<T>(0.5);
         }
 
         return T(1);
@@ -1354,9 +1585,11 @@ private:
     {
         const bool accel_valid = accel_is_valid(accel);
         const bool gyro_valid = gyro_is_valid(gyro);
-        const bool mag_available = mag_is_available(mag);
+        const auto mag_measurement = evaluate_mag_measurement(mag);
+        const bool mag_available = mag_measurement.available;
+        const bool initialized_before_update = initialized_;
 
-        initialize_from_measurement(accel, mag, mag_available);
+        initialize_from_measurement(accel, mag, mag_measurement.valid);
         if (!initialized_)
         {
             last_accel_confidence_ = T(0);
@@ -1381,12 +1614,14 @@ private:
         bool mag_valid = false;
         if constexpr (Config::sensor_model == SensorModel::imu9)
         {
-            const auto mag_measurement = evaluate_mag_measurement(mag);
             mag_valid = mag_measurement.valid;
             if (mag_valid)
             {
                 last_mag_confidence_ = mag_measurement.confidence;
-                learn_mag_reference(mag_measurement.norm);
+                if (initialized_before_update)
+                {
+                    learn_mag_reference(mag_measurement.norm);
+                }
             }
             else if (mag_measurement.available && Config::enable_mag_correction)
             {
@@ -1456,9 +1691,11 @@ private:
     {
         const bool accel_valid = accel_is_valid(accel);
         const bool gyro_valid = gyro_is_valid(gyro);
-        const bool mag_available = mag_is_available(mag);
+        const auto mag_measurement = evaluate_mag_measurement(mag);
+        const bool mag_available = mag_measurement.available;
+        const bool initialized_before_update = initialized_;
 
-        initialize_from_measurement(accel, mag, mag_available);
+        initialize_from_measurement(accel, mag, mag_measurement.valid);
         if (!initialized_)
         {
             last_accel_confidence_ = T(0);
@@ -1481,12 +1718,14 @@ private:
         bool mag_valid = false;
         if constexpr (Config::sensor_model == SensorModel::imu9)
         {
-            const auto mag_measurement = evaluate_mag_measurement(mag);
             mag_valid = mag_measurement.valid;
             if (mag_valid)
             {
                 last_mag_confidence_ = mag_measurement.confidence;
-                learn_mag_reference(mag_measurement.norm);
+                if (initialized_before_update)
+                {
+                    learn_mag_reference(mag_measurement.norm);
+                }
             }
             else if (mag_measurement.available && Config::enable_mag_correction)
             {
@@ -1747,6 +1986,125 @@ private:
     RightEstimator right_{};
     Quaternion<T> reference_pose_ = Quaternion<T>::identity();
     bool reference_valid_{};
+    static constexpr T frame_alignment_min_cosine_ = static_cast<T>(0.9998476951563913);
+    static constexpr T hinge_axis_alignment_min_cosine_ = static_cast<T>(0.7071067811865476);
+
+    [[nodiscard]] static auto scalar_is_finite(T value) noexcept -> bool { return std::isfinite(value); }
+
+    [[nodiscard]] static auto axis_is_valid(const Vec<T, 3>& axis) noexcept -> bool
+    {
+        return detail::is_usable_direction(axis);
+    }
+
+    [[nodiscard]] static auto uses_hinge_axis(PrimaryScalarOutput mode) noexcept -> bool
+    {
+        return mode == PrimaryScalarOutput::hinge_twist || mode == PrimaryScalarOutput::swing_angle;
+    }
+
+    [[nodiscard]] static auto policy_is_valid(PrimaryScalarOutput mode) noexcept -> bool
+    {
+        if (!scalar_is_finite(RelativeConfig::max_pair_skew_s) || !scalar_is_finite(RelativeConfig::max_alignment_horizon_s) ||
+            !scalar_is_finite(RelativeConfig::min_confidence_to_publish) ||
+            !scalar_is_finite(RelativeConfig::nominal_drift_limit_rad))
+        {
+            return false;
+        }
+
+        if (RelativeConfig::max_pair_skew_s < T(0) || RelativeConfig::max_alignment_horizon_s < T(0) ||
+            RelativeConfig::min_confidence_to_publish < T(0) || RelativeConfig::min_confidence_to_publish > T(1) ||
+            !(RelativeConfig::nominal_drift_limit_rad > T(0)))
+        {
+            return false;
+        }
+
+        if (!axis_is_valid(LeftConfig::body_down_axis()) || !axis_is_valid(RightConfig::body_down_axis()))
+        {
+            return false;
+        }
+
+        if (detail::output_requires_heading(mode) &&
+            (!axis_is_valid(LeftConfig::body_heading_axis()) || !axis_is_valid(RightConfig::body_heading_axis())))
+        {
+            return false;
+        }
+
+        if (uses_hinge_axis(mode) &&
+            (!axis_is_valid(RelativeConfig::hinge_axis_left()) || !axis_is_valid(RelativeConfig::hinge_axis_right())))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    [[nodiscard]] static auto frames_are_consistent(PrimaryScalarOutput mode) noexcept -> bool
+    {
+        const T gravity_alignment =
+            detail::direction_cosine(LeftConfig::world_gravity_direction(), RightConfig::world_gravity_direction(), T(-1));
+        if (gravity_alignment < frame_alignment_min_cosine_)
+        {
+            return false;
+        }
+
+        if (detail::output_requires_heading(mode) && detail::has_absolute_heading_capability<LeftConfig>() &&
+            detail::has_absolute_heading_capability<RightConfig>())
+        {
+            const T magnetic_alignment = detail::direction_cosine(LeftConfig::world_magnetic_reference(),
+                                                                  RightConfig::world_magnetic_reference(), T(-1));
+            if (magnetic_alignment < frame_alignment_min_cosine_)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static void reject_invalid_configuration(RelativeAngleResult<T>& result, bool heading_related) noexcept
+    {
+        set_flag(result.primary.flags, StatusFlag::configuration_invalid);
+        set_flag(result.primary.flags, StatusFlag::output_not_supported);
+        if (heading_related)
+        {
+            set_flag(result.primary.flags, StatusFlag::heading_unobservable);
+        }
+        result.primary.observability = Observability::none;
+        result.primary.quality = SolutionQuality::invalid;
+        result.primary.valid = false;
+        result.valid = false;
+    }
+
+    [[nodiscard]] static auto resolve_hinge_axis_left(const Quaternion<T>& q_left_to_right,
+                                                      Vec<T, 3>& axis_left) noexcept -> bool
+    {
+        if (!axis_is_valid(RelativeConfig::hinge_axis_left()) || !axis_is_valid(RelativeConfig::hinge_axis_right()))
+        {
+            return false;
+        }
+
+        const Vec<T, 3> left_axis = detail::normalized_or(RelativeConfig::hinge_axis_left(), Vec<T, 3>(T(0), T(0), T(1)));
+        Vec<T, 3> right_axis_left = q_left_to_right.inverse_unit().rotate(
+            detail::normalized_or(RelativeConfig::hinge_axis_right(), left_axis));
+        if (!axis_is_valid(right_axis_left))
+        {
+            return false;
+        }
+
+        right_axis_left = detail::normalized_or(right_axis_left, left_axis);
+        const T axis_alignment = std::abs(left_axis.dot(right_axis_left));
+        if (axis_alignment < hinge_axis_alignment_min_cosine_)
+        {
+            return false;
+        }
+
+        if (left_axis.dot(right_axis_left) < T(0))
+        {
+            right_axis_left = -right_axis_left;
+        }
+
+        axis_left = detail::normalized_or(left_axis + right_axis_left, left_axis);
+        return true;
+    }
 
     /// @brief Computes the full relative result for a selected scalar output mode.
     [[nodiscard]] auto compute_impl(PrimaryScalarOutput mode) const noexcept -> RelativeAngleResult<T>
@@ -1762,6 +2120,12 @@ private:
             result.primary.flags = result.left_entity.flags | result.right_entity.flags;
             result.primary.quality = SolutionQuality::invalid;
             result.primary.observability = Observability::none;
+            return result;
+        }
+
+        if (!policy_is_valid(mode) || !frames_are_consistent(mode))
+        {
+            reject_invalid_configuration(result, detail::output_requires_heading(mode));
             return result;
         }
 
@@ -1805,6 +2169,8 @@ private:
             detail::project_onto_plane(left_orientation.rotate(LeftConfig::body_heading_axis()), world_up);
         const Vec<T, 3> right_heading_world =
             detail::project_onto_plane(right_orientation.rotate(RightConfig::body_heading_axis()), world_up);
+        Vec<T, 3> hinge_axis_left = detail::normalized_or(RelativeConfig::hinge_axis_left(), Vec<T, 3>(T(0), T(0), T(1)));
+        const bool hinge_axes_consistent = resolve_hinge_axis_left(q_left_to_right, hinge_axis_left);
 
         result.shortest_3d_angle_rad = detail::shortest_angle_from_quaternion(q_left_to_right);
         result.tilt_angle_rad = detail::normalized_or(left_down_world, LeftConfig::body_down_axis())
@@ -1815,8 +2181,21 @@ private:
                 ? detail::normalized_or(left_heading_world, Vec<T, 3>(T(1), T(0), T(0)))
                       .signed_angle(detail::normalized_or(right_heading_world, Vec<T, 3>(T(1), T(0), T(0))), world_up)
                 : T(0);
-        result.hinge_twist_rad = detail::twist_angle_about_axis(q_left_to_right, RelativeConfig::hinge_axis_left());
-        result.swing_angle_rad = detail::swing_angle_about_axis(q_left_to_right, RelativeConfig::hinge_axis_left());
+        result.hinge_twist_rad = detail::twist_angle_about_axis(q_left_to_right, hinge_axis_left);
+        result.swing_angle_rad = detail::swing_angle_about_axis(q_left_to_right, hinge_axis_left);
+
+        if (detail::output_requires_heading(mode) &&
+            (!detail::is_usable_direction(left_heading_world) || !detail::is_usable_direction(right_heading_world)))
+        {
+            reject_invalid_configuration(result, true);
+            return result;
+        }
+
+        if (uses_hinge_axis(mode) && !hinge_axes_consistent)
+        {
+            reject_invalid_configuration(result, false);
+            return result;
+        }
 
         const Observability pair_observability =
             detail::combined_observability(result.left_entity.observability, result.right_entity.observability);

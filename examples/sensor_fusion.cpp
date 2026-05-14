@@ -130,6 +130,8 @@ void print_flags(std::ostream& out, fusion::StatusFlags flags)
     emit(fusion::StatusFlag::heading_unobservable, "heading_unobservable");
     emit(fusion::StatusFlag::drift_exceeds_nominal, "drift_exceeds_nominal");
     emit(fusion::StatusFlag::output_not_supported, "output_not_supported");
+    emit(fusion::StatusFlag::calibration_invalid, "calibration_invalid");
+    emit(fusion::StatusFlag::configuration_invalid, "configuration_invalid");
 
     if (!printed)
     {

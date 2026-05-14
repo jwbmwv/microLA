@@ -292,6 +292,7 @@ The following knobs are implemented in the public policy types and affect runtim
 
 - `hinge_axis_left()` and `hinge_axis_right()`
   - Define the hinge or twist axis for swing-twist outputs
+  - Hinge-oriented scalar outputs expect those two axes to describe the same physical joint axis after frame transformation; inconsistent axes are rejected
 
 - `min_confidence_to_publish`
   - Confidence floor below which the relative result is marked invalid
@@ -309,6 +310,15 @@ Use `SensorCalibration<T>` for per-board calibration and mounting alignment:
 - `mag_bias`, `mag_soft_iron`
 
 These are intentionally runtime-configurable because they differ across manufactured units and mounting arrangements.
+
+Runtime calibration is now validated before use:
+
+- `sensor_to_body` must be finite and non-zero; finite non-unit quaternions are normalized automatically
+- `accel_scale` and `gyro_scale` must be finite and non-zero per axis
+- `mag_soft_iron` must be finite and invertible
+- Invalid calibration is surfaced through `StatusFlag::calibration_invalid`
+
+The API also validates policy and frame consistency at runtime. Invalid or inconsistent world-frame conventions, degenerate axes, or malformed policy thresholds are surfaced through `StatusFlag::configuration_invalid`.
 
 ## Typical Usage
 
