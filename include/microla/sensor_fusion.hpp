@@ -2028,13 +2028,8 @@ private:
             return false;
         }
 
-        if (uses_hinge_axis(mode) &&
-            (!axis_is_valid(RelativeConfig::hinge_axis_left()) || !axis_is_valid(RelativeConfig::hinge_axis_right())))
-        {
-            return false;
-        }
-
-        return true;
+        return !uses_hinge_axis(mode) ||
+               (axis_is_valid(RelativeConfig::hinge_axis_left()) && axis_is_valid(RelativeConfig::hinge_axis_right()));
     }
 
     [[nodiscard]] static auto frames_are_consistent(PrimaryScalarOutput mode) noexcept -> bool
