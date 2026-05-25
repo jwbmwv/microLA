@@ -420,10 +420,10 @@ SIMD optimizations, compile-time checks, and performance patterns.
 **Build examples:**
 
 ```bash
-cmake .. -DMICROLA_LINEAR_BUILD_EXAMPLES=ON
-make
-./examples/sensor_fusion
-./examples/kalman_demo
+cmake --preset debug
+cmake --build --preset debug
+./build/debug/examples/sensor_fusion
+./build/debug/examples/kalman_demo
 ```
 
 ## Performance Benchmarks
@@ -439,11 +439,11 @@ The `benchmarks/` directory provides Google Benchmark-based performance tests:
 **Run benchmarks:**
 
 ```bash
-cmake .. -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
-make
-./benchmarks/bench_matrix_multiply
-./benchmarks/bench_simd --benchmark_filter=Vec3.*
-./benchmarks/bench_sensor_fusion --benchmark_filter=bm_sensor_fusion_.*
+cmake --preset benchmark
+cmake --build --preset benchmark
+./build/benchmark-native/benchmarks/bench_matrix_multiply
+./build/benchmark-native/benchmarks/bench_simd --benchmark_filter=Vec3.*
+./build/benchmark-native/benchmarks/bench_sensor_fusion --benchmark_filter=bm_sensor_fusion_.*
 ```
 
 See [benchmarks/README.md](benchmarks/README.md) for detailed results and optimization tips.
@@ -606,12 +606,9 @@ All types are POD (Plain Old Data) with the following characteristics:
 ## Building Examples and Tests
 
 ```bash
-mkdir build && cd build
-cmake ..
-cmake --build .
-
-# Run tests
-ctest --output-on-failure
+cmake --preset debug
+cmake --build --preset debug
+ctest --preset debug
 ```
 
 ## Integration with Zephyr
@@ -638,9 +635,9 @@ MicroLA includes comprehensive test suites:
 **Google Test Suite** (for desktop/CI):
 
 ```bash
-cmake .. -DMICROLA_LINEAR_BUILD_TESTS=ON
-make
-./tests/google/microla_gtests
+cmake --preset host-tests
+cmake --build --preset host-tests
+ctest --preset host-tests
 ```
 
 Tests include:
@@ -662,14 +659,26 @@ west flash
 MicroLA is exercised under host sanitizers in CI:
 
 ```bash
-cmake .. -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined"
-make && ./tests/google/microla_gtests
+cmake --preset sanitizers-ci
+cmake --build --preset sanitizers-ci
+ctest --preset sanitizers-ci
 ```
 
 Passes in repository CI: AddressSanitizer (ASan) and UndefinedBehaviorSanitizer (UBSan)
 
 MemorySanitizer is not currently part of the checked-in CI workflow.
+
+### Development Checks
+
+The repository ships helper scripts for the local formatting and clang-tidy flows used in CI:
+
+```bash
+./scripts/format.sh --check
+cmake --preset static-analysis
+BUILD_DIR=build/static-analysis \
+TIDY_INCLUDE_REGEX='.*/examples/.*[.](cpp|c)$' \
+./scripts/tidy.sh --config-file="$PWD/.clang-tidy" --header-filter='^$' --warnings-as-errors='*'
+```
 
 ## Using with IAR Embedded Workbench
 

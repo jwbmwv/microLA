@@ -66,8 +66,8 @@ scripts/generate_diagrams.bat
 **Build examples:**
 
 ```bash
-cmake -B build -DMICROLA_LINEAR_BUILD_EXAMPLES=ON
-cmake --build build
+cmake --preset debug
+cmake --build --preset debug
 ```
 
 ### Benchmarks (`benchmarks/`)
@@ -81,8 +81,8 @@ Performance measurement programs for:
 **Build benchmarks:**
 
 ```bash
-cmake -B build -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
-cmake --build build
+cmake --preset benchmark
+cmake --build --preset benchmark
 ```
 
 ## 🎯 Quick Navigation

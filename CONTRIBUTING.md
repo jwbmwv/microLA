@@ -30,7 +30,7 @@ Thank you for your interest in contributing to MicroLA! This document provides g
 ### Prerequisites
 
 - C++20 or later compiler (GCC 10+, Clang 10+, MSVC 2019 16.11+, IAR EWARM 9.30+)
-- CMake 3.13.1 or later
+- CMake 3.23 or later for the shipped preset-driven flow (3.13.1+ if configuring manually)
 - Git for version control
 
 ### Setting Up Development Environment
@@ -40,19 +40,14 @@ Thank you for your interest in contributing to MicroLA! This document provides g
 git clone https://github.com/jwbmwv/microla.git
 cd microla
 
-# Create build directory
-mkdir build && cd build
-
-# Configure with tests enabled
-cmake .. -DMICROLA_LINEAR_BUILD_TESTS=ON \
-         -DMICROLA_LINEAR_BUILD_EXAMPLES=ON \
-         -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
+# Configure the canonical local development preset
+cmake --preset debug
 
 # Build
-cmake --build .
+cmake --build --preset debug
 
 # Run tests
-ctest --output-on-failure
+ctest --preset debug
 ```
 
 ### Using CMake Presets (Recommended)
@@ -81,9 +76,19 @@ ctest --preset debug
 
 MicroLA enforces a baseline set of automated static-analysis checks. The full baseline and the deviation process are documented in `COMPLIANCE.md`.
 
-- CI runs `clang-tidy` with checks: `cppcoreguidelines-*`, `bugprone-*`, `modernize-*`, `performance-*`, `readability-*`, and `portability-*`.
+- CI runs the `.clang-tidy` policy against the public umbrella header and the shipped examples.
 - CI runs `cppcheck` (`warning,performance,portability`) with `--force` so the header set is checked across more preprocessor configurations.
-- `clang-format` is enforced via `scripts/format.sh` and CI formatting checks.
+- `clang-format` is enforced via `scripts/format.sh --check` and CI formatting checks.
+
+Common local validation commands:
+
+```bash
+./scripts/format.sh --check
+cmake --preset static-analysis
+BUILD_DIR=build/static-analysis \
+TIDY_INCLUDE_REGEX='.*/examples/.*[.](cpp|c)$' \
+./scripts/tidy.sh --config-file="$PWD/.clang-tidy" --header-filter='^$' --warnings-as-errors='*'
+```
 
 If a rule requires an exception, include a short justification in the PR, add an inline comment next to the deviation, and record the deviation in `COMPLIANCE.md`.
 
@@ -332,19 +337,21 @@ TEST(SIMDEquivalence, VectorAdd)
 ### Running Tests Locally
 
 ```bash
-# All tests
-ctest --output-on-failure
+# Configure and run the canonical host test preset
+cmake --preset host-tests
+cmake --build --preset host-tests
+ctest --preset host-tests
 
 # Specific test
-ctest -R MatrixTest
+ctest --preset host-tests -R MatrixTest
 
 # With verbose output
-ctest -V
+ctest --preset host-tests --verbose
 
 # Run under sanitizers
-cmake .. -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined"
-make
-ctest
+cmake --preset sanitizers-ci
+cmake --build --preset sanitizers-ci
+ctest --preset sanitizers-ci
 ```
 
 ---

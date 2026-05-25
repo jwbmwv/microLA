@@ -1,5 +1,5 @@
 # .clang-tidy configuration for MicroLA
-# Header-only C++17 linear algebra library for embedded systems
+# Header-only C++20 linear algebra library for embedded systems
 
 ---
 Checks: >
@@ -56,7 +56,8 @@ Checks: >
 
 WarningsAsErrors: ''
 
-HeaderFilterRegex: '.*microla.*\.(hpp|h)$'
+# Lint the public microla/ headers under include/
+HeaderFilterRegex: '.*/include/microla/.*\.(hpp|h)$'
 
 CheckOptions:
   # Naming conventions

@@ -258,49 +258,48 @@ Quaternion<float>, Quaternion<double>
 ## Build Options
 
 ```bash
-# Examples
-cmake .. -DMICROLA_LINEAR_BUILD_EXAMPLES=ON
+# Local development (examples + tests)
+cmake --preset debug
+cmake --build --preset debug
 
-# Tests
-cmake .. -DMICROLA_LINEAR_BUILD_TESTS=ON
+# Host test suite
+cmake --preset host-tests
+cmake --build --preset host-tests
+ctest --preset host-tests
 
 # Benchmarks
-cmake .. -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
+cmake --preset benchmark
+cmake --build --preset benchmark
 
-# SIMD Optimization
-
-## Enable SIMD (all platforms)
-```cpp
-
-#define MICROLA_AUTODETECT_SIMD  // Auto-detect platform
-
+# Sanitizers
+cmake --preset sanitizers-ci
+cmake --build --preset sanitizers-ci
+ctest --preset sanitizers-ci
 ```
 
-## Platform-specific SIMD
+### Enable SIMD (all platforms)
 ```cpp
+#define MICROLA_AUTODETECT_SIMD  // Auto-detect platform
+```
 
+### Platform-specific SIMD
+```cpp
 // ARM NEON (Cortex-A, ARM64)
-
 #define CONFIG_MICROLA_NEON
 
 // CMSIS-DSP (Cortex-M4F/M7)
-
 #define CONFIG_MICROLA_CMSIS
 
 // RISC-V V Extensions
-
 #define CONFIG_MICROLA_RISCV
-
 ```
-cmake .. -DMICROLA_ENABLE_NEON=ON      # ARM NEON
-cmake .. -DMICROLA_ENABLE_CMSIS=ON     # ARM Cortex-M
 
-# C++ Standard
-cmake .. -DCMAKE_CXX_STANDARD=20
-
-# Sanitizers
-cmake .. -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined"
+```bash
+cmake --preset neon   # ARM NEON
+cmake --preset cmsis  # ARM Cortex-M with CMSIS-DSP
 ```
+
+C++20 is the baseline in all shipped presets.
 
 ---
 

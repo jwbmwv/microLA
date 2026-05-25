@@ -8,10 +8,10 @@
 
 /**
  * @brief Main function - runs all test suites
- * 
+ *
  * This file serves as the entry point for the Zephyr test framework.
  * All test suites are automatically discovered and executed by ztest.
- * 
+ *
  * Test suites included:
  * - microla_vector: Vector operations tests
  * - microla_matrix: Matrix operations tests

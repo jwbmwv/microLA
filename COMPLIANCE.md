@@ -17,9 +17,9 @@ These are enforced in CI and are the expected minimum for contributions.
 
 - `clang-tidy` runs with `-checks=cppcoreguidelines-*,bugprone-*,modernize-*,performance-*` and treats warnings as failures.
 - `cppcheck` runs with `--force --enable=warning,performance,portability` and exits non-zero on findings.
-- `clang-format` is enforced via formatting checks and the `scripts/format.sh` helper.
+- `clang-format` is enforced via formatting checks and the `scripts/format.sh --check` helper.
 
-See `.github/workflows/ci.yml` (the `static-analysis` job) for the exact CI job configuration.
+See `.github/workflows/ci.yml` (the `static-analysis` and `format-check` jobs) for the exact CI job configuration.
 
 ## Exceptions and deviations
 
@@ -49,11 +49,13 @@ These are out-of-band from the automated baseline and typically require licensin
 Install tools and run locally:
 
 ```bash
-sudo apt-get install clang-tidy cppcheck clang-format
-cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug
-git ls-files '*.cpp' '*.cc' '*.cxx' | xargs -r clang-tidy -p build -checks='-*,cppcoreguidelines-*,bugprone-*,modernize-*,performance-*'
-cppcheck --force --enable=warning,performance,portability --std=c++17 --suppress=missingIncludeSystem . --error-exitcode=1
-./scripts/format.sh
+sudo apt-get install clang-tidy cppcheck clang-format-18
+cmake --preset static-analysis
+BUILD_DIR=build/static-analysis \
+TIDY_INCLUDE_REGEX='.*/examples/.*[.](cpp|c)$' \
+./scripts/tidy.sh --config-file="$PWD/.clang-tidy" --header-filter='^$' --warnings-as-errors='*'
+cppcheck --force --enable=warning,performance,portability --std=c++20 --suppress=missingIncludeSystem . --error-exitcode=1
+./scripts/format.sh --check
 ```
 
 ## Contact
