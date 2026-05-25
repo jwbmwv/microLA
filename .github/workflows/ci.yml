@@ -355,7 +355,7 @@ jobs:
           TIDY_INCLUDE_REGEX='.*/examples/.*[.](cpp|c)$' \
           CLANG_TIDY=clang-tidy \
           BUILD_DIR="$BUILD_DIR" \
-          ./scripts/tidy.sh \
+          bash ./scripts/tidy.sh \
             --config-file="${GITHUB_WORKSPACE}/.clang-tidy" \
             --header-filter='^$' \
             --warnings-as-errors='*'
@@ -554,4 +554,4 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang-format-18
 
       - name: Check Formatting
-        run: CLANG_FORMAT=clang-format-18 ./scripts/format.sh --check
+        run: CLANG_FORMAT=clang-format-18 bash ./scripts/format.sh --check
