@@ -22,6 +22,6 @@ target_sources(app PRIVATE
     src/test_matrix_view.cpp
 )
 
-# Enable C++17 for MicroLA
-set_property(TARGET app PROPERTY CXX_STANDARD 17)
+# Enable C++20 for MicroLA
+set_property(TARGET app PROPERTY CXX_STANDARD 20)
 set_property(TARGET app PROPERTY CXX_STANDARD_REQUIRED ON)

@@ -1,19 +1,18 @@
 # Test Status Report
 
-**Date:** March 7, 2026  
+**Date:** March 29, 2026  
 **Primary Host Preset:** `host-tests`  
-**Total Tests:** 517  
-**Passing:** 517 (100%)  
+**Total Tests:** 530  
+**Passing:** 530 (100%)  
 **Failing:** 0
 
 ## Summary
 
-MicroLA's current host-side Google Test surface is green in a clean C++17 build. The host preset validates the shipped library headers, integration scenarios, view types, numerical helpers, embedded-contract checks, and the new `sensor_fusion.hpp` API surface.
+MicroLA's current host-side Google Test surface is green in a clean C++20 build. The host preset validates the shipped library headers, integration scenarios, view types, numerical helpers, embedded-contract checks, and the `sensor_fusion.hpp` API surface.
 
-The release presets extend that proof surface further:
+The release-style CI preset extends that proof surface further:
 
-- `ci-release-cxx17`: `518/518` passing, including `sensor_fusion_example_smoke`
-- `ci-release-cxx20`: `519/519` passing, including `sensor_fusion_example_smoke`
+- `ci-release-cxx20`: `531/531` passing, including `sensor_fusion_example_smoke`
 
 ## Key Covered Areas
 
@@ -28,10 +27,14 @@ The release presets extend that proof surface further:
 The dedicated sensor-fusion tests now cover:
 
 - accelerometer-only startup rejection and tilt-only observability
+- arbitrary-unit magnetometer acceptance after calibration
+- directional magnetic disturbance rejection once heading is locked
+- shared Mahony or EKF measurement-only fallback on gyro dropout
+- calibration reset and magnetic-reference relearning
 - 6-axis drift-aware heading results
 - 9-axis full-3D heading recovery
 - hinge-twist and swing extraction
-- stale-pair and time-skew flagging
+- stale-pair and time-skew flagging, including recent-skew compensation
 - policies that reject drift-enabled heading outputs
 - reference-pose capture and neutralization
 
@@ -40,7 +43,7 @@ The maintained `examples/sensor_fusion.cpp` program is also executed in release 
 ## Validation Notes
 
 - The host test count in this file reflects the dedicated `host-tests` preset.
-- Additional CI-equivalent lanes also pass locally: embedded, coverage, sanitizers, constexpr C++17/C++20, format, static analysis, and PlantUML validation.
+- Local reruns in this workspace also passed for `embedded-tests`, `ci-release-cxx20`, `coverage-ci`, `sanitizers-ci`, `constexpr-cxx20`, and the exact CI-style `static-analysis` lane after the latest modernization cleanup.
 - Windows, macOS, and Zephyr-QEMU workflows were not rerun in this Linux workspace.
 
 For the full lane matrix, see [../TEST_COVERAGE.md](../TEST_COVERAGE.md).

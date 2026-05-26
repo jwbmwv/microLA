@@ -1,6 +1,6 @@
 # MicroLA
 
-A lightweight, header-only C++17 linear algebra library optimized for embedded systems and real-time applications.
+A lightweight, header-only C++20 linear algebra library optimized for embedded systems and real-time applications.
 
 ## Features
 
@@ -14,7 +14,7 @@ A lightweight, header-only C++17 linear algebra library optimized for embedded s
   - **Vec3 optimized**: Eliminated temporary arrays, 1.4× faster
   - **NEON quaternion multiply**: 3.5× faster than scalar
   - **Matrix SIMD**: 3-4× speedup for 3×3 and 4×4 operations
-- **C++ standard adaptive**: Progressive optimizations C++17/20/23/26, baseline C++17
+- **C++20 baseline with forward-looking feature gates**: Uses C++20 directly and enables C++23/C++26 improvements when available
 - **Embedded-aware APIs**: Caller-provided buffer overloads are available for allocation-sensitive paths such as QR eigenvalue extraction
 - **Namespaced**: All classes in `microla` namespace to avoid pollution
 - **Versioned**: Runtime version API for compatibility checking
@@ -23,7 +23,7 @@ A lightweight, header-only C++17 linear algebra library optimized for embedded s
 - **Sanitizer-tested**: CI runs ASan and UBSan configurations on the host test suite
 - **Embedded-friendly**: Designed for microcontrollers with limited resources
 - **Rich utilities**: Mathematical constants, angle utilities, interpolation, swizzling
-- **Sensor fusion ready**: Coordinate transforms, safe normalization, Euler/quaternion conversions
+- **Sensor fusion ready**: Coordinate transforms, safe normalization, Euler/quaternion conversions, and documented SI-unit conventions
 - **Kalman filtering**: Standard and Extended Kalman Filters for state estimation
 - **Safe math**: Protected operations with overflow/underflow detection and clamping
 - **Fast math**: High-performance approximations (2-10× speedup) for embedded systems
@@ -227,7 +227,7 @@ Vec<float, 3> back = v4.from_homogeneous();  // Perspective division
 
 using namespace microla;
 
-// C++17: precompute fixed-orientation matrices once and reuse them
+// C++20: precompute fixed-orientation matrices once and reuse them
 static const auto sensor_to_body = SquareMat<float, 3>::rotation_z(deg_to_rad(90.0f));
 Vec<float, 3> sensor(1.0f, 0.0f, 0.0f);
 Vec<float, 3> body = sensor_to_body * sensor;
@@ -420,10 +420,10 @@ SIMD optimizations, compile-time checks, and performance patterns.
 **Build examples:**
 
 ```bash
-cmake .. -DMICROLA_LINEAR_BUILD_EXAMPLES=ON
-make
-./examples/sensor_fusion
-./examples/kalman_demo
+cmake --preset debug
+cmake --build --preset debug
+./build/debug/examples/sensor_fusion
+./build/debug/examples/kalman_demo
 ```
 
 ## Performance Benchmarks
@@ -439,11 +439,11 @@ The `benchmarks/` directory provides Google Benchmark-based performance tests:
 **Run benchmarks:**
 
 ```bash
-cmake .. -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
-make
-./benchmarks/bench_matrix_multiply
-./benchmarks/bench_simd --benchmark_filter=Vec3.*
-./benchmarks/bench_sensor_fusion --benchmark_filter=bm_sensor_fusion_.*
+cmake --preset benchmark
+cmake --build --preset benchmark
+./build/benchmark-native/benchmarks/bench_matrix_multiply
+./build/benchmark-native/benchmarks/bench_simd --benchmark_filter=Vec3.*
+./build/benchmark-native/benchmarks/bench_sensor_fusion --benchmark_filter=bm_sensor_fusion_.*
 ```
 
 See [benchmarks/README.md](benchmarks/README.md) for detailed results and optimization tips.
@@ -456,7 +456,7 @@ For detailed performance comparisons with other libraries, see [PERFORMANCE.md](
 - **[API Documentation](docs/API_Documentation.md)** - Complete API reference
 - **[Migration Guide](MIGRATION.md)** - Switch from Eigen, GLM, or custom code
 - **[Performance Comparison](PERFORMANCE.md)** - Benchmarks vs. alternatives
-- **[C++ Optimizations](docs/Cpp_Standard_Optimizations.md)** - C++17-26 feature usage
+- **[C++ Optimizations](docs/Cpp_Standard_Optimizations.md)** - C++20-26 feature usage
 - **[Doxygen](docs/doxygen/html/index.html)** - Generated API docs (run `doxygen`)
 
 ## SIMD Optimizations
@@ -519,7 +519,7 @@ Comprehensive CMSIS-DSP optimizations for `float` types:
 ## Additional Documentation
 
 - [API Documentation](docs/API_Documentation.md) - Complete API reference with examples
-- [C++ Standard Optimizations](docs/Cpp_Standard_Optimizations.md) - C++17/20/23 features and performance
+- [C++ Standard Optimizations](docs/Cpp_Standard_Optimizations.md) - C++20/23/26 feature usage and performance
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - build issues, sanitizer setup, and integration notes
 - [Examples](examples/) - Code examples and usage patterns
 
@@ -532,7 +532,7 @@ All classes are in the `microla` namespace:
 The library uses a modular header structure for flexibility:
 
 - **microla.hpp** - Main convenience header that includes all components
-- **compiler_features.hpp** - C++ standard feature detection (C++17-C++26 feature macros)
+- **compiler_features.hpp** - C++ standard feature detection (C++20-C++26 feature macros)
 - **constants.hpp** - Mathematical constants (pi, e, sqrt2, etc.) - independent, can be used standalone
 - **vector.hpp** - Generic `Vec<T,N>` template with all vector operations
 - **matrix.hpp** - Generic `Mat<T,R,C>` and `SquareMat<T,N>` templates
@@ -583,7 +583,7 @@ The library uses a modular header structure for flexibility:
 
 ## Requirements
 
-- **C++ Standard**: C++17 or later
+- **C++ Standard**: C++20 or later
 - **Dependencies**: None (NEON/CMSIS-DSP optional for ARM targets)
 - **Compiler Support**: GCC, Clang, MSVC, ARM Compiler 6, IAR Embedded Workbench for ARM
 - **Tested Platforms**:
@@ -606,12 +606,9 @@ All types are POD (Plain Old Data) with the following characteristics:
 ## Building Examples and Tests
 
 ```bash
-mkdir build && cd build
-cmake ..
-cmake --build .
-
-# Run tests
-ctest --output-on-failure
+cmake --preset debug
+cmake --build --preset debug
+ctest --preset debug
 ```
 
 ## Integration with Zephyr
@@ -638,13 +635,13 @@ MicroLA includes comprehensive test suites:
 **Google Test Suite** (for desktop/CI):
 
 ```bash
-cmake .. -DMICROLA_LINEAR_BUILD_TESTS=ON
-make
-./tests/google/microla_gtests
+cmake --preset host-tests
+cmake --build --preset host-tests
+ctest --preset host-tests
 ```
 
 Tests include:
-- Compile-time constexpr validation (C++17+)
+- Compile-time constexpr validation (C++20+)
 - Vector/matrix/quaternion operations
 - Edge cases and numerical stability
 - Type conversions and utilities
@@ -662,14 +659,26 @@ west flash
 MicroLA is exercised under host sanitizers in CI:
 
 ```bash
-cmake .. -DCMAKE_BUILD_TYPE=Debug \
-  -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined"
-make && ./tests/google/microla_gtests
+cmake --preset sanitizers-ci
+cmake --build --preset sanitizers-ci
+ctest --preset sanitizers-ci
 ```
 
 Passes in repository CI: AddressSanitizer (ASan) and UndefinedBehaviorSanitizer (UBSan)
 
 MemorySanitizer is not currently part of the checked-in CI workflow.
+
+### Development Checks
+
+The repository ships helper scripts for the local formatting and clang-tidy flows used in CI:
+
+```bash
+./scripts/format.sh --check
+cmake --preset static-analysis
+BUILD_DIR=build/static-analysis \
+TIDY_INCLUDE_REGEX='.*/examples/.*[.](cpp|c)$' \
+./scripts/tidy.sh --config-file="$PWD/.clang-tidy" --header-filter='^$' --warnings-as-errors='*'
+```
 
 ## Using with IAR Embedded Workbench
 
@@ -677,7 +686,7 @@ MicroLA is fully compatible with IAR Embedded Workbench for ARM:
 
 **Quick Setup:**
 1. Add `microla/include` to your project's include paths
-2. Enable C++17: Project Options → C/C++ Compiler → Language → C++ → C++17
+2. Enable C++20: Project Options → C/C++ Compiler → Language → C++ → C++20
 3. For NEON optimization: Project Options → C/C++ Compiler → Code → FPU: VFPv4_sp
 4. Add preprocessor define: `CONFIG_MICROLA_NEON`
 

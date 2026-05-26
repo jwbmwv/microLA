@@ -1,13 +1,13 @@
 # C++ Standard Version Optimizations
 
-MicroLA requires C++17 and takes advantage of newer C++ standards when available.
+MicroLA requires C++20 and takes advantage of newer C++ standards when available.
 
 ## Feature Detection
 
 The library automatically detects the C++ standard version and enables appropriate optimizations. All feature detection macros are centralized in [`compiler_features.hpp`](../include/microla/compiler_features.hpp):
 
 ```cpp
-// C++17 (baseline): constexpr, if constexpr, inline variables, [[nodiscard]]
+// C++20 (required baseline): constexpr, if constexpr, inline variables, [[nodiscard]]
 // C++20: MICROLA_CONSTEXPR20, MICROLA_CONSTEVAL, std::bit_cast
 // C++23: MICROLA_CONSTEXPR23, MICROLA_IF_CONSTEVAL, MICROLA_UNREACHABLE
 // C++26: MICROLA_CONSTEXPR26, MICROLA_CONSTEXPR_TRIG (constexpr math functions)
@@ -64,11 +64,11 @@ MICROLA_FORCEINLINE float dot_impl(const float* a, const float* b) {
 - Reduced branching overhead
 - Improved loop unrolling
 
-## C++17 Baseline Optimizations
+## C++20 Baseline Optimizations
 
 ### Relaxed constexpr
 
-More functions can be evaluated at compile-time with the C++17 baseline:
+More functions can be evaluated at compile-time with the required C++20 baseline:
 
 ```cpp
 constexpr T dot(const Vec& other) const noexcept {
@@ -116,7 +116,7 @@ if constexpr (std::is_same_v<T, float>) {
 Allows header-only constants without ODR violations:
 
 ```cpp
-// C++17 header-only definition
+// C++20 header-only definition
 inline constexpr int X = 0;
 ```
 
@@ -125,7 +125,7 @@ inline constexpr int X = 0;
 Not used in current API but useful for user code:
 
 ```cpp
-auto [x, y, z] = vec.to_array();  // C++17
+auto [x, y, z] = vec.to_array();  // Still available under C++20
 ```
 
 ## C++20 Optimizations
@@ -198,7 +198,7 @@ MICROLA_CONSTINIT const Vec<float, 3> unit_x(1.0f, 0.0f, 0.0f);
 
 | Feature | C++ Version | Performance Gain | Code Size Impact |
 |---------|-------------|------------------|------------------|
-| constexpr baseline | C++17 | 5-10% | -10-15% |
+| constexpr baseline | C++20 | 5-10% | -10-15% |
 | [[likely]]/[[unlikely]] | C++20 | 2-5% | Neutral |
 | std::bit_cast | C++20 | Neutral | Neutral |
 | Concepts | C++20 | Neutral | +1-2% |
@@ -213,14 +213,7 @@ MICROLA_CONSTINIT const Vec<float, 3> unit_x(1.0f, 0.0f, 0.0f);
 
 ## Compiler Support
 
-### C++17
-
-- GCC 7.0+
-- Clang 5.0+
-- MSVC 2017+
-- IAR EWARM 9.x+
-
-### C++20
+### C++20 (minimum)
 
 - GCC 10.0+
 - Clang 10.0+
@@ -245,9 +238,6 @@ MICROLA_CONSTINIT const Vec<float, 3> unit_x(1.0f, 0.0f, 0.0f);
 ### CMake
 
 ```cmake
-# C++17
-target_compile_features(my_app PRIVATE cxx_std_17)
-
 # C++20
 target_compile_features(my_app PRIVATE cxx_std_20)
 
@@ -261,12 +251,11 @@ target_compile_features(my_app PRIVATE cxx_std_26)
 ### IAR Embedded Workbench
 
 1. Project Options → C/C++ Compiler → Language
-2. Set C++ dialect: C++17, C++20, or C++23
+2. Set C++ dialect: C++20, C++23, or C++26 preview when available
 
 ### GCC/Clang
 
 ```bash
-g++ -std=c++17 ...  # C++17
 g++ -std=c++20 ...  # C++20
 g++ -std=c++23 ...  # C++23
 g++ -std=c++2c ...  # C++26 (preview)
@@ -276,18 +265,18 @@ g++ -std=c++2c ...  # C++26 (preview)
 
 ### For Projects
 
-- **Use C++17** for best performance/size trade-off
-- Enable C++20 if your toolchain supports it
+- **Use C++20** as the default supported baseline
+- Enable C++23 when your toolchain has solid `if consteval` and `std::unreachable` support
 
 ### For Existing Projects
 
-- Migrate to **C++17** as the minimum supported standard
-- Consider C++20 for stronger type constraints and newer library support
+- Treat **C++20** as the minimum supported standard
+- Consider C++23 for stronger constexpr/runtime dual-path support
 
 ### For Safety-Critical Projects
 
-- **C++17** is widely deployed and stable
-- C++20 may require additional qualification
+- **C++20** is the maintained MicroLA baseline
+- Qualify optional C++23/C++26 features separately if your certification process requires it
 
 ## Current Library Status
 
@@ -295,9 +284,9 @@ MicroLA uses these features when available:
 
 | Feature | Usage |
 |---------|-------|
-| C++17 constexpr | ✓ Used in Vec/Mat/Quaternion operations |
-| C++17 if constexpr | ✓ Used in SIMD dispatch |
-| C++17 inline variables | ✓ Used in constants |
+| C++20 constexpr | ✓ Used in Vec/Mat/Quaternion operations |
+| C++20 if constexpr | ✓ Used in SIMD dispatch |
+| C++20 inline variables | ✓ Used in constants |
 | C++20 concepts | ✓ Type constraints defined |
 | C++20 bit_cast | ✓ Used in SIMD operations |
 | C++20 [[likely]] | ✓ Used in hot paths |
@@ -403,7 +392,7 @@ constexpr auto transform = Mat<float, 3, 3>::rotation_y(deg_to_rad(37.5f));
 
 | C++ Version | Capability | Example |
 |-------------|------------|---------|
-| **C++17-C++23** | Special angles only (0°, 90°, 180°, 270°) | `rotation_x_deg<90>()` |
+| **C++20-C++23** | Special angles only (0°, 90°, 180°, 270°) | `rotation_x_deg<90>()` |
 | **C++26** | ANY angle at compile time | `rotation_x(1.234f)` in constexpr context |
 
 **Migration path:**
@@ -431,7 +420,7 @@ More standard library functions become `constexpr`:
 
 ## Compile-Time Rotation Matrix Guide
 
-### For C++17-C++23: Special Angles Only
+### For C++20-C++23: Special Angles Only
 
 Use template-based rotation for 0°, 90°, 180°, 270° multiples:
 
@@ -475,7 +464,7 @@ constexpr auto combined =
 - Natural syntax (same as runtime)
 - Automatic when compiled with C++26
 
-### Workarounds for Arbitrary Angles (C++17-C++23)
+### Workarounds for Arbitrary Angles (C++20-C++23)
 
 If you need compile-time rotations at arbitrary angles before C++26:
 

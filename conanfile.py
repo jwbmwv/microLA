@@ -1,4 +1,5 @@
 from conan import ConanFile
+from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
 from conan.tools.files import copy
 import os
@@ -9,7 +10,7 @@ class MicroLAConan(ConanFile):
     license = "Apache-2.0"
     author = "James Baldwin"
     url = "https://github.com/jwbmwv/microla"
-    description = "High-performance C++17 linear algebra library for embedded systems"
+    description = "High-performance C++20 linear algebra library for embedded systems"
     topics = ("linear-algebra", "matrix", "vector", "embedded", "simd", "quaternion")
     settings = "os", "compiler", "build_type", "arch"
     options = {
@@ -36,10 +37,17 @@ class MicroLAConan(ConanFile):
     def layout(self):
         cmake_layout(self)
 
+    def validate(self):
+        if self.settings.get_safe("compiler.cppstd"):
+            check_min_cppstd(self, "20")
+
     def generate(self):
         deps = CMakeDeps(self)
         deps.generate()
         tc = CMakeToolchain(self)
+        tc.variables["CMAKE_CXX_EXTENSIONS"] = False
+        tc.variables["CMAKE_CXX_STANDARD"] = "20"
+        tc.variables["CMAKE_CXX_STANDARD_REQUIRED"] = True
         tc.variables["MICROLA_LINEAR_BUILD_TESTS"] = self.options.enable_tests
         tc.variables["MICROLA_LINEAR_BUILD_BENCHMARKS"] = self.options.enable_benchmarks
         tc.variables["MICROLA_LINEAR_BUILD_EXAMPLES"] = self.options.enable_examples

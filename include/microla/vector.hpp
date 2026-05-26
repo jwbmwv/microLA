@@ -906,7 +906,8 @@ public:
     /// \param other The other vector.
     /// \return The cross product.
     template<std::size_t NN = N>
-    [[nodiscard]] constexpr auto cross(const Vec& other) const noexcept -> std::enable_if_t<NN == 3, Vec>
+        requires(NN == 3)
+    [[nodiscard]] constexpr auto cross(const Vec& other) const noexcept -> Vec
     {
 #ifdef CONFIG_MICROLA_NEON
         if constexpr (std::is_same_v<T, float>)
@@ -963,7 +964,8 @@ public:
     /// \param other The other vector.
     /// \return The cross product.
     template<std::size_t NN = N>
-    [[nodiscard]] constexpr auto operator^(const Vec& other) const noexcept -> std::enable_if_t<NN == 3, Vec>
+        requires(NN == 3)
+    [[nodiscard]] constexpr auto operator^(const Vec& other) const noexcept -> Vec
     {
         return cross(other);
     }
@@ -997,42 +999,44 @@ public:
         if constexpr (std::is_same_v<T, float> && (N == 2 || N == 3 || N == 4))
         {
             const T len_sq = dot(*this);
-            if (len_sq == T(0))
-                return *this;
-
-            // Fast inverse square root with Newton-Raphson refinement
-            float32x2_t len_sq_v = vdup_n_f32(static_cast<float>(len_sq));
-            float32x2_t rsqrt = vrsqrte_f32(len_sq_v);  // Initial estimate
-            // Newton-Raphson: x' = x * (3 - x^2 * a) / 2
-            rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
-            rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
-            const T inv_len = static_cast<T>(vget_lane_f32(rsqrt, 0));
-            return *this * inv_len;
+            if (len_sq != T(0))
+            {
+                // Fast inverse square root with Newton-Raphson refinement
+                float32x2_t len_sq_v = vdup_n_f32(static_cast<float>(len_sq));
+                float32x2_t rsqrt = vrsqrte_f32(len_sq_v);  // Initial estimate
+                // Newton-Raphson: x' = x * (3 - x^2 * a) / 2
+                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
+                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
+                const T inv_len = static_cast<T>(vget_lane_f32(rsqrt, 0));
+                return *this * inv_len;
+            }
+            return *this;
         }
 #endif
 #ifdef CONFIG_MICROLA_CMSIS
         if constexpr (std::is_same_v<T, float>)
         {
             const T len_sq = dot(*this);
-            if (len_sq == T(0))
-                return *this;
+            if (len_sq != T(0))
+            {
+                float len;
+                float len_sq_f = static_cast<float>(len_sq);
+                arm_sqrt_f32(len_sq_f, &len);
 
-            float len;
-            float len_sq_f = static_cast<float>(len_sq);
-            arm_sqrt_f32(len_sq_f, &len);
-
-            const float inv_len = 1.0f / len;
-            Vec result;
-            arm_scale_f32(data, inv_len, result.data, N);
-            return result;
+                const float inv_len = 1.0f / len;
+                Vec result;
+                arm_scale_f32(data, inv_len, result.data, N);
+                return result;
+            }
+            return *this;
         }
 #endif
         const T len = length();
-        if (len == T(0))
+        if (len != T(0))
         {
-            return *this;
+            return *this / len;
         }
-        return *this / len;
+        return *this;
     }
 
     /// \brief Angle between two vectors (in radians).
@@ -1063,12 +1067,14 @@ public:
     /// \brief Get x component (index 0).
     /// \return Reference to x component.
     template<std::size_t NN = N>
-    typename std::enable_if<(NN >= 1), T&>::type x() noexcept
+        requires(NN >= 1)
+    auto x() noexcept -> T&
     {
         return data[X];
     }
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 1), const T&>::type x() const noexcept
+        requires(NN >= 1)
+    [[nodiscard]] auto x() const noexcept -> const T&
     {
         return data[X];
     }
@@ -1076,12 +1082,14 @@ public:
     /// \brief Get y component (index 1).
     /// \return Reference to y component.
     template<std::size_t NN = N>
-    typename std::enable_if<(NN >= 2), T&>::type y() noexcept
+        requires(NN >= 2)
+    auto y() noexcept -> T&
     {
         return data[Y];
     }
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 2), const T&>::type y() const noexcept
+        requires(NN >= 2)
+    [[nodiscard]] auto y() const noexcept -> const T&
     {
         return data[Y];
     }
@@ -1089,12 +1097,14 @@ public:
     /// \brief Get z component (index 2).
     /// \return Reference to z component.
     template<std::size_t NN = N>
-    typename std::enable_if<(NN >= 3), T&>::type z() noexcept
+        requires(NN >= 3)
+    auto z() noexcept -> T&
     {
         return data[Z];
     }
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), const T&>::type z() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto z() const noexcept -> const T&
     {
         return data[Z];
     }
@@ -1102,12 +1112,14 @@ public:
     /// \brief Get w component (index 3).
     /// \return Reference to w component.
     template<std::size_t NN = N>
-    typename std::enable_if<(NN >= 4), T&>::type w() noexcept
+        requires(NN >= 4)
+    auto w() noexcept -> T&
     {
         return data[W];
     }
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 4), const T&>::type w() const noexcept
+        requires(NN >= 4)
+    [[nodiscard]] auto w() const noexcept -> const T&
     {
         return data[W];
     }
@@ -1403,8 +1415,8 @@ public:
     /// \param normal The normal vector defining the plane (should be normalized).
     /// \return The signed angle in radians [-π, π].
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<NN == 3, T>::type signed_angle(const Vec& other,
-                                                                         const Vec& normal) const noexcept
+        requires(NN == 3)
+    [[nodiscard]] auto signed_angle(const Vec& other, const Vec& normal) const noexcept -> T
     {
         T cos_theta = dot(other) / (length() * other.length());
         // Clamp to [-1, 1] to avoid domain errors
@@ -1431,7 +1443,8 @@ public:
     /// \param angle The rotation angle in radians.
     /// \return The rotated vector.
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<NN == 3, Vec>::type rotate(const Vec& axis, T angle) const noexcept
+        requires(NN == 3)
+    [[nodiscard]] auto rotate(const Vec& axis, T angle) const noexcept -> Vec
     {
         const T cos_a = std::cos(angle);
         const T sin_a = std::sin(angle);
@@ -1472,7 +1485,8 @@ public:
     /// \brief Static factory: create unit vector along Y axis (0, 1, 0, ...)
     /// \return Unit Y vector
     template<std::size_t NN = N>
-    static typename std::enable_if<(NN >= 2), Vec>::type unit_y() noexcept
+        requires(NN >= 2)
+    static auto unit_y() noexcept -> Vec
     {
         Vec result = zero();
         result.data[Y] = T(1);
@@ -1482,7 +1496,8 @@ public:
     /// \brief Static factory: create unit vector along Z axis (0, 0, 1, ...)
     /// \return Unit Z vector
     template<std::size_t NN = N>
-    static typename std::enable_if<(NN >= 3), Vec>::type unit_z() noexcept
+        requires(NN >= 3)
+    static auto unit_z() noexcept -> Vec
     {
         Vec result = zero();
         result.data[Z] = T(1);
@@ -1492,7 +1507,8 @@ public:
     /// \brief Static factory: create unit vector along W axis (0, 0, 0, 1)
     /// \return Unit W vector
     template<std::size_t NN = N>
-    static typename std::enable_if<(NN >= 4), Vec>::type unit_w() noexcept
+        requires(NN >= 4)
+    static auto unit_w() noexcept -> Vec
     {
         Vec result = zero();
         result.data[W] = T(1);
@@ -1544,7 +1560,8 @@ public:
     /// \brief Get 2D swizzle (only for N >= 2)
     /// \return Vec<T,2> with x,y components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 2), Vec<T, 2>>::type xy() const noexcept
+        requires(NN >= 2)
+    [[nodiscard]] auto xy() const noexcept -> Vec<T, 2>
     {
         return Vec<T, 2>(data[X], data[Y]);
     }
@@ -1552,7 +1569,8 @@ public:
     /// \brief Get 2D swizzle yx (only for N >= 2)
     /// \return Vec<T,2> with y,x components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 2), Vec<T, 2>>::type yx() const noexcept
+        requires(NN >= 2)
+    [[nodiscard]] auto yx() const noexcept -> Vec<T, 2>
     {
         return Vec<T, 2>(data[Y], data[X]);
     }
@@ -1560,7 +1578,8 @@ public:
     /// \brief Get 3D swizzle (only for N >= 3)
     /// \return Vec<T,3> with x,y,z components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), Vec<T, 3>>::type xyz() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto xyz() const noexcept -> Vec<T, 3>
     {
         return Vec<T, 3>(data[X], data[Y], data[Z]);
     }
@@ -1568,7 +1587,8 @@ public:
     /// \brief Get xz swizzle (only for N >= 3)
     /// \return Vec<T,2> with x,z components
     template<std::size_t NN = N>
-    typename std::enable_if<(NN >= 3), Vec<T, 2>>::type xz() const noexcept
+        requires(NN >= 3)
+    auto xz() const noexcept -> Vec<T, 2>
     {
         return Vec<T, 2>(data[X], data[Z]);
     }
@@ -1576,7 +1596,8 @@ public:
     /// \brief Get yz swizzle (only for N >= 3)
     /// \return Vec<T,2> with y,z components
     template<std::size_t NN = N>
-    typename std::enable_if<(NN >= 3), Vec<T, 2>>::type yz() const noexcept
+        requires(NN >= 3)
+    auto yz() const noexcept -> Vec<T, 2>
     {
         return Vec<T, 2>(data[Y], data[Z]);
     }
@@ -1584,7 +1605,8 @@ public:
     /// \brief Get zx swizzle (only for N >= 3)
     /// \return Vec<T,2> with z,x components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), Vec<T, 2>>::type zx() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto zx() const noexcept -> Vec<T, 2>
     {
         return Vec<T, 2>(data[Z], data[X]);
     }
@@ -1592,7 +1614,8 @@ public:
     /// \brief Get zy swizzle (only for N >= 3)
     /// \return Vec<T,2> with z,y components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), Vec<T, 2>>::type zy() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto zy() const noexcept -> Vec<T, 2>
     {
         return Vec<T, 2>(data[Z], data[Y]);
     }
@@ -1600,7 +1623,8 @@ public:
     /// \brief Get xzy swizzle (only for N >= 3)
     /// \return Vec<T,3> with x,z,y components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), Vec<T, 3>>::type xzy() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto xzy() const noexcept -> Vec<T, 3>
     {
         return Vec<T, 3>(data[X], data[Z], data[Y]);
     }
@@ -1608,7 +1632,8 @@ public:
     /// \brief Get yxz swizzle (only for N >= 3)
     /// \return Vec<T,3> with y,x,z components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), Vec<T, 3>>::type yxz() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto yxz() const noexcept -> Vec<T, 3>
     {
         return Vec<T, 3>(data[Y], data[X], data[Z]);
     }
@@ -1616,7 +1641,8 @@ public:
     /// \brief Get yzx swizzle (only for N >= 3)
     /// \return Vec<T,3> with y,z,x components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), Vec<T, 3>>::type yzx() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto yzx() const noexcept -> Vec<T, 3>
     {
         return Vec<T, 3>(data[Y], data[Z], data[X]);
     }
@@ -1624,7 +1650,8 @@ public:
     /// \brief Get zxy swizzle (only for N >= 3)
     /// \return Vec<T,3> with z,x,y components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), Vec<T, 3>>::type zxy() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto zxy() const noexcept -> Vec<T, 3>
     {
         return Vec<T, 3>(data[Z], data[X], data[Y]);
     }
@@ -1632,7 +1659,8 @@ public:
     /// \brief Get zyx swizzle (only for N >= 3)
     /// \return Vec<T,3> with z,y,x components
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 3), Vec<T, 3>>::type zyx() const noexcept
+        requires(NN >= 3)
+    [[nodiscard]] auto zyx() const noexcept -> Vec<T, 3>
     {
         return Vec<T, 3>(data[Z], data[Y], data[X]);
     }
@@ -1653,7 +1681,8 @@ public:
     /// \brief Convert from homogeneous coordinates (divide by w, drop w component)
     /// \return Vec<T,N-1> with perspective division applied
     template<std::size_t NN = N>
-    [[nodiscard]] typename std::enable_if<(NN >= 2), Vec<T, N - 1>>::type from_homogeneous() const noexcept
+        requires(NN >= 2)
+    [[nodiscard]] auto from_homogeneous() const noexcept -> Vec<T, N - 1>
     {
         Vec<T, N - 1> result;
         const T w = data[N - 1];

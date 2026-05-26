@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 /// @file constexpr_rotations.cpp
 /// @brief Example demonstrating compile-time rotation matrices
-/// @details Shows how to create rotation matrices at compile time for different C++ standards
+/// @details Shows how the C++20 baseline supports fixed compile-time rotations today and how
+///          C++26 constexpr math expands arbitrary-angle support.
 /// @copyright Copyright (c) 2026 James Baldwin. AI-assisted — see NOTICE.
 /// @author James Baldwin
 
@@ -37,9 +38,9 @@ auto main() -> int
     std::cout << "=== MicroLA Compile-Time Rotation Examples ===\n\n";
 
     // ========================================
-    // C++17-C++23: Special Angles Only
+    // C++20-C++23: Special Angles Only
     // ========================================
-    std::cout << "--- C++17+: Special Angle Rotations ---\n";
+    std::cout << "--- C++20+: Special Angle Rotations ---\n";
     std::cout << "These compile to constants!\n\n";
 
     // Identity matrix - true compile-time constant
@@ -100,20 +101,8 @@ auto main() -> int
 
     std::cout << "✓ Running with C++26: Full constexpr trigonometry available!\n\n";
 #else
-    std::cout << "Currently compiled with C++";
-    if (__cplusplus == 202002L)
-    {
-        std::cout << "20";
-    }
-    else if (__cplusplus == 201703L)
-    {
-        std::cout << "17";
-    }
-    else
-    {
-        std::cout << " (unknown)";
-    }
-    std::cout << "\nC++26 required for compile-time arbitrary angle rotations.\n";
+    std::cout << "Current build uses the C++20 minimum baseline.\n";
+    std::cout << "Arbitrary-angle rotations still use runtime trig until C++26 constexpr <cmath> is available.\n";
     std::cout << "Recompile with -std=c++2c when available.\n\n";
 #endif
 

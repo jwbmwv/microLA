@@ -82,9 +82,9 @@ MICROLA_CONSTEXPR20 auto rsqrt(float x) noexcept -> float
     static_assert(Iterations >= 0 && Iterations <= 3, "Iterations must be 0-3");
 
     // Quake III fast inverse square root
-    std::uint32_t bits = MICROLA_BIT_CAST(std::uint32_t, x);
+    auto bits = MICROLA_BIT_CAST(std::uint32_t, x);
     bits = 0x5f3759dfU - (bits >> 1);  // Magic constant
-    float y = MICROLA_BIT_CAST(float, bits);
+    auto y = MICROLA_BIT_CAST(float, bits);
 
     // Newton-Raphson iterations for better accuracy
     if constexpr (Iterations >= 1)
@@ -216,10 +216,10 @@ inline auto exp(T x) noexcept -> T
 inline auto ln(float x) noexcept -> float
 {
     // Extract exponent from IEEE 754 representation
-    std::uint32_t bits = MICROLA_BIT_CAST(std::uint32_t, x);
+    auto bits = MICROLA_BIT_CAST(std::uint32_t, x);
     const int exponent = static_cast<int>(((bits >> 23) & 0xFFU)) - 127;
     bits = (bits & 0x007FFFFFU) | 0x3F800000U;  // mantissa in [1, 2)
-    const float m = MICROLA_BIT_CAST(float, bits);
+    const auto m = MICROLA_BIT_CAST(float, bits);
 
     // Polynomial approximation for ln(m) where m in [1, 2)
     // ln(m) ≈ (m - 1) * (a + b*(m-1) + c*(m-1)²)
@@ -227,7 +227,7 @@ inline auto ln(float x) noexcept -> float
     const float log_m = m1 * (2.0F - 0.666666F * m1 + 0.4F * m1 * m1);
 
     // ln(x) = ln(2^exp * m) = exp * ln(2) + ln(m)
-    return static_cast<float>(exponent) * 0.69314718F + log_m;
+    return static_cast<float>(exponent) * constants::ln2<float>() + log_m;
 }
 
 /// @brief Fast power approximation x^y
@@ -246,7 +246,7 @@ inline auto pow(float x, float y) noexcept -> float
 /// @return |x|
 MICROLA_CONSTEXPR20 auto abs(float x) noexcept -> float
 {
-    std::uint32_t bits = MICROLA_BIT_CAST(std::uint32_t, x);
+    auto bits = MICROLA_BIT_CAST(std::uint32_t, x);
     bits &= 0x7FFFFFFFU;  // Clear sign bit
     return MICROLA_BIT_CAST(float, bits);
 }

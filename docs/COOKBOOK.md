@@ -1,12 +1,12 @@
 # MicroLA Cookbook
 
-Practical recipes for the current MicroLA C++17 API.
+Practical recipes for the current MicroLA C++20 API.
 
 This cookbook intentionally focuses on patterns backed by the shipped headers and example programs. Application-specific camera models, particle filters, and other domain code are better kept in your project unless they are promoted into maintained examples.
 
 ## Table of Contents
 
-1. [Embedded C++17 Checklist](#embedded-c17-checklist)
+1. [Embedded C++20 Checklist](#embedded-c20-checklist)
 2. [IMU Sensor Fusion](#imu-sensor-fusion)
 3. [Planar Robot Kinematics](#planar-robot-kinematics)
 4. [Kalman Filtering](#kalman-filtering)
@@ -17,7 +17,7 @@ This cookbook intentionally focuses on patterns backed by the shipped headers an
 
 ---
 
-## Embedded C++17 Checklist
+## Embedded C++20 Checklist
 
 For allocation-sensitive or embedded builds, prefer these patterns:
 
@@ -71,7 +71,7 @@ Use this pattern when the application cares about the angle between two entities
 
 ## Planar Robot Kinematics
 
-The maintained robotics example models a 2-link planar arm. This keeps the math fixed-size and C++17-friendly while still covering forward kinematics, inverse kinematics, and the Jacobian.
+The maintained robotics example models a 2-link planar arm. This keeps the math fixed-size and C++20-friendly while still covering forward kinematics, inverse kinematics, and the Jacobian.
 
 ```cpp
 #include <microla/microla.hpp>
@@ -189,7 +189,7 @@ Vec2f state = kf.get_state();
 
 ## 4x4 Transform Assembly
 
-The graphics example builds 4x4 transforms from fixed-size 3x3 rotation blocks plus translation terms. This is often the simplest C++17 path when you want predictable code generation.
+The graphics example builds 4x4 transforms from fixed-size 3x3 rotation blocks plus translation terms. This is often the simplest C++20 path when you want predictable code generation.
 
 ```cpp
 #include <microla/microla.hpp>

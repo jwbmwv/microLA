@@ -1,14 +1,14 @@
 # Test Coverage Evaluation Report
 
-**Date:** March 7, 2026  
-**Host Test Count:** 517  
-**Scope:** Host-side Google Test coverage for the shipped C++17 library sources, plus CI-adjacent smoke checks for maintained examples and diagrams.
+**Date:** March 29, 2026  
+**Host Test Count:** 530  
+**Scope:** Host-side Google Test coverage for the shipped C++20 library sources, plus CI-adjacent smoke checks for maintained examples and diagrams.
 
 ## Executive Summary
 
-MicroLA currently has broad automated coverage across the shipped library headers and example surface. The core host-side test presets now pass with 517 tests in the dedicated host configuration, while the release presets add the maintained `sensor_fusion` example smoke test for 518 passing checks in C++17 and 519 in C++20.
+MicroLA currently has broad automated coverage across the shipped library headers and example surface. The core host-side test preset now passes with 530 tests in the dedicated host configuration, while the release-style C++20 preset adds the maintained `sensor_fusion` example smoke test for 531 passing checks.
 
-That means the project is no longer relying only on unit coverage for the new fusion API. The public `sensor_fusion.hpp` surface is covered by direct unit tests, the maintained example is executed in CI-equivalent release presets, and the updated PlantUML diagrams validate cleanly.
+That means the project is no longer relying only on unit coverage for the new fusion API. The public `sensor_fusion.hpp` surface is covered by direct unit tests, the maintained example is executed in CI-equivalent release presets, and the updated estimator paths were rerun through the host, embedded, coverage, sanitizer, and constexpr Linux presets.
 
 ## Current Coverage Surface
 
@@ -20,7 +20,7 @@ That means the project is no longer relying only on unit coverage for the new fu
 | Compiler and embedded helper surface | ✅ Strong | Compiler features, resource checks, SIMD helpers, embedded-contract tests |
 | `sensor_fusion.hpp` public API | ✅ New direct coverage | `tests/google/test_sensor_fusion.cpp` |
 | Maintained `sensor_fusion.cpp` example | ✅ Executed | `sensor_fusion_example_smoke` in release presets |
-| PlantUML design and example diagrams | ✅ Validated | CI-equivalent design validation plus local example-diagram parse checks |
+| PlantUML design and example diagrams | ✅ Validated | Local diagram regeneration succeeded after the C++20 doc-source refresh |
 
 ## Notable Additions Since The Earlier 501-Test Baseline
 
@@ -34,7 +34,7 @@ That means the project is no longer relying only on unit coverage for the new fu
 - Markdown examples are still prose, not compiled snippets.
 - Windows and macOS CI matrix jobs were not rerun in this Linux workspace.
 - Zephyr QEMU coverage still depends on the external SDK and workspace bootstrap performed in CI.
-- Local coverage-report generation was not repeated because `lcov` is not installed in this environment, even though the coverage test lane itself passes.
+- The Linux CI-equivalent `embedded-tests`, `coverage-ci`, `sanitizers-ci`, format, and static-analysis lanes were rerun locally after this C++20-baseline migration.
 
 ## Conclusion
 

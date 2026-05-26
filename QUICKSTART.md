@@ -161,7 +161,7 @@ set(CMAKE_CXX_COMPILER_WORKS 1)
 #### IAR-Specific Configuration
 
 **Compiler Settings:**
-- **Language**: C++17 or later (Options → C/C++ Compiler → Language → C++ → C++17)
+- **Language**: C++20 or later (Options → C/C++ Compiler → Language → C++ → C++20)
 - **Optimization**: High for performance (Options → C/C++ Compiler → Optimizations)
 - **NEON**: Enable VFPv4_sp for NEON support (Options → C/C++ Compiler → Code)
 
@@ -174,10 +174,9 @@ CONFIG_MICROLA_NEON    // For NEON optimization
 ## Building Examples
 
 ```bash
-mkdir build && cd build
-cmake -DMICROLA_LINEAR_BUILD_EXAMPLES=ON ..
-cmake --build .
-./examples/basic_usage
+cmake --preset debug
+cmake --build --preset debug
+./build/debug/examples/basic_usage
 ```
 
 ## Enabling SIMD Optimizations
@@ -211,8 +210,9 @@ target_compile_definitions(your_target PRIVATE MICROLA_AUTODETECT_SIMD)
 ### ARM NEON (Cortex-A, ARM64, Apple Silicon)
 
 ```cmake
-# Option 1: CMake option
-cmake -DMICROLA_ENABLE_NEON=ON ..
+# Option 1: Use the shipped preset
+cmake --preset neon
+cmake --build --preset neon
 
 # Option 2: In your CMakeLists.txt
 target_compile_definitions(your_app PRIVATE CONFIG_MICROLA_NEON)
@@ -221,8 +221,9 @@ target_compile_definitions(your_app PRIVATE CONFIG_MICROLA_NEON)
 ### CMSIS-DSP (Cortex-M, CMake Options)
 
 ```cmake
-# Option 1: CMake option
-cmake -DMICROLA_ENABLE_CMSIS=ON ..
+# Option 1: Use the shipped preset
+cmake --preset cmsis
+cmake --build --preset cmsis
 
 # Option 2: In your CMakeLists.txt
 target_compile_definitions(your_app PRIVATE CONFIG_MICROLA_CMSIS)
@@ -242,21 +243,19 @@ CONFIG_MICROLA_MVE=y    # For Cortex-M55/M85 (Helium)
 ## Testing
 
 ```bash
-mkdir build && cd build
-cmake -DMICROLA_LINEAR_BUILD_TESTS=ON ..
-cmake --build .
-ctest --output-on-failure
+cmake --preset host-tests
+cmake --build --preset host-tests
+ctest --preset host-tests
 ```
 
 ### Embedded-style build (no exceptions, no dynamic allocation)
 
-To validate embedded constraints locally (disable exceptions and dynamic allocation), configure CMake with the appropriate preprocessor flags and run the tests in a separate build directory:
+To validate embedded constraints locally, use the dedicated preset that enables `MICROLA_EMBEDDED` and the size-focused defaults used by CI:
 
 ```bash
-# Create an embedded-style build directory
-cmake -S . -B build-embedded -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-DMICROLA_NO_EXCEPTIONS -DMICROLA_NO_DYNAMIC_ALLOC -DMICROLA_EMBEDDED -std=c++17"
-cmake --build build-embedded --target microla_gtests -j
-./build-embedded/tests/microla_gtests --gtest_color=yes
+cmake --preset embedded-tests
+cmake --build --preset embedded-tests
+ctest --preset embedded-tests
 ```
 
 The repository also includes a GitHub Actions workflow `.github/workflows/embedded-build.yml` which performs the same steps on push and pull requests to `main`.
@@ -308,7 +307,7 @@ int main() {
 
 ## Requirements
 
-- C++17 or later
+- C++20 or later
 - CMake 3.13.1+ (for building)
 - Optional: ARM NEON (for Cortex-A/ARM64 optimization)
 - Optional: CMSIS-DSP (for Cortex-M optimization)

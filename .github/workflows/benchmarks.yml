@@ -24,7 +24,7 @@ jobs:
 
       - name: Configure
         run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON -DCMAKE_CXX_STANDARD=17
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON -DCMAKE_CXX_STANDARD=20
 
       - name: Build
         run: cmake --build build --config Release -- -j$(nproc)
@@ -61,7 +61,7 @@ jobs:
       - name: Configure (MSVC)
         shell: cmd
         run: |
-          cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DMICROLA_LINEAR_BUILD_TESTS=ON -DCMAKE_CXX_STANDARD=17
+          cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DMICROLA_LINEAR_BUILD_TESTS=ON -DCMAKE_CXX_STANDARD=20
 
       - name: Build (MSVC)
         shell: cmd

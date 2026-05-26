@@ -12,6 +12,9 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
+        "CMAKE_CXX_EXTENSIONS": "OFF",
+        "CMAKE_CXX_STANDARD": "20",
+        "CMAKE_CXX_STANDARD_REQUIRED": "ON",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
@@ -53,26 +56,12 @@
       }
     },
     {
-      "name": "ci-release-cxx17",
-      "displayName": "CI Release C++17",
-      "description": "Cross-platform release build for CI with tests, examples, and benchmarks enabled",
-      "inherits": "default",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_STANDARD": "17",
-        "MICROLA_LINEAR_BUILD_TESTS": "ON",
-        "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
-        "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON"
-      }
-    },
-    {
       "name": "ci-release-cxx20",
       "displayName": "CI Release C++20",
       "description": "Cross-platform release build for CI with tests, examples, and benchmarks enabled",
       "inherits": "default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_STANDARD": "20",
         "MICROLA_LINEAR_BUILD_TESTS": "ON",
         "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
         "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON"
@@ -85,7 +74,6 @@
       "inherits": "default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_STANDARD": "17",
         "MICROLA_LINEAR_BUILD_TESTS": "ON",
         "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
         "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF"
@@ -126,7 +114,6 @@
       "inherits": "default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_STANDARD": "17",
         "MICROLA_LINEAR_BUILD_TESTS": "ON",
         "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
         "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF",
@@ -140,7 +127,6 @@
       "inherits": "default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_STANDARD": "17",
         "MICROLA_LINEAR_BUILD_TESTS": "ON",
         "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
         "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON",
@@ -154,21 +140,8 @@
       "inherits": "default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_CXX_STANDARD": "17",
         "MICROLA_LINEAR_BUILD_TESTS": "OFF",
         "MICROLA_LINEAR_BUILD_EXAMPLES": "ON",
-        "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF"
-      }
-    },
-    {
-      "name": "constexpr-cxx17",
-      "displayName": "Constexpr C++17",
-      "description": "Compile and test the library with C++17",
-      "inherits": "default",
-      "cacheVariables": {
-        "CMAKE_CXX_STANDARD": "17",
-        "MICROLA_LINEAR_BUILD_TESTS": "ON",
-        "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
         "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF"
       }
     },
@@ -178,7 +151,6 @@
       "description": "Compile and test the library with C++20",
       "inherits": "default",
       "cacheVariables": {
-        "CMAKE_CXX_STANDARD": "20",
         "MICROLA_LINEAR_BUILD_TESTS": "ON",
         "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
         "MICROLA_LINEAR_BUILD_BENCHMARKS": "OFF"
@@ -191,7 +163,6 @@
       "inherits": "default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_STANDARD": "17",
         "MICROLA_LINEAR_BUILD_TESTS": "OFF",
         "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
         "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON"
@@ -269,12 +240,6 @@
   ],
   "buildPresets": [
     {
-      "name": "ci-release-cxx17",
-      "configurePreset": "ci-release-cxx17",
-      "displayName": "Build CI Release C++17",
-      "description": "Build tests, examples, and benchmarks in release mode for CI"
-    },
-    {
       "name": "ci-release-cxx20",
       "configurePreset": "ci-release-cxx20",
       "displayName": "Build CI Release C++20",
@@ -323,12 +288,6 @@
       "description": "Build the developer-focused benchmark preset"
     },
     {
-      "name": "constexpr-cxx17",
-      "configurePreset": "constexpr-cxx17",
-      "displayName": "Build Constexpr C++17",
-      "description": "Build the C++17 constexpr validation configuration"
-    },
-    {
       "name": "constexpr-cxx20",
       "configurePreset": "constexpr-cxx20",
       "displayName": "Build Constexpr C++20",
@@ -348,15 +307,6 @@
     }
   ],
   "testPresets": [
-    {
-      "name": "ci-release-cxx17",
-      "configurePreset": "ci-release-cxx17",
-      "displayName": "Test CI Release C++17",
-      "description": "Run tests for the C++17 CI release configuration",
-      "output": {
-        "outputOnFailure": true
-      }
-    },
     {
       "name": "ci-release-cxx20",
       "configurePreset": "ci-release-cxx20",
@@ -404,15 +354,6 @@
       "environment": {
         "ASAN_OPTIONS": "detect_leaks=1:strict_string_checks=1:detect_stack_use_after_return=1",
         "UBSAN_OPTIONS": "print_stacktrace=1"
-      }
-    },
-    {
-      "name": "constexpr-cxx17",
-      "configurePreset": "constexpr-cxx17",
-      "displayName": "Test Constexpr C++17",
-      "description": "Run tests for the C++17 constexpr validation configuration",
-      "output": {
-        "outputOnFailure": true
       }
     },
     {

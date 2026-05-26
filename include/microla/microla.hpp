@@ -68,7 +68,6 @@ namespace microla
 {
 
 // C++20 concepts for better type safety and error messages
-#if __cplusplus >= 202002L
 template<typename T>
 concept Arithmetic = std::is_arithmetic_v<T>;
 
@@ -77,7 +76,6 @@ concept FloatingPoint = std::is_floating_point_v<T>;
 
 template<typename T>
 concept Integral = std::is_integral_v<T>;
-#endif
 
 /// \brief Convert degrees to radians
 /// \param degrees Angle in degrees

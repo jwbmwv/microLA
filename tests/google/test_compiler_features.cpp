@@ -115,7 +115,7 @@ TEST(CompilerFeatures, TimingMarkers)
     EXPECT_GT(result, 0.0F);
 }
 
-// Test constexpr support under C++17 baseline
+// Test constexpr support under the C++20 baseline
 TEST(CompilerFeatures, ConstexprSupport)
 {
     constexpr auto test_constexpr = []() constexpr
@@ -215,8 +215,7 @@ TEST(CompilerFeatures, IfConstexpr)
     EXPECT_EQ(test_if_constexpr(5), 5);
 }
 
-// Test C++20 features (if available)
-#if __cplusplus >= 202002L
+// Test C++20 baseline features
 TEST(CompilerFeatures, Cpp20Features)
 {
     // Test MICROLA_CONSTEXPR20
@@ -240,6 +239,9 @@ TEST(CompilerFeatures, Cpp20Features)
     constexpr bool stack_limit_valid = microla::detail::stack_size_limit_is_valid();
     EXPECT_TRUE(stack_limit_valid);
 
+    const std::uint32_t one_bits = 0x3F800000U;
+    EXPECT_FLOAT_EQ(MICROLA_BIT_CAST(float, one_bits), 1.0F);
+
     // Test MICROLA_CONSTEXPR20 adoption in fast_math
     constexpr float abs_result = microla::fast::abs(-3.5F);
     constexpr float sqrt_result = microla::fast::sqrt<>(4.0F);
@@ -247,7 +249,6 @@ TEST(CompilerFeatures, Cpp20Features)
     EXPECT_GT(sqrt_result, 1.9F);
     EXPECT_LT(sqrt_result, 2.1F);
 }
-#endif
 
 // Test C++26 trig constexpr features (if available)
 #if __cplusplus >= 202600L
@@ -282,7 +283,7 @@ TEST(CompilerFeatures, UnreachableBackedSafeMathPaths)
 }
 
 // Test C++23 features (if available)
-#if __cplusplus >= 202302L
+#if defined(__cpp_if_consteval) && (__cpp_if_consteval >= 202106L)
 TEST(CompilerFeatures, Cpp23Features)
 {
     // Test MICROLA_CONSTEXPR23

@@ -45,7 +45,7 @@ Designed for resource-constrained systems:
 - Stack-based storage
 - Predictable performance
 - Minimal code size
-- C++17 baseline
+- C++20 baseline
 
 ### 3. **Type Safety Without Runtime Cost**
 
@@ -54,7 +54,15 @@ Leverage compile-time type checking:
 - Type-safe matrix operations
 - No runtime type checking overhead
 
-### 4. **Explicit Over Implicit**
+### 4. **Units and Dependency Discipline**
+
+Keep the core library easy to integrate on embedded toolchains:
+- Sensor-fusion APIs use explicit SI scalar conventions (seconds, rad/s, m/s^2, and consistent magnetic-field units)
+- `mp-units` is not a required dependency because the library stays header-only, compile-time-cost sensitive, and easy to integrate into existing embedded builds
+- Projects that already use `mp-units` can convert to MicroLA's scalar SI inputs at the API boundary
+- ETL is not required because the core math types already use fixed-size inline storage and hot paths avoid STL container dependencies
+
+### 5. **Explicit Over Implicit**
 
 Clear intent in API design:
 - Explicit conversions
@@ -447,19 +455,19 @@ using Mat4f = SquareMat<float, 4>;
 
 #### Tier 1: Desktop/Server (x86_64, ARM64)
 
-- Full C++17/20 support
+- Full C++20/23 support
 - SIMD: SSE, AVX, NEON
 - Testing: Primary development platform
 
 #### Tier 2: Embedded Linux/RTOS (ARM Cortex-A)
 
-- C++17 minimum
+- C++20 minimum
 - SIMD: ARM NEON
 - Testing: Raspberry Pi, Jetson
 
 #### Tier 3: Microcontrollers (ARM Cortex-M)
 
-- C++17 (IAR, GCC)
+- C++20 (IAR, GCC, Clang where available)
 - SIMD: CMSIS-DSP, ARM MVE
 - Testing: STM32, nRF52, Zephyr QEMU
 
@@ -481,11 +489,17 @@ using Mat4f = SquareMat<float, 4>;
     #define MICROLA_COMPILER_VERSION __VER__
 #endif
 
-// C++ standard detection
-#if __cplusplus >= 202002L
-    #define MICROLA_CPP20
-#elif __cplusplus >= 201703L
-    #define MICROLA_CPP17
+// Feature detection (preferred over __cplusplus for IAR and mixed-mode toolchains)
+#if defined(__cpp_concepts) && (__cpp_concepts >= 201907L)
+    #define MICROLA_HAS_CONCEPTS 1
+#endif
+
+#if defined(__cpp_consteval) && (__cpp_consteval >= 201811L)
+    #define MICROLA_HAS_CONSTEVAL 1
+#endif
+
+#if defined(__cpp_lib_bit_cast) && (__cpp_lib_bit_cast >= 201806L)
+    #define MICROLA_HAS_STD_BIT_CAST 1
 #endif
 ```
 
@@ -808,7 +822,7 @@ store(result, c);
 |----------|---------|------|-----------|
 | Header-only | Easy integration | Compilation time | Embedded target priority |
 | Stack allocation | Predictable perf | Size limitations | Real-time requirements |
-| C++17 minimum | Modern constexpr and traits | Drops legacy compilers | Current embedded toolchains |
+| C++20 minimum | Concepts, bit_cast, modern constexpr | Drops pre-C++20 compilers | Current embedded toolchains |
 | Row-major | Cache-friendly rows | Column access slower | Math convention |
 | Template-based | Type safety | Debug symbols large | Embedded safety critical |
 | SIMD manual | Maximum control | Platform-specific code | Performance critical |

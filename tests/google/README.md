@@ -73,17 +73,16 @@ The test suite is organized into the following test files:
 
 ### Prerequisites
 
-- CMake 3.14 or higher
+- CMake 3.23 or higher for the shipped preset-driven flow
 - Google Test library
-- C++17 or higher compiler
+- C++20 or higher compiler
 
 ### Building
 
 ```bash
 cd microla
-mkdir build && cd build
-cmake .. -DMICROLA_LINEAR_BUILD_TESTS=ON
-cmake --build . --target microla_gtests
+cmake --preset host-tests
+cmake --build --preset host-tests
 ```
 
 ### Running Tests
@@ -91,32 +90,32 @@ cmake --build . --target microla_gtests
 Run all tests:
 
 ```bash
-ctest --output-on-failure
+ctest --preset host-tests
 ```
 
 Or run the test executable directly:
 
 ```bash
-./microla_gtests
+./build/host-tests/tests/microla_gtests
 ```
 
 Run specific test suites:
 
 ```bash
-./microla_gtests --gtest_filter=VectorTest.*
-./microla_gtests --gtest_filter=MatrixTest.*
-./microla_gtests --gtest_filter=QuaternionTest.*
+./build/host-tests/tests/microla_gtests --gtest_filter=VectorTest.*
+./build/host-tests/tests/microla_gtests --gtest_filter=MatrixTest.*
+./build/host-tests/tests/microla_gtests --gtest_filter=QuaternionTest.*
 ```
 
 Run with verbose output:
 
 ```bash
-./microla_gtests --gtest_verbose
+./build/host-tests/tests/microla_gtests --gtest_verbose
 ```
 
 ## Test Coverage
 
-The current host-side validation surface is anchored by the `host-tests` preset, which now passes **517/517** tests in a clean C++17 build.
+The current host-side validation surface is anchored by the `host-tests` preset, which now passes **530/530** tests in a clean C++20 build.
 
 That host surface covers:
 
@@ -170,10 +169,9 @@ These tests are designed to run in CI/CD pipelines:
 # Example CI configuration
 test:
   script:
-    - mkdir build && cd build
-    - cmake .. -DMICROLA_LINEAR_BUILD_TESTS=ON
-    - cmake --build .
-    - ctest --output-on-failure
+      - cmake --preset host-tests
+      - cmake --build --preset host-tests
+      - ctest --preset host-tests
 ```
 
 ## Adding Tests
@@ -217,8 +215,9 @@ TEST_F(MyTest, TestCase) {
 For performance testing, use the separate benchmark suite in `benchmarks/`:
 
 ```bash
-cmake --build . --target microla_benchmarks
-./microla_benchmarks
+cmake --preset benchmark
+cmake --build --preset benchmark
+./build/benchmark-native/benchmarks/bench_matrix_multiply
 ```
 
 ## Troubleshooting
@@ -236,8 +235,8 @@ cmake --build . --target microla_benchmarks
 
 ### Performance Issues
 
-- Build in Release mode: `cmake .. -DCMAKE_BUILD_TYPE=Release`
-- Enable optimizations: `-O3` flag
+- Build in Release mode: `cmake --preset release`
+- Use the benchmark preset for host-tuned optimization flags: `cmake --preset benchmark`
 - Check for SIMD support if available
 
 ## Contributing

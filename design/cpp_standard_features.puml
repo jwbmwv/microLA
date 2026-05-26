@@ -3,28 +3,15 @@ title MicroLA C++ Standard Feature Progression
 
 skinparam packageStyle rectangle
 
-package "C++17 (Baseline - Required)" <<Rectangle>> #E6FFE6 {
-    component "Core C++17 Features" as cpp17
-    note right of cpp17
-        • if constexpr (compile-time branches)
-        • constexpr with loops and locals
-        • inline variables
-        • structured bindings
-
-        **MicroLA Usage:**
-        SIMD path selection
-        Optimized code generation
-        Zero runtime overhead
-    end note
-}
-
-package "C++20 Features" <<Rectangle>> #FFF0E6 {
-    component "Modern Features" as cpp20
+package "C++20 (Baseline - Required)" <<Rectangle>> #E6FFE6 {
+    component "Core C++20 Features" as cpp20
     note right of cpp20
         • Concepts:
           - Arithmetic<T>
           - FloatingPoint<T>
           - Integral<T>
+        • if constexpr / constexpr loops
+        • inline variables
         • MICROLA_BIT_CAST (std::bit_cast)
         • consteval (MICROLA_CONSTEVAL)
 
@@ -68,21 +55,21 @@ package "C++26 (Latest)" <<Rectangle>> #F0E6FF {
     end note
 }
 
-cpp17 -down-> cpp20 : Adds
 cpp20 -down-> cpp23 : Adds
 cpp23 -down-> cpp26 : Adds
 
 note as FeatureDetection
     **Automatic Feature Detection:**
 
-        C++17 is the required baseline.
-        Feature detection starts at C++20:
-        #if __cplusplus >= 202002L  // C++20
-        #if __cplusplus >= 202302L  // C++23
-        #if __cplusplus >= 202600L  // C++26
+        C++20 is the required baseline.
+        Optional features prefer feature-test macros:
+        __cpp_concepts
+        __cpp_consteval
+        __cpp_if_consteval
+        __cpp_lib_bit_cast
 
-    Features automatically enabled
-    based on compiler __cplusplus value
+    C++26 constexpr math remains
+    guarded by active toolchain/library support.
 end note
 
 @enduml

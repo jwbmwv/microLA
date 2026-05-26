@@ -8,6 +8,8 @@ This directory contains performance benchmarks for MicroLA using [Google Benchma
 
 Install Google Benchmark:
 
+- CMake 3.23 or later for the shipped benchmark presets
+
 **Ubuntu/Debian:**
 
 ```bash
@@ -41,37 +43,36 @@ cmake --build "build" --config Release --target install
 
 ```bash
 cd microla
-mkdir build && cd build
-cmake .. -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
-cmake --build .
+cmake --preset benchmark
+cmake --build --preset benchmark
 ```
 
 ## Running Benchmarks
 
 ```bash
 # Run all benchmarks
-./benchmarks/bench_matrix_multiply
-./benchmarks/bench_simd
-./benchmarks/bench_constexpr
-./benchmarks/bench_vector_ops
-./benchmarks/bench_quaternion
-./benchmarks/bench_algorithms
-./benchmarks/bench_geometry
-./benchmarks/bench_large_matrices
-./benchmarks/bench_safe_math
-./benchmarks/bench_matrix_param
-./benchmarks/bench_kalman
-./benchmarks/bench_sensor_fusion
-./benchmarks/bench_memory_threaded
+./build/benchmark-native/benchmarks/bench_matrix_multiply
+./build/benchmark-native/benchmarks/bench_simd
+./build/benchmark-native/benchmarks/bench_constexpr
+./build/benchmark-native/benchmarks/bench_vector_ops
+./build/benchmark-native/benchmarks/bench_quaternion
+./build/benchmark-native/benchmarks/bench_algorithms
+./build/benchmark-native/benchmarks/bench_geometry
+./build/benchmark-native/benchmarks/bench_large_matrices
+./build/benchmark-native/benchmarks/bench_safe_math
+./build/benchmark-native/benchmarks/bench_matrix_param
+./build/benchmark-native/benchmarks/bench_kalman
+./build/benchmark-native/benchmarks/bench_sensor_fusion
+./build/benchmark-native/benchmarks/bench_memory_threaded
 
 # Run with specific filters
-./benchmarks/bench_matrix_multiply --benchmark_filter=BM_Matrix4x4.*
+./build/benchmark-native/benchmarks/bench_matrix_multiply --benchmark_filter=BM_Matrix4x4.*
 
 # Run with custom time unit
-./benchmarks/bench_vector_ops --benchmark_time_unit=us
+./build/benchmark-native/benchmarks/bench_vector_ops --benchmark_time_unit=us
 
 # Run with JSON output
-./benchmarks/bench_simd --benchmark_format=json --benchmark_out=results.json
+./build/benchmark-native/benchmarks/bench_simd --benchmark_format=json --benchmark_out=results.json
 ```
 
 ## Benchmark Categories
@@ -128,23 +129,28 @@ Lower times are better. Compare SIMD vs non-SIMD builds to see optimization bene
 
 1. **Enable compiler optimizations:**
    ```bash
-   cmake .. -DCMAKE_BUILD_TYPE=Release -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON
+   cmake --preset benchmark
+   cmake --build --preset benchmark
    ```
 
 2. **Enable SIMD:**
    ```bash
-   cmake .. -DMICROLA_ENABLE_NEON=ON  # For ARM
-   cmake .. -DMICROLA_ENABLE_CMSIS=ON # For Cortex-M
+   cmake --preset neon   # For ARM NEON builds
+   cmake --build --preset neon
+
+   cmake --preset cmsis  # For Cortex-M CMSIS-DSP builds
+   cmake --build --preset cmsis
    ```
 
-3. **Try different C++ standards:**
+3. **Reproduce the CI benchmark lane:**
    ```bash
-   cmake .. -DCMAKE_CXX_STANDARD=20  # Test C++20 optimizations
+   cmake --preset benchmark-ci
+   cmake --build --preset benchmark-ci
    ```
 
 4. **Profile with perf (Linux):**
    ```bash
-   perf record --call-graph dwarf ./bench_matrix_multiply
+   perf record --call-graph dwarf ./build/benchmark-native/benchmarks/bench_matrix_multiply
    perf report
    ```
 

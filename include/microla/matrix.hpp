@@ -147,7 +147,8 @@ public:
 
     /// @brief Variadic constexpr constructor to allow direct compile-time initialization
     ///        with a list of R*C values (enables Mat<T,R,C>{v0, v1, ...} in constexpr).
-    template<typename... U, typename = std::enable_if_t<sizeof...(U) == (R * C)>>
+    template<typename... U>
+        requires(sizeof...(U) == (R * C))
     constexpr Mat(U... vals) noexcept : data{static_cast<T>(vals)...}
     {
     }
@@ -825,8 +826,9 @@ public:
     /// @param epsilon Tolerance for floating-point comparisons.
     /// @return True if diagonal entries are approximately one and off-diagonal entries are approximately zero.
     template<std::size_t RR = R, std::size_t CC = C>
+        requires(RR == CC)
     [[nodiscard]] auto is_identity(T epsilon = std::numeric_limits<T>::epsilon() *
-                                               static_cast<T>(8)) const noexcept -> std::enable_if_t<RR == CC, bool>
+                                               static_cast<T>(8)) const noexcept -> bool
     {
         for (std::size_t row = 0; row < R; ++row)
         {
@@ -1454,7 +1456,7 @@ public:
             }
 
             const Vec<T, 3> axis = v1.cross(ortho).normalized();
-            return rotation_axis_angle(axis, static_cast<T>(3.14159265358979323846));
+            return rotation_axis_angle(axis, constants::pi<T>());
         }
 
         // General case: compute rotation axis and angle

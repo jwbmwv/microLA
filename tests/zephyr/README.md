@@ -120,7 +120,7 @@ MicroLA requires the full C++ standard library (including `<type_traits>`, `<lim
 
 ```conf
 CONFIG_CPP=y                         # Enable C++ support
-CONFIG_STD_CPP17=y                   # Use C++17 standard
+CONFIG_STD_CPP20=y                   # Use C++20 standard
 CONFIG_REQUIRES_FULL_LIBCPP=y        # Required: Enable full C++ stdlib
 CONFIG_EXCEPTIONS=n                  # Disable exceptions (embedded)
 CONFIG_RTTI=n                        # Disable RTTI (embedded)
@@ -225,7 +225,7 @@ The tests are configured to run on:
 - **RAM**: 32 KB minimum
 - **Flash**: 64 KB minimum
 - **FPU**: Recommended for performance (software fallback available)
-- **C++17**: Required compiler support
+- **C++20**: Required compiler support
 
 ## Troubleshooting
 

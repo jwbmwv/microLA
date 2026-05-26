@@ -26,7 +26,7 @@ package "Core Headers (include/microla/)" {
         e, golden_ratio, sqrt2, sqrt3
         epsilon (float/double/generic)
 
-        **C++17+ variable templates**
+        **C++20+ variable templates**
         **Callable constant proxies**
 
         Depends: compiler_features.hpp
@@ -84,7 +84,7 @@ package "Core Headers (include/microla/)" {
         • AABB<T>, Sphere<T>
         • Triangle<T>, Frustum<T>
         • Intersection tests
-        • Requires C++17 (std::optional)
+        • Uses std::optional (C++17)
 
         Depends: vector.hpp, matrix.hpp
     end note
