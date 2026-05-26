@@ -607,17 +607,18 @@ public:
             sum = vpadd_f32(sum, sum);
             float norm_sq = vget_lane_f32(sum, 0);
 
-            if (norm_sq == 0.0f)
-                return *this;
+            if (norm_sq != 0.0f)
+            {
+                // Fast inverse square root with Newton-Raphson refinement
+                float32x2_t norm_sq_v = vdup_n_f32(norm_sq);
+                float32x2_t rsqrt = vrsqrte_f32(norm_sq_v);
+                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(norm_sq_v, rsqrt), rsqrt));
+                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(norm_sq_v, rsqrt), rsqrt));
 
-            // Fast inverse square root with Newton-Raphson refinement
-            float32x2_t norm_sq_v = vdup_n_f32(norm_sq);
-            float32x2_t rsqrt = vrsqrte_f32(norm_sq_v);
-            rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(norm_sq_v, rsqrt), rsqrt));
-            rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(norm_sq_v, rsqrt), rsqrt));
-
-            float inv_norm = vget_lane_f32(rsqrt, 0);
-            return *this * static_cast<T>(inv_norm);
+                float inv_norm = vget_lane_f32(rsqrt, 0);
+                return *this * static_cast<T>(inv_norm);
+            }
+            return *this;
         }
 #endif
 #ifdef CONFIG_MICROLA_CMSIS
@@ -626,24 +627,25 @@ public:
             float norm_sq;
             arm_dot_prod_f32(data, data, 4, &norm_sq);
 
-            if (norm_sq == 0.0f)
-                return *this;
+            if (norm_sq != 0.0f)
+            {
+                float n;
+                arm_sqrt_f32(norm_sq, &n);
 
-            float n;
-            arm_sqrt_f32(norm_sq, &n);
-
-            const float inv_norm = 1.0f / n;
-            Quaternion result;
-            arm_scale_f32(data, inv_norm, result.data, 4);
-            return result;
+                const float inv_norm = 1.0f / n;
+                Quaternion result;
+                arm_scale_f32(data, inv_norm, result.data, 4);
+                return result;
+            }
+            return *this;
         }
 #endif
         const T n = norm();
-        if (n == T(0))
+        if (n != T(0))
         {
-            return *this;
+            return *this / n;
         }
-        return *this / n;
+        return *this;
     }
 
     /// \brief Squared magnitude of the quaternion.

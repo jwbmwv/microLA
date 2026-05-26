@@ -1424,18 +1424,24 @@ private:
     /// @brief Checks whether an accelerometer sample is finite and within the configured norm window.
     auto accel_is_valid(const Vec<T, 3>& accel) const noexcept -> bool
     {
-        if (!detail::is_finite(accel))
+        if (detail::is_finite(accel)) [[likely]]
         {
-            return false;
+            const T norm = std::sqrt(accel.length_squared());
+            return norm >= Config::accel_norm_min && norm <= Config::accel_norm_max;
         }
-        const T norm = std::sqrt(accel.length_squared());
-        return norm >= Config::accel_norm_min && norm <= Config::accel_norm_max;
+
+        return false;
     }
 
     /// @brief Checks whether a gyroscope sample is finite and below the configured saturation limit.
     auto gyro_is_valid(const Vec<T, 3>& gyro) const noexcept -> bool
     {
-        return detail::is_finite(gyro) && std::sqrt(gyro.length_squared()) <= Config::gyro_norm_max;
+        if (detail::is_finite(gyro)) [[likely]]
+        {
+            return std::sqrt(gyro.length_squared()) <= Config::gyro_norm_max;
+        }
+
+        return false;
     }
 
     /// @brief Checks whether a magnetometer sample passes the combined availability and confidence gates.
@@ -1639,52 +1645,52 @@ private:
             last_mag_confidence_ = T(0);
         }
 
-        if (!(dt > T(0)) || !gyro_valid)
+        if ((dt > T(0)) && gyro_valid) [[likely]]
         {
-            update_prediction_rate(gyro - gyro_bias_estimate_, gyro_valid);
-            apply_measurement_only_update(accel, mag, accel_valid, mag_valid, dt);
-            return;
-        }
-
-        Vec<T, 3> correction{};
-        if (accel_valid && Config::enable_accel_correction)
-        {
-            const Vec<T, 3> expected_gravity_body = orientation_.rotate_inverse(
-                detail::normalized_or(Config::world_gravity_direction(), Vec<T, 3>(T(0), T(0), T(-1))));
-            const Vec<T, 3> measured_gravity_body = detail::normalized_or(filtered_accel_, expected_gravity_body);
-            correction = correction + expected_gravity_body.cross(measured_gravity_body) *
-                                          (Config::kp_accel * last_accel_confidence_);
-        }
-
-        if constexpr (Config::sensor_model == SensorModel::imu9)
-        {
-            if (mag_valid && Config::enable_mag_correction)
+            Vec<T, 3> correction{};
+            if (accel_valid && Config::enable_accel_correction)
             {
-                const Vec<T, 3> expected_mag_body = orientation_.rotate_inverse(
-                    detail::normalized_or(Config::world_magnetic_reference(), Vec<T, 3>(T(1), T(0), T(0))));
-                const Vec<T, 3> measured_mag_body = detail::normalized_or(mag, expected_mag_body);
-                correction =
-                    correction + expected_mag_body.cross(measured_mag_body) * (Config::kp_mag * last_mag_confidence_);
-                update_heading_state(true, dt);
+                const Vec<T, 3> expected_gravity_body = orientation_.rotate_inverse(
+                    detail::normalized_or(Config::world_gravity_direction(), Vec<T, 3>(T(0), T(0), T(-1))));
+                const Vec<T, 3> measured_gravity_body = detail::normalized_or(filtered_accel_, expected_gravity_body);
+                correction = correction + expected_gravity_body.cross(measured_gravity_body) *
+                                              (Config::kp_accel * last_accel_confidence_);
+            }
+
+            if constexpr (Config::sensor_model == SensorModel::imu9)
+            {
+                if (mag_valid && Config::enable_mag_correction)
+                {
+                    const Vec<T, 3> expected_mag_body = orientation_.rotate_inverse(
+                        detail::normalized_or(Config::world_magnetic_reference(), Vec<T, 3>(T(1), T(0), T(0))));
+                    const Vec<T, 3> measured_mag_body = detail::normalized_or(mag, expected_mag_body);
+                    correction = correction +
+                                 expected_mag_body.cross(measured_mag_body) * (Config::kp_mag * last_mag_confidence_);
+                    update_heading_state(true, dt);
+                }
+                else
+                {
+                    update_heading_state(false, dt);
+                }
             }
             else
             {
                 update_heading_state(false, dt);
             }
-        }
-        else
-        {
-            update_heading_state(false, dt);
+
+            if (Config::estimate_gyro_bias && is_stationary(accel_valid ? accel : filtered_accel_, gyro))
+            {
+                gyro_bias_estimate_ = gyro_bias_estimate_ - correction * (Config::ki_gyro_bias * dt);
+            }
+
+            const Vec<T, 3> corrected_gyro = gyro - gyro_bias_estimate_ + correction;
+            orientation_ = (orientation_ * detail::small_angle_quaternion(corrected_gyro * dt)).normalized();
+            update_prediction_rate(corrected_gyro, true);
+            return;
         }
 
-        if (Config::estimate_gyro_bias && is_stationary(accel_valid ? accel : filtered_accel_, gyro))
-        {
-            gyro_bias_estimate_ = gyro_bias_estimate_ - correction * (Config::ki_gyro_bias * dt);
-        }
-
-        const Vec<T, 3> corrected_gyro = gyro - gyro_bias_estimate_ + correction;
-        orientation_ = (orientation_ * detail::small_angle_quaternion(corrected_gyro * dt)).normalized();
-        update_prediction_rate(corrected_gyro, true);
+        update_prediction_rate(gyro - gyro_bias_estimate_, gyro_valid);
+        apply_measurement_only_update(accel, mag, accel_valid, mag_valid, dt);
     }
 
     /// @brief Processes one update using the multiplicative EKF backend.
@@ -1743,59 +1749,59 @@ private:
             last_mag_confidence_ = T(0);
         }
 
-        if (!(dt > T(0)) || !gyro_valid)
+        if ((dt > T(0)) && gyro_valid) [[likely]]
         {
-            update_prediction_rate(gyro - gyro_bias_estimate_, gyro_valid);
-            apply_measurement_only_update(accel, mag, accel_valid, mag_valid, dt);
-            return;
-        }
+            const Vec<T, 3> omega = gyro - gyro_bias_estimate_;
+            orientation_ = (orientation_ * detail::small_angle_quaternion(omega * dt)).normalized();
 
-        const Vec<T, 3> omega = gyro - gyro_bias_estimate_;
-        orientation_ = (orientation_ * detail::small_angle_quaternion(omega * dt)).normalized();
-
-        Mat<T, 6, 6> f = Mat<T, 6, 6>::identity();
-        const Mat<T, 3, 3> omega_hat = detail::skew(omega);
-        for (std::size_t row = 0; row < 3; ++row)
-        {
-            for (std::size_t col = 0; col < 3; ++col)
+            Mat<T, 6, 6> f = Mat<T, 6, 6>::identity();
+            const Mat<T, 3, 3> omega_hat = detail::skew(omega);
+            for (std::size_t row = 0; row < 3; ++row)
             {
-                f(row, col) -= omega_hat(row, col) * dt;
+                for (std::size_t col = 0; col < 3; ++col)
+                {
+                    f(row, col) -= omega_hat(row, col) * dt;
+                }
+                f(row, row + 3) = -dt;
             }
-            f(row, row + 3) = -dt;
-        }
 
-        covariance_ = f * covariance_ * f.transpose() +
-                      detail::diagonal_process_covariance(Config::q_attitude, Config::q_gyro_bias, dt);
+            covariance_ = f * covariance_ * f.transpose() +
+                          detail::diagonal_process_covariance(Config::q_attitude, Config::q_gyro_bias, dt);
 
-        if (accel_valid && Config::enable_accel_correction)
-        {
-            apply_vector_measurement_update(
-                detail::normalized_or(accel, Config::world_gravity_direction()),
-                detail::normalized_or(Config::world_gravity_direction(), Vec<T, 3>(T(0), T(0), T(-1))), Config::r_accel,
-                Config::accel_nis_gate);
-        }
-
-        if constexpr (Config::sensor_model == SensorModel::imu9)
-        {
-            if (mag_valid && Config::enable_mag_correction)
+            if (accel_valid && Config::enable_accel_correction)
             {
                 apply_vector_measurement_update(
-                    detail::normalized_or(mag, Config::world_magnetic_reference()),
-                    detail::normalized_or(Config::world_magnetic_reference(), Vec<T, 3>(T(1), T(0), T(0))),
-                    Config::r_mag, Config::mag_nis_gate);
-                update_heading_state(true, dt);
+                    detail::normalized_or(accel, Config::world_gravity_direction()),
+                    detail::normalized_or(Config::world_gravity_direction(), Vec<T, 3>(T(0), T(0), T(-1))),
+                    Config::r_accel, Config::accel_nis_gate);
+            }
+
+            if constexpr (Config::sensor_model == SensorModel::imu9)
+            {
+                if (mag_valid && Config::enable_mag_correction)
+                {
+                    apply_vector_measurement_update(
+                        detail::normalized_or(mag, Config::world_magnetic_reference()),
+                        detail::normalized_or(Config::world_magnetic_reference(), Vec<T, 3>(T(1), T(0), T(0))),
+                        Config::r_mag, Config::mag_nis_gate);
+                    update_heading_state(true, dt);
+                }
+                else
+                {
+                    update_heading_state(false, dt);
+                }
             }
             else
             {
                 update_heading_state(false, dt);
             }
-        }
-        else
-        {
-            update_heading_state(false, dt);
+
+            update_prediction_rate(omega, true);
+            return;
         }
 
-        update_prediction_rate(omega, true);
+        update_prediction_rate(gyro - gyro_bias_estimate_, gyro_valid);
+        apply_measurement_only_update(accel, mag, accel_valid, mag_valid, dt);
     }
 
     /// @brief Applies one vector measurement update to the MEKF state and covariance.

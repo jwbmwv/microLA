@@ -999,42 +999,44 @@ public:
         if constexpr (std::is_same_v<T, float> && (N == 2 || N == 3 || N == 4))
         {
             const T len_sq = dot(*this);
-            if (len_sq == T(0))
-                return *this;
-
-            // Fast inverse square root with Newton-Raphson refinement
-            float32x2_t len_sq_v = vdup_n_f32(static_cast<float>(len_sq));
-            float32x2_t rsqrt = vrsqrte_f32(len_sq_v);  // Initial estimate
-            // Newton-Raphson: x' = x * (3 - x^2 * a) / 2
-            rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
-            rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
-            const T inv_len = static_cast<T>(vget_lane_f32(rsqrt, 0));
-            return *this * inv_len;
+            if (len_sq != T(0))
+            {
+                // Fast inverse square root with Newton-Raphson refinement
+                float32x2_t len_sq_v = vdup_n_f32(static_cast<float>(len_sq));
+                float32x2_t rsqrt = vrsqrte_f32(len_sq_v);  // Initial estimate
+                // Newton-Raphson: x' = x * (3 - x^2 * a) / 2
+                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
+                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
+                const T inv_len = static_cast<T>(vget_lane_f32(rsqrt, 0));
+                return *this * inv_len;
+            }
+            return *this;
         }
 #endif
 #ifdef CONFIG_MICROLA_CMSIS
         if constexpr (std::is_same_v<T, float>)
         {
             const T len_sq = dot(*this);
-            if (len_sq == T(0))
-                return *this;
+            if (len_sq != T(0))
+            {
+                float len;
+                float len_sq_f = static_cast<float>(len_sq);
+                arm_sqrt_f32(len_sq_f, &len);
 
-            float len;
-            float len_sq_f = static_cast<float>(len_sq);
-            arm_sqrt_f32(len_sq_f, &len);
-
-            const float inv_len = 1.0f / len;
-            Vec result;
-            arm_scale_f32(data, inv_len, result.data, N);
-            return result;
+                const float inv_len = 1.0f / len;
+                Vec result;
+                arm_scale_f32(data, inv_len, result.data, N);
+                return result;
+            }
+            return *this;
         }
 #endif
         const T len = length();
-        if (len == T(0))
+        if (len != T(0))
         {
-            return *this;
+            return *this / len;
         }
-        return *this / len;
+        return *this;
     }
 
     /// \brief Angle between two vectors (in radians).
