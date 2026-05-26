@@ -82,19 +82,19 @@ run_tidy_one()
 
 echo "clang-tidy: checking ${TOTAL_FILES} files with $CLANG_TIDY (${TIDY_JOBS} job(s)) ..."
 
-active_jobs=0
+ACTIVE_PIDS=()
 for index in "${!FILES[@]}"; do
     run_tidy_one "$((index + 1))" "${FILES[index]}" &
-    active_jobs=$((active_jobs + 1))
-    if (( active_jobs >= TIDY_JOBS )); then
-        wait -n || true
-        active_jobs=$((active_jobs - 1))
+    ACTIVE_PIDS+=("$!")
+    if (( ${#ACTIVE_PIDS[@]} >= TIDY_JOBS )); then
+        # macOS still ships Bash 3.2, which does not support wait -n.
+        wait "${ACTIVE_PIDS[0]}" || true
+        ACTIVE_PIDS=("${ACTIVE_PIDS[@]:1}")
     fi
 done
 
-while (( active_jobs > 0 )); do
-    wait -n || true
-    active_jobs=$((active_jobs - 1))
+for pid in "${ACTIVE_PIDS[@]}"; do
+    wait "$pid" || true
 done
 
 status=0

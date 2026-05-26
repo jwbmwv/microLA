@@ -84,7 +84,7 @@ package "Core Headers (include/microla/)" {
         • AABB<T>, Sphere<T>
         • Triangle<T>, Frustum<T>
         • Intersection tests
-        • Requires C++20 (std::optional)
+        • Uses std::optional (C++17)
 
         Depends: vector.hpp, matrix.hpp
     end note
