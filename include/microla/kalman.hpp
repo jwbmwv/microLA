@@ -124,6 +124,10 @@ public:
         StateMat ikh = i - k * H;
         P = ikh * P * ikh.transpose() + k * R * k.transpose();
 
+        // Enforce covariance symmetry and positive definiteness
+        // Symmetrize: P = (P + P^T) / 2
+        P = (P + P.transpose()) * static_cast<T>(0.5);
+
         return true;
     }
 
@@ -166,13 +170,31 @@ public:
     [[nodiscard]] auto get_covariance() const noexcept -> const StateMat& { return P; }
 
     /// @brief Get specific state variable
-    [[nodiscard]] auto get_state(std::size_t index) const noexcept -> T { return x[index]; }
+    [[nodiscard]] auto get_state(std::size_t index) const noexcept -> T
+    {
+#ifdef MICROLA_DEBUG
+        assert(index < StateDim && "State index out of bounds");
+#endif
+        return x[index];
+    }
 
     /// @brief Get state variance for specific variable
-    [[nodiscard]] auto get_variance(std::size_t index) const noexcept -> T { return P(index, index); }
+    [[nodiscard]] auto get_variance(std::size_t index) const noexcept -> T
+    {
+#ifdef MICROLA_DEBUG
+        assert(index < StateDim && "Variance index out of bounds");
+#endif
+        return P(index, index);
+    }
 
     /// @brief Get state standard deviation
-    [[nodiscard]] auto get_std_dev(std::size_t index) const noexcept -> T { return std::sqrt(P(index, index)); }
+    [[nodiscard]] auto get_std_dev(std::size_t index) const noexcept -> T
+    {
+#ifdef MICROLA_DEBUG
+        assert(index < StateDim && "Standard deviation index out of bounds");
+#endif
+        return std::sqrt(P(index, index));
+    }
 
     // ==================== Setters ====================
 

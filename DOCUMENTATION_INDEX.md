@@ -1,6 +1,6 @@
 # MicroLA Documentation Index
 
-**Version:** 0.0.1
+**Version:** 0.0.2
 **Date:** March 7, 2026
 
 ## 📚 Documentation Structure

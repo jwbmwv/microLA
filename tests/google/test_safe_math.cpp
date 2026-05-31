@@ -130,10 +130,10 @@ TEST(SafeMath, SafeSqrtPositive)
 TEST(SafeMath, SafeSqrtNegative)
 {
     float result = safe_sqrt(-1.0F);
-    EXPECT_FLOAT_EQ(result, 0.0F);  // Fallback
+    EXPECT_TRUE(std::isnan(result));  // Returns NaN for error detection
 
     result = safe_sqrt(-100.0F);
-    EXPECT_FLOAT_EQ(result, 0.0F);  // Returns 0 for negative
+    EXPECT_TRUE(std::isnan(result));  // Returns NaN for negative
 }
 
 // Test safe_acos

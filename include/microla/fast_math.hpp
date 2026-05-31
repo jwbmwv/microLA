@@ -18,6 +18,40 @@ namespace microla
 namespace fast
 {
 
+// ==================== Magic Constants for Fast Approximations ====================
+
+/// @brief Quake III fast inverse square root magic constant
+constexpr std::uint32_t RSQRT_MAGIC_CONSTANT = 0x5f3759dfU;
+
+/// @brief Bhaskara I sine approximation numerator coefficient
+constexpr float BHASKARA_SINE_NUMERATOR_COEFF = 16.0F;
+
+/// @brief Bhaskara I sine approximation denominator coefficient
+constexpr float BHASKARA_SINE_DENOMINATOR_COEFF = 5.0F;
+
+/// @brief atan2 polynomial approximation coefficient
+constexpr float ATAN2_POLY_COEFF = 0.28F;
+
+/// @brief Padé approximation numerator/denominator constant
+constexpr float PADE_CONSTANT = 12.0F;
+
+/// @brief Padé approximation linear coefficient
+constexpr float PADE_LINEAR_COEFF = 6.0F;
+
+/// @brief Natural logarithm polynomial coefficient a
+constexpr float LN_POLY_COEFF_A = 2.0F;
+
+/// @brief Natural logarithm polynomial coefficient b
+constexpr float LN_POLY_COEFF_B = 0.666666F;
+
+/// @brief Natural logarithm polynomial coefficient c
+constexpr float LN_POLY_COEFF_C = 0.4F;
+
+/// @brief Smoothstep Hermite coefficient
+constexpr float SMOOTHSTEP_COEFF = 3.0F;
+
+// ==================== Fast Approximation Functions ====================
+
 /// @brief Fast sine approximation using Bhaskara I's approximation
 /// @details Accurate to ~0.0016 radians (0.09 degrees) maximum error
 /// @param x Angle in radians
@@ -83,7 +117,7 @@ MICROLA_CONSTEXPR20 auto rsqrt(float x) noexcept -> float
 
     // Quake III fast inverse square root
     auto bits = MICROLA_BIT_CAST(std::uint32_t, x);
-    bits = 0x5f3759dfU - (bits >> 1);  // Magic constant
+    bits = RSQRT_MAGIC_CONSTANT - (bits >> 1);
     auto y = MICROLA_BIT_CAST(float, bits);
 
     // Newton-Raphson iterations for better accuracy

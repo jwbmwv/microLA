@@ -141,10 +141,10 @@ TEST_F(VectorTest, ScalarDivision)
 TEST_F(VectorTest, DivisionByZero)
 {
     Vec<float, 3> result = v3_a / 0.0F;
-    // Should return zero vector for safety
-    EXPECT_FLOAT_EQ(result[0], 0.0F);
-    EXPECT_FLOAT_EQ(result[1], 0.0F);
-    EXPECT_FLOAT_EQ(result[2], 0.0F);
+    // Should return NaN for error detection (Phase 1 improvement)
+    EXPECT_TRUE(std::isnan(result[0]));
+    EXPECT_TRUE(std::isnan(result[1]));
+    EXPECT_TRUE(std::isnan(result[2]));
 }
 
 TEST_F(VectorTest, UnaryMinus)

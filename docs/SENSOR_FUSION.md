@@ -349,6 +349,297 @@ If the requested output is only available with drift, the result remains usable 
 - `result.primary.quality`
 - `result.primary.flags`
 
+## Filtering Strategies for Improved Performance
+
+When sampling sensors at fixed, rapid intervals (typically 100-1000 Hz), additional filtering can significantly improve orientation estimates by rejecting noise, vibration, and transient disturbances.
+
+### Built-In Filtering
+
+The fusion system already includes several filtering mechanisms:
+
+**1. Gravity Low-Pass Filter**
+- `gravity_filter_alpha = 0.2` applies exponential smoothing to accelerometer-derived gravity
+- Formula: `gravity_new = alpha * accel_current + (1 - alpha) * gravity_old`
+- Higher alpha (→ 1.0): faster response, more noise
+- Lower alpha (→ 0.0): smoother output, slower response to real motion
+- **Tune this first** for your vibration environment
+
+**2. Complementary Filtering (Mahony Backend)**
+- Inherently combines high-pass filtered gyro (fast response) with low-pass filtered accel/mag (absolute reference)
+- `kp_accel` and `kp_mag` control the complementary filter balance
+- Higher gains → trust accel/mag more (faster correction, more noise sensitivity)
+- Lower gains → trust gyro more (smoother, slower correction)
+
+**3. Kalman Filtering (MEKF Backend)**
+- Process noise (`q_attitude`, `q_gyro_bias`) models how much uncertainty grows during propagation
+- Measurement noise (`r_accel`, `r_mag`) models sensor uncertainty
+- Innovation gating (`accel_nis_gate`, `mag_nis_gate`) rejects statistical outliers
+- Automatically balances trust between propagation and correction based on noise model
+
+**4. Magnetometer Norm Learning**
+- `mag_reference_learning_alpha = 0.05` slowly adapts to local field strength
+- Provides robustness to gradual magnetic environment changes
+
+### Pre-Filtering Raw Sensor Data
+
+For high-rate sampling with significant noise, consider filtering **before** feeding data to the fusion system:
+
+**Moving Average Filter (Simple, Low Latency)**
+```cpp
+template<typename T, std::size_t WindowSize>
+class MovingAverage {
+    std::array<microla::Vec<T, 3>, WindowSize> buffer_{};
+    std::size_t index_{0};
+    bool full_{false};
+
+public:
+    auto update(const microla::Vec<T, 3>& sample) -> microla::Vec<T, 3> {
+        buffer_[index_] = sample;
+        index_ = (index_ + 1) % WindowSize;
+        if (index_ == 0) full_ = true;
+        
+        microla::Vec<T, 3> sum{};
+        const std::size_t count = full_ ? WindowSize : index_;
+        for (std::size_t i = 0; i < count; ++i) {
+            sum = sum + buffer_[i];
+        }
+        return sum / static_cast<T>(count);
+    }
+};
+
+// Usage: 3-sample moving average on accelerometer
+MovingAverage<float, 3> accel_filter;
+auto filtered_accel = accel_filter.update(raw_accel);
+```
+
+**Typical window sizes:**
+- 3-5 samples: Minimal smoothing, good for 100-200 Hz update rates
+- 5-10 samples: Moderate smoothing, reduces high-frequency vibration
+- 10-20 samples: Heavy smoothing, use only if latency tolerance is high
+
+**Median Filter (Outlier Rejection)**
+```cpp
+template<typename T>
+auto median_filter_3(const microla::Vec<T, 3>& a, 
+                     const microla::Vec<T, 3>& b,
+                     const microla::Vec<T, 3>& c) -> microla::Vec<T, 3> {
+    // Per-axis median of last 3 samples
+    return microla::Vec<T, 3>(
+        std::max(std::min(a[0], b[0]), std::min(std::max(a[0], b[0]), c[0])),
+        std::max(std::min(a[1], b[1]), std::min(std::max(a[1], b[1]), c[1])),
+        std::max(std::min(a[2], b[2]), std::min(std::max(a[2], b[2]), c[2]))
+    );
+}
+```
+- Excellent for rejecting **single-sample spikes** (EMI, sensor glitches)
+- Does not smooth Gaussian noise as well as moving average
+- Use window size 3 or 5 (odd numbers only)
+
+**Low-Pass IIR Filter (Exponential Moving Average)**
+```cpp
+template<typename T>
+class LowPassFilter {
+    microla::Vec<T, 3> state_{};
+    T alpha_;  // Cutoff frequency parameter
+    bool initialized_{false};
+
+public:
+    explicit LowPassFilter(T alpha) : alpha_(alpha) {}
+    
+    auto update(const microla::Vec<T, 3>& sample) -> microla::Vec<T, 3> {
+        if (!initialized_) {
+            state_ = sample;
+            initialized_ = true;
+        } else {
+            state_ = sample * alpha_ + state_ * (T(1) - alpha_);
+        }
+        return state_;
+    }
+};
+
+// Cutoff frequency calculation: alpha = dt / (dt + tau)
+// where tau = 1 / (2 * pi * fc), fc = desired cutoff frequency in Hz
+// Example: 100 Hz sampling, 10 Hz cutoff → tau = 0.0159, alpha ≈ 0.386
+```
+
+### Application-Specific Strategies
+
+**High-Vibration Environments (Drones, Power Tools, Vehicles)**
+- **Pre-filter accelerometer** with low-pass IIR (10-20 Hz cutoff for 100+ Hz sampling)
+- **Reduce `gravity_filter_alpha`** to 0.05-0.1 for additional smoothing
+- **Lower `kp_accel`** to 1.0-1.5 to reduce trust in noisy accel
+- **Consider MEKF** with higher `r_accel` (0.1-0.5) to model increased measurement uncertainty
+- **Increase `accel_norm_min/max` window** slightly to avoid excessive rejection from vibration peaks
+
+**Magnetic Disturbances (Indoor, Near Electronics)**
+- **Pre-filter magnetometer** with moving average (5-10 samples)
+- **Widen `mag_relative_norm_tolerance`** to 0.5 to accept more variation
+- **Lower `kp_mag`** to 0.5-1.0 to reduce heading correction strength
+- **Or disable magnetometer** entirely and accept 6-axis drift mode
+
+**High-Rate Clean Sensors (200-1000 Hz, Low Noise)**
+- Minimal pre-filtering needed (median filter for spike rejection only)
+- **Increase `gravity_filter_alpha`** to 0.3-0.5 for faster response
+- **Increase `kp_accel` and `kp_mag`** to 3.0-5.0 for aggressive correction
+- Fusion system's built-in filtering sufficient
+
+**Low-Rate or Intermittent Sampling (10-50 Hz)**
+- Pre-filtering provides minimal benefit (limited samples to average)
+- Focus on **validity gating** to reject bad samples
+- **Increase `max_dt_s`** to accommodate larger gaps (0.5-1.0 seconds)
+- Accept that orientation quality will be lower
+
+### Filtering Trade-Offs
+
+| Approach | Latency Added | Noise Rejection | Outlier Rejection | CPU Cost |
+|----------|---------------|-----------------|-------------------|----------|
+| No pre-filtering | 0 ms | Minimal | None | Minimal |
+| Median-3 | ~20 ms @ 100 Hz | Low | Excellent | Very low |
+| Moving avg (5 samples) | ~25 ms @ 100 Hz | Good | Moderate | Very low |
+| Moving avg (10 samples) | ~50 ms @ 100 Hz | Excellent | Moderate | Low |
+| Low-pass IIR | ~1 sample | Good | Poor | Very low |
+| Gravity filter tuning | 0 ms | Moderate | None | Zero |
+| MEKF backend | 0 ms | Good (adaptive) | Good (gating) | High |
+
+### Post-Filtering Orientation Output
+
+You can also smooth the **final orientation estimate**, though this adds latency:
+
+**Quaternion SLERP Smoothing**
+```cpp
+// Spherical linear interpolation between consecutive orientations
+auto smooth_quat = microla::slerp(prev_orientation, current_orientation, alpha);
+// alpha = 0.3-0.5 typical for moderate smoothing
+```
+
+**⚠️ Warning:** Post-filtering orientation adds latency and can create lag during fast rotations. Only use when you need extremely smooth output for visualization or control systems with low bandwidth requirements.
+
+### Recommended Starting Point
+
+For typical embedded IMU applications (100-200 Hz sampling):
+
+1. **Start with defaults** - built-in filtering often sufficient
+2. **Add median-3 filter** on accelerometer if you see spike artifacts
+3. **Tune `gravity_filter_alpha`** down (0.05-0.1) if vibration is severe
+4. **Adjust `kp_accel` and `kp_mag`** based on noise vs. responsiveness needs
+5. **Switch to MEKF** only if you need covariance-aware correction
+6. **Add moving average** (5-10 samples) only if previous steps insufficient
+
+Monitor `StatusFlag` rejection rates - if you're rejecting >30% of samples due to norm violations, you likely need better pre-filtering rather than wider validity gates.
+
+## Known Limitations and Failure Modes
+
+### Fundamental Assumptions
+
+IMU-based orientation estimation relies on a **critical assumption**: the accelerometer measures gravity. In reality, accelerometers measure **net force** (gravity + linear acceleration + centripetal acceleration). The system assumes **quasi-static motion** where linear acceleration ≈ 0.
+
+This assumption breaks down in several common scenarios:
+
+### Freefall and Zero-G Environments
+
+**Problem:** During freefall, the accelerometer reads near zero.
+
+- Freefall: gravity - drag ≈ 0 m/s² (well below `accel_norm_min = 8.0`)
+- **All accelerometer samples are rejected** (`StatusFlag::accel_rejected`)
+- System enters **gyro-only propagation** mode
+- **Tilt reference is completely lost** - only gyro integration remains
+- Rapid drift accumulation: at default `drift_rate_without_heading_rad_per_s = 0.02`, a 60-second freefall accumulates **1.2 radians (69°) of drift**
+- `Observability` drops from `full_3d` to effectively `none`
+- `SolutionQuality` degrades to `invalid` or `degraded`
+
+**Applications affected:** Skydiving, parabolic flight, space applications, dropped objects
+
+**Recovery:** When acceleration returns to ~1g (parachute deployment, landing), tilt reference recovers. Recovery speed depends on `kp_accel` and `gravity_filter_alpha`.
+
+### High-G Impacts and Extreme Acceleration
+
+**Problem:** The accelerometer reads gravity + linear acceleration.
+
+- Impact landing: 3-5g → **30-50 m/s²** (above `accel_norm_max = 11.5`)
+- Aggressive vehicle maneuvering: 2-3g sustained
+- **Samples rejected during high-acceleration events**
+- Brief propagation-only mode until acceleration settles
+
+**Sustained high acceleration:**
+- If continuous motion keeps you outside [8.0, 11.5] m/s² range
+- Extended rejection period → drift accumulation
+- `quality` oscillates between `nominal` and `degraded`
+
+**Applications affected:** Helmets during running/tumbling, racing vehicles, roller coasters, impact monitoring
+
+**Tuning tradeoff:** Widening the gate (e.g., `accel_norm_max = 30.0`) accepts more contaminated samples, reducing rejection frequency but allowing corrupted gravity estimates that produce incorrect tilt.
+
+### Running and Rhythmic Motion
+
+**Moderate but periodic violation:**
+
+- Running produces 2-3g peaks during foot strike
+- **Marginally within or outside** the [8.0, 11.5] m/s² window
+- Intermittent acceptance/rejection creates **oscillating quality** tied to gait cycle
+- Some tilt corrections accepted, others rejected
+- Result: usable but noisy orientation estimates
+
+### High Angular Rates
+
+**Problem:** Extremely fast rotation exceeds sensor and validation limits.
+
+- Aggressive tumbling can exceed `gyro_norm_max = 35 rad/s` (2000 deg/s)
+- **Gyro samples rejected** (`StatusFlag::gyro_rejected`)
+- **No propagation occurs** - orientation estimate freezes
+- Even if software gate allows it, physical sensor may saturate first
+
+**Typical IMU ranges:** ±250 to ±2000 deg/s depending on configuration. Choose hardware range to match expected angular rates and adjust `gyro_norm_max` accordingly.
+
+**Applications affected:** Gymnastics, aggressive drone maneuvers, spinning tools
+
+### Magnetometer Disturbances
+
+**Problem:** Magnetometers measure the local magnetic field, which is easily distorted.
+
+**Hard-iron distortion (static):**
+- Nearby ferromagnetic materials (buckles, screws, batteries)
+- Electronics (processors, motors, wiring)
+- Can be calibrated out via `SensorCalibration::mag_bias` and `mag_soft_iron`
+
+**Soft-iron distortion (field-dependent):**
+- Ferromagnetic materials create field-dependent distortion
+- Static calibration (3×3 `mag_soft_iron` matrix) handles **constant** mounting geometry
+- **Dynamic distortion** (moving electronics, orientation-dependent metal) cannot be fully calibrated
+
+**Rejection scenarios:**
+- Field strength outside learned norm ± `mag_relative_norm_tolerance` (default ±35%)
+- Directional error exceeds `mag_alignment_max_error_rad` (2.356 rad / 135°)
+- Results in `StatusFlag::mag_rejected`
+- System falls back to `heading_with_drift` mode (behaves like 6-axis IMU)
+- Heading drifts at ~`0.02 rad/s = 1.15°/s`
+
+**Applications affected:** Helmet-mounted IMUs (electronics, NVGs, cameras), indoor environments, near steel structures, vehicles with motors
+
+**Mitigation:** For magnetically-polluted environments, disable magnetometer correction entirely (`enable_mag_correction = false`) and accept 6-axis behavior rather than risk bad heading corrections.
+
+### Summary Table
+
+| Scenario | Accelerometer | Gyroscope | Magnetometer | Tilt Observable? | Heading Observable? | Typical Quality |
+|----------|---------------|-----------|--------------|------------------|---------------------|-----------------|
+| Freefall | Rejected (0g) | OK | OK | **No** | No (gyro-only) | `invalid` |
+| High-G Impact | Rejected (>3g) | OK | OK | **No** (temporarily) | Depends on mag | `invalid` → recovers |
+| Tumbling | Rejected (high-g) | Rejected (high rate) | OK | **No** | **No** | `invalid` |
+| Running | Intermittent | OK | OK | Intermittent | Yes (if mag clean) | `usable` ↔ `nominal` |
+| Near Electronics | OK | OK | Rejected (distorted) | Yes | **No** (drift mode) | `usable` |
+| Quasi-Static | OK | OK | OK | Yes | Yes | `nominal` |
+
+### Design Response
+
+Rather than pretending these scenarios produce valid output, microLA's sensor fusion explicitly reports degradation through:
+
+- **Observability levels** (`none`, `tilt_only`, `heading_with_drift`, `full_3d`)
+- **Quality grades** (`invalid`, `degraded`, `usable`, `nominal`)
+- **Status flags** (sensor rejection, drift limits, propagation-only mode)
+- **Drift estimates** (`estimated_drift_rad`)
+- **Confidence scores** (0-1 scale)
+
+This allows safety-critical applications to detect unreliable estimates and respond appropriately (fallback modes, increased margins, operator warnings).
+
 ## Current Scope Notes
 
 - Accelerometer-only entities support tilt observability, not absolute heading observability.

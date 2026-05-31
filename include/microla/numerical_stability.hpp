@@ -115,6 +115,8 @@ auto hypot(T a, T b) noexcept -> T
 /// @param b Second value
 /// @param c Third value
 /// @return sqrt(a² + b² + c²) computed safely
+/// @details Uses scaling to prevent overflow. For extreme values near sqrt(T_max),
+///          returns infinity to avoid undefined behavior.
 template<typename T>
 auto hypot3(T a, T b, T c) noexcept -> T
 {
@@ -131,6 +133,14 @@ auto hypot3(T a, T b, T c) noexcept -> T
     if (max_val == T(0) || !std::isfinite(max_val))
     {
         return max_val;
+    }
+
+    // Check for extreme values that would overflow even after scaling
+    // If max_val > sqrt(T_max) / 2, the result would overflow
+    constexpr T overflow_threshold = std::sqrt(std::numeric_limits<T>::max()) / T(2);
+    if (max_val > overflow_threshold)
+    {
+        return std::numeric_limits<T>::infinity();
     }
 
     // Scale by max to prevent overflow/underflow

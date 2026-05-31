@@ -1,0 +1,83 @@
+name: Documentation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-snippets:
+    name: Verify Code Snippets
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Install C++ compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ cmake
+      
+      - name: Verify code snippets compile
+        run: |
+          python3 scripts/verify_snippets.py --verbose
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "Code snippet verification completed"
+
+  generate-doxygen:
+    name: Generate Doxygen Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required for GitHub Pages deployment
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+      
+      - name: Generate documentation
+        run: |
+          bash scripts/generate_docs.sh
+      
+      - name: Check output
+        run: |
+          if [ ! -f "docs/doxygen/html/index.html" ]; then
+            echo "Error: Documentation not generated"
+            exit 1
+          fi
+          echo "Documentation generated successfully"
+          ls -lh docs/doxygen/html/index.html
+      
+      - name: Upload documentation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: doxygen-docs
+          path: docs/doxygen/html
+          retention-days: 90
+      
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/doxygen/html
+          destination_dir: api
+          enable_jekyll: false
+          cname: false

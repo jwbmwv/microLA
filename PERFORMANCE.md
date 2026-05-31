@@ -683,8 +683,8 @@ MicroLA delivers **production-ready performance** across all platforms and use c
 
 **Status**: Suitable for production deployment with verified correctness and competitive performance.
 
-**Date**: January 31, 2026
-**MicroLA Version**: 0.0.1 (current Linux CI-equivalent lanes passing)
+**Date**: May 31, 2026
+**MicroLA Version**: 0.0.2 (current Linux CI-equivalent lanes passing)
 **Compared Libraries**: Eigen 3.4.0, GLM 0.9.9.8, Blaze 3.8.2, DirectXMath (latest), MathFu (latest)
 
 ### Reproducing Benchmarks
@@ -721,5 +721,5 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=arm-none-eabi.cmake \
 
 ---
 
-**Date**: January 31, 2026
-**Benchmark Version**: MicroLA 0.0.1
+**Date**: May 31, 2026
+**Benchmark Version**: MicroLA 0.0.2

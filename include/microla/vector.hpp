@@ -567,12 +567,21 @@ public:
     /// \brief Scalar division operator.
     /// \param scalar The scalar to divide by.
     /// \return The result vector.
+    /// \note In debug builds, asserts if scalar is zero. In release builds, returns NaN-filled vector.
     [[nodiscard]] constexpr auto operator/(T scalar) const noexcept -> Vec
     {
-        // Check for zero to avoid undefined behavior - return zero vector immediately
+#ifdef MICROLA_DEBUG
+        assert(scalar != T(0) && "Division by zero in Vec::operator/");
+#endif
+        // Return NaN-filled vector for division by zero in release builds
         if (scalar == T(0))
         {
-            return Vec::zero();
+            Vec result;
+            for (std::size_t i = 0; i < N; ++i)
+            {
+                result.data[i] = std::numeric_limits<T>::quiet_NaN();
+            }
+            return result;
         }
 #ifdef CONFIG_MICROLA_NEON
         // Fast reciprocal for NEON float vectors
@@ -636,43 +645,56 @@ public:
     /// \return True if equal (uses epsilon comparison for floating point types).
     constexpr auto operator==(const Vec& other) const noexcept -> bool
     {
-#ifdef CONFIG_MICROLA_NEON
-        // SIMD path for float equality comparison with epsilon
-        if constexpr (std::is_same_v<T, float> && N == 4)
+        // Optimized path for integral types (exact comparison)
+        if constexpr (std::is_integral_v<T>)
         {
-            float32x4_t a = vld1q_f32(data);
-            float32x4_t b = vld1q_f32(other.data);
-            float32x4_t diff = vabdq_f32(a, b);
-            float32x4_t eps = vdupq_n_f32(std::numeric_limits<float>::epsilon());
-            uint32x4_t cmp = vcleq_f32(diff, eps);
-            // All lanes must be true
-            uint64x2_t cmp64 = vreinterpretq_u64_u32(cmp);
-            return vgetq_lane_u64(cmp64, 0) == ~0ULL && vgetq_lane_u64(cmp64, 1) == ~0ULL;
-        }
-        if constexpr (std::is_same_v<T, float> && N == 3)
-        {
-            // Use approximate comparison for floats
-            for (std::size_t i = 0; i < 3; ++i)
+            for (std::size_t i = 0; i < N; ++i)
             {
-                if (std::abs(data[i] - other.data[i]) > std::numeric_limits<float>::epsilon())
+                if (data[i] != other.data[i])
+                {
                     return false;
+                }
             }
             return true;
         }
-        if constexpr (std::is_same_v<T, float> && N == 2)
+        // Floating-point types use epsilon comparison
+        else if constexpr (std::is_floating_point_v<T>)
         {
-            float32x2_t a = vld1_f32(data);
-            float32x2_t b = vld1_f32(other.data);
-            float32x2_t diff = vabd_f32(a, b);
-            float32x2_t eps = vdup_n_f32(std::numeric_limits<float>::epsilon());
-            uint32x2_t cmp = vcle_f32(diff, eps);
-            // Both lanes must be true
-            return vget_lane_u32(cmp, 0) == ~0U && vget_lane_u32(cmp, 1) == ~0U;
-        }
+#ifdef CONFIG_MICROLA_NEON
+            // SIMD path for float equality comparison with epsilon
+            if constexpr (std::is_same_v<T, float> && N == 4)
+            {
+                float32x4_t a = vld1q_f32(data);
+                float32x4_t b = vld1q_f32(other.data);
+                float32x4_t diff = vabdq_f32(a, b);
+                float32x4_t eps = vdupq_n_f32(std::numeric_limits<float>::epsilon());
+                uint32x4_t cmp = vcleq_f32(diff, eps);
+                // All lanes must be true
+                uint64x2_t cmp64 = vreinterpretq_u64_u32(cmp);
+                return vgetq_lane_u64(cmp64, 0) == ~0ULL && vgetq_lane_u64(cmp64, 1) == ~0ULL;
+            }
+            if constexpr (std::is_same_v<T, float> && N == 3)
+            {
+                // Use approximate comparison for floats
+                for (std::size_t i = 0; i < 3; ++i)
+                {
+                    if (std::abs(data[i] - other.data[i]) > std::numeric_limits<float>::epsilon())
+                        return false;
+                }
+                return true;
+            }
+            if constexpr (std::is_same_v<T, float> && N == 2)
+            {
+                float32x2_t a = vld1_f32(data);
+                float32x2_t b = vld1_f32(other.data);
+                float32x2_t diff = vabd_f32(a, b);
+                float32x2_t eps = vdup_n_f32(std::numeric_limits<float>::epsilon());
+                uint32x2_t cmp = vcle_f32(diff, eps);
+                // Both lanes must be true
+                return vget_lane_u32(cmp, 0) == ~0U && vget_lane_u32(cmp, 1) == ~0U;
+            }
 #endif
-        // For floating point types, use epsilon comparison
-        if constexpr (std::is_floating_point<T>::value)
-        {
+            // Fallback: epsilon comparison for all floating-point types
             for (std::size_t i = 0; i < N; ++i)
             {
                 if (std::abs(data[i] - other.data[i]) > std::numeric_limits<T>::epsilon())
@@ -682,7 +704,7 @@ public:
             }
             return true;
         }
-        // For integral types, use exact comparison
+        // Fallback for other types: exact comparison
         for (std::size_t i = 0; i < N; ++i)
         {
             if (data[i] != other.data[i])
@@ -1031,9 +1053,11 @@ public:
             return *this;
         }
 #endif
-        const T len = length();
-        if (len != T(0))
+        // Fallback: compute length from cached length_squared
+        const T len_sq = dot(*this);
+        if (len_sq != T(0)) [[likely]]
         {
+            const T len = std::sqrt(len_sq);
             return *this / len;
         }
         return *this;
@@ -1047,7 +1071,7 @@ public:
         const T len1 = length();
         const T len2 = other.length();
         const T denom = len1 * len2;
-        if (denom == T(0))
+        if (denom == T(0)) [[unlikely]]
         {
             return T(0);
         }
@@ -1521,7 +1545,7 @@ public:
     [[nodiscard]] auto safe_normalized(T epsilon = std::numeric_limits<T>::epsilon()) const noexcept -> Vec
     {
         const T len = length();
-        if (len < epsilon)
+        if (len < epsilon) [[unlikely]]
         {
             return zero();
         }
@@ -1686,7 +1710,7 @@ public:
     {
         Vec<T, N - 1> result;
         const T w = data[N - 1];
-        if (std::abs(w) > std::numeric_limits<T>::epsilon())
+        if (std::abs(w) > std::numeric_limits<T>::epsilon()) [[likely]]
         {
             const T inv_w = T(1) / w;
             for (std::size_t i = 0; i < N - 1; ++i)
@@ -1694,7 +1718,7 @@ public:
                 result.data[i] = data[i] * inv_w;
             }
         }
-        else
+        else [[unlikely]]
         {
             // w is too small, return as-is without division
             for (std::size_t i = 0; i < N - 1; ++i)
@@ -1753,5 +1777,29 @@ template<typename T, std::size_t N>
 {
     return v * scalar;
 }
+
+// ============================================================================
+// Type Aliases for Common Vector Types
+// ============================================================================
+
+// Float vectors
+using Vec2f = Vec<float, 2>;
+using Vec3f = Vec<float, 3>;
+using Vec4f = Vec<float, 4>;
+
+// Double vectors
+using Vec2d = Vec<double, 2>;
+using Vec3d = Vec<double, 3>;
+using Vec4d = Vec<double, 4>;
+
+// Integer vectors
+using Vec2i = Vec<int, 2>;
+using Vec3i = Vec<int, 3>;
+using Vec4i = Vec<int, 4>;
+
+// Unsigned integer vectors
+using Vec2u = Vec<unsigned int, 2>;
+using Vec3u = Vec<unsigned int, 3>;
+using Vec4u = Vec<unsigned int, 4>;
 
 }  // namespace microla

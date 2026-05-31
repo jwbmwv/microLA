@@ -125,6 +125,8 @@ inline void set_flag(StatusFlags& flags, StatusFlag flag) noexcept
 
 /// @brief Accelerometer-only sample.
 /// @details `timestamp_s` is in seconds and `accel` is expected in m/s^2 in the sensor frame.
+/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 μs).
+///          For long-running systems, use double or implement timestamp wrapping/resetting.
 template<typename T>
 struct AccelSample
 {
@@ -134,6 +136,8 @@ struct AccelSample
 
 /// @brief 6-axis IMU sample (gyro + accel).
 /// @details `timestamp_s` is in seconds, `gyro` is in rad/s, and `accel` is in m/s^2.
+/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 μs).
+///          For long-running systems, use double or implement timestamp wrapping/resetting.
 template<typename T>
 struct Imu6Sample
 {
@@ -145,6 +149,8 @@ struct Imu6Sample
 /// @brief 9-axis IMU sample (gyro + accel + mag).
 /// @details `timestamp_s` is in seconds, `gyro` is in rad/s, `accel` is in m/s^2, and `mag`
 ///          uses any consistent magnetic-field unit after calibration (for example uT).
+/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 μs).
+///          For long-running systems, use double or implement timestamp wrapping/resetting.
 template<typename T>
 struct Imu9Sample
 {
@@ -897,12 +903,21 @@ public:
     using Sample = detail::SampleTypeT<T, Config::sensor_model>;
 
     /// @brief Creates an estimator with default runtime calibration.
-    OrientationEstimator() noexcept : config_valid_(validate_configuration()) { refresh_calibration_flags(); }
+    OrientationEstimator() noexcept : config_valid_(validate_configuration())
+    {
+        // Memory footprint check for embedded systems (after class is complete)
+        static_assert(sizeof(OrientationEstimator) < 4096,
+                      "OrientationEstimator exceeds 4KB - verify stack limits for embedded target");
+        refresh_calibration_flags();
+    }
 
     /// @brief Creates an estimator with caller-supplied runtime calibration.
     explicit OrientationEstimator(const SensorCalibration<T>& calibration) noexcept
         : calibration_(calibration), config_valid_(validate_configuration())
     {
+        // Memory footprint check for embedded systems (after class is complete)
+        static_assert(sizeof(OrientationEstimator) < 4096,
+                      "OrientationEstimator exceeds 4KB - verify stack limits for embedded target");
         refresh_calibration_flags();
     }
 
@@ -915,19 +930,19 @@ public:
     {
         estimate_ = OrientationEstimate<T>();
         estimate_.orientation = orientation_;
-        if (!config_valid_)
+        if (!config_valid_) [[unlikely]]
         {
             reject_current_sample(StatusFlag::configuration_invalid);
             return;
         }
-        if (!calibration_valid_)
+        if (!calibration_valid_) [[unlikely]]
         {
             reject_current_sample(StatusFlag::calibration_invalid);
             return;
         }
 
         const T sample_timestamp_s = detail::SampleTraits<Sample>::timestamp(sample);
-        if (!std::isfinite(sample_timestamp_s))
+        if (!std::isfinite(sample_timestamp_s)) [[unlikely]]
         {
             reject_current_sample(StatusFlag::sample_time_invalid);
             return;
@@ -936,16 +951,16 @@ public:
 
         T dt = T(0);
         bool accept_sample_timestamp = true;
-        if (have_timestamp_)
+        if (have_timestamp_) [[likely]]
         {
             dt = estimate_.timestamp_s - last_timestamp_s_;
-            if (dt < Config::min_dt_s)
+            if (dt < Config::min_dt_s) [[unlikely]]
             {
                 set_flag(estimate_.flags, StatusFlag::sample_time_invalid);
                 accept_sample_timestamp = false;
                 dt = T(0);
             }
-            else if (dt > Config::max_dt_s)
+            else if (dt > Config::max_dt_s) [[unlikely]]
             {
                 set_flag(estimate_.flags, StatusFlag::sample_time_invalid);
                 dt = T(0);
@@ -1459,12 +1474,12 @@ private:
     /// @brief Initializes state from the first valid gravity or gravity-plus-magnetic measurement.
     void initialize_from_measurement(const Vec<T, 3>& accel, const Vec<T, 3>& mag, bool mag_valid) noexcept
     {
-        if (initialized_)
+        if (initialized_) [[unlikely]]
         {
             return;
         }
 
-        if (!accel_is_valid(accel))
+        if (!accel_is_valid(accel)) [[unlikely]]
         {
             set_flag(estimate_.flags, StatusFlag::startup_not_initialized);
             return;
@@ -1565,7 +1580,7 @@ private:
     /// @brief Processes one accelerometer-only update path.
     void update_accel_only(const Vec<T, 3>& accel) noexcept
     {
-        if (!accel_is_valid(accel))
+        if (!accel_is_valid(accel)) [[unlikely]]
         {
             set_flag(estimate_.flags, StatusFlag::accel_rejected);
             set_flag(estimate_.flags, StatusFlag::startup_not_initialized);
@@ -1951,7 +1966,7 @@ public:
     {
         const OrientationEstimate<T>& left_estimate = left_.estimate();
         const OrientationEstimate<T>& right_estimate = right_.estimate();
-        if (!left_estimate.valid || !right_estimate.valid)
+        if (!left_estimate.valid || !right_estimate.valid) [[unlikely]]
         {
             return false;
         }

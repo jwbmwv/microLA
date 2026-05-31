@@ -839,7 +839,7 @@ The version API allows runtime version checking and compatibility verification.
 using namespace microla;
 
 // Get version string
-std::string version = get_version_string();  // "0.0.1"
+std::string version = get_version_string();  // "0.0.2"
 
 // Get numeric version
 uint32_t version_num = get_version_number(); // 1
@@ -859,7 +859,7 @@ if (version_at_least(0, 0, 1)) {
 MICROLA_VERSION_MAJOR  // 0
 MICROLA_VERSION_MINOR  // 0
 MICROLA_VERSION_PATCH  // 1
-MICROLA_VERSION_STRING // "0.0.1"
+MICROLA_VERSION_STRING // "0.0.2"
 MICROLA_VERSION_NUMBER // 1
 
 ```
@@ -1230,7 +1230,7 @@ For IAR-specific integration instructions, see [IAR Integration Guide](IAR_Integ
 
 ## Version
 
-Current Version: **0.0.1**
+Current Version: **0.0.2**
 Check runtime version: `microla::get_version_string()`
 
 ## License
@@ -1239,7 +1239,7 @@ Apache License 2.0
 
 ---
 
-**Date**: January 31, 2026
+**Date**: May 31, 2026
 
 ## Embedded-safe APIs
 

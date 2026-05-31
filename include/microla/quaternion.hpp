@@ -777,9 +777,14 @@ public:
         const Vec<T, 3> imag = vec();
         const T n2 = imag.dot(imag) + (*this)[W] * (*this)[W];
         // Check for zero quaternion (minimal overhead)
+#ifdef MICROLA_DEBUG
+        assert(n2 != T(0) && "Inverse of zero quaternion is undefined");
+#endif
         if (n2 == T(0))
         {
-            return Quaternion(T(1), T(0), T(0), T(0));  // Return identity quaternion
+            // Return NaN quaternion to signal error in release builds
+            return Quaternion(std::numeric_limits<T>::quiet_NaN(), std::numeric_limits<T>::quiet_NaN(),
+                              std::numeric_limits<T>::quiet_NaN(), std::numeric_limits<T>::quiet_NaN());
         }
         return conjugate() / n2;
     }

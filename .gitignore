@@ -17,6 +17,9 @@ out/
 __pycache__/
 *.pyc
 
+# Generated documentation
+docs/doxygen/
+
 # Compiled Object files
 *.o
 *.obj

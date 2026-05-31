@@ -165,7 +165,50 @@ package "Core Headers (include/microla/)" {
                 quaternion.hpp
     end note
 
-    [matrix_view.hpp] as matview #E6FFD0
+    [simd_helpers.hpp] as simd_helpers #FFD0D0
+    note right of simd_helpers
+        **SIMD Helper Functions:**
+        • Portable SIMD wrappers
+        • NEON/CMSIS/AVX/RISC-V abstractions
+        • Float-only optimizations
+        • Used by vector/matrix/quaternion
+
+        Depends: compiler_features.hpp
+    end note
+
+    [high_precision.hpp] as high_precision #D0D0FF
+    note right of high_precision
+        **High Precision Intermediate:**
+        • hi_t<T> type selection
+        • Embedded-aware long-double fallback
+        • Used for intermediate computations
+
+        Depends: compiler_features.hpp
+    end note
+
+    [sensor_fusion.hpp] as sensor_fusion #E6FFD0
+    note right of sensor_fusion
+        **Sensor Fusion:**
+        • OrientationEstimator (Mahony/MEKF)
+        • RelativeAngleEstimator
+        • 9-DOF/6-DOF fusion
+        • SI-unit agnostic calibration
+
+        Depends: vector.hpp, matrix.hpp,
+                quaternion.hpp, extended_kalman.hpp
+    end note
+
+    [vector_view.hpp] as vector_view #FFE6E6
+    note right of vector_view
+        **Vector Views:**
+        • Non-owning vector slices
+        • Stride support
+        • Subvector references
+
+        Depends: vector.hpp
+    end note
+
+    [matrix_view.hpp] as matrix_view #E6FFD0
     note right of matview
         **Matrix Views:**
         • Non-owning matrix slices
@@ -206,8 +249,8 @@ compiler -down-> quaternion : used by
 compiler -down-> safe_math : used by
 compiler -down-> fast_math : used by
 compiler -down-> numerical : used by
-compiler -down-> simd_help : used by
-compiler -down-> highprec : used by
+compiler -down-> simd_helpers : used by
+compiler -down-> high_precision : used by
 
 constants -down-> vector : used by
 constants -down-> matrix : used by
@@ -218,23 +261,26 @@ vector -down-> quaternion : rotate vector
 vector -down-> geometry : used by
 vector -down-> kalman : used by
 vector -down-> ekf : used by
+vector -down-> sensor_fusion : used by
 
 matrix -down-> quaternion : to/from matrix
 matrix -down-> geometry : used by
 matrix -down-> kalman : used by
 matrix -down-> ekf : used by
-matrix -down-> matview : viewed by
-vector -down-> vecview : viewed by
+matrix -down-> sensor_fusion : used by
+matrix -down-> matrix_view : viewed by
+vector -down-> vector_view : viewed by
 
-highprec -down-> geometry : used by
-highprec -down-> numerical : used by
+high_precision -down-> geometry : used by
+high_precision -down-> numerical : used by
 
-simd_help -down-> vector : used by
-simd_help -down-> matrix : used by
+simd_helpers -down-> vector : used by
+simd_helpers -down-> matrix : used by
 
 quaternion -down-> resource : checked by
 vector -down-> resource : checked by
 matrix -down-> resource : checked by
+quaternion -down-> sensor_fusion : used by
 
 main -down-> compiler : includes
 main -down-> constants : includes
@@ -247,9 +293,10 @@ main -down-> safe_math : includes
 main -down-> fast_math : includes
 main -down-> numerical : includes
 main -down-> resource : includes
-main -down-> matview : includes
-main -down-> vecview : includes
-main -down-> simd_help : includes
+main -down-> matrix_view : includes
+main -down-> vector_view : includes
+main -down-> sensor_fusion : includes
+main -down-> simd_helpers : includes
 
 package "Optional SIMD Support" {
     component "CONFIG_MICROLA_NEON" as neon #ADD8E6

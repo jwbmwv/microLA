@@ -750,7 +750,7 @@ If you're still stuck:
 ### Bug Report Template
 
 ```markdown
-**MicroLA Version**: 0.0.1
+**MicroLA Version**: 0.0.2
 **Compiler**: GCC 11.4 / MSVC 19.35 / Clang 14.0
 **Platform**: x86-64 / ARM Cortex-A72 / STM32F4
 **Build**: Debug / Release
@@ -780,5 +780,5 @@ int main() {
 
 ---
 
-**Date**: January 31, 2026
-**MicroLA Version**: 0.0.1
+**Date**: May 31, 2026
+**MicroLA Version**: 0.0.2

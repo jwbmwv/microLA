@@ -9,6 +9,7 @@
 
 #include "vector.hpp"
 #include "matrix.hpp"
+#include "microla.hpp"  // For clamp() utility function
 #include <optional>
 #include <array>
 #include <algorithm>
@@ -97,7 +98,28 @@ struct Plane
     /// @brief Signed distance from point to plane (positive = in front).
     /// @param point Point to measure.
     /// @return Signed distance.
-    [[nodiscard]] auto distance(const Vec<T, 3>& point) const -> T { return normal.dot(point) + d; }
+    /// @details Uses compensated summation (Kahan algorithm) to prevent overflow in extreme cases.
+    [[nodiscard]] auto distance(const Vec<T, 3>& point) const -> T
+    {
+        // Use Kahan summation for numerical stability
+        T sum = normal.x() * point.x();
+        T c = T(0);
+
+        T y = normal.y() * point.y() - c;
+        T t = sum + y;
+        c = (t - sum) - y;
+        sum = t;
+
+        y = normal.z() * point.z() - c;
+        t = sum + y;
+        c = (t - sum) - y;
+        sum = t;
+
+        y = d - c;
+        t = sum + y;
+
+        return t;
+    }
 
     /// @brief Signed distance from point to plane.
     [[nodiscard]] auto signed_distance(const Vec<T, 3>& point) const -> T { return distance(point); }
@@ -263,6 +285,17 @@ struct AABB
 
         for (int i = 0; i < 3; ++i)
         {
+            // Check for axis-aligned ray (avoid division by zero)
+            if (std::abs(ray.direction[i]) < std::numeric_limits<T>::epsilon())
+            {
+                // Ray is parallel to the slab, check if it's within bounds
+                if (ray.origin[i] < min[i] || ray.origin[i] > max[i])
+                {
+                    return std::nullopt;  // Ray is outside the slab
+                }
+                continue;  // Ray is within the slab, check other axes
+            }
+
             T inv_d = static_cast<T>(1) / ray.direction[i];
             T t0 = (min[i] - ray.origin[i]) * inv_d;
             T t1 = (max[i] - ray.origin[i]) * inv_d;

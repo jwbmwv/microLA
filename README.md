@@ -457,7 +457,10 @@ For detailed performance comparisons with other libraries, see [PERFORMANCE.md](
 - **[Migration Guide](MIGRATION.md)** - Switch from Eigen, GLM, or custom code
 - **[Performance Comparison](PERFORMANCE.md)** - Benchmarks vs. alternatives
 - **[C++ Optimizations](docs/Cpp_Standard_Optimizations.md)** - C++20-26 feature usage
-- **[Doxygen](docs/doxygen/html/index.html)** - Generated API docs (run `doxygen`)
+- **[Doxygen](docs/doxygen/html/index.html)** - Generated API docs (run `bash scripts/generate_docs.sh`)
+- **[Cookbook](docs/COOKBOOK.md)** - Practical recipes and extended Kalman filter examples
+- **[Sensor Fusion Guide](docs/SENSOR_FUSION.md)** - IMU orientation estimation
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## SIMD Optimizations
 
@@ -744,4 +747,4 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 
 ## Version
 
-Current Version: 0.0.1
+Current Version: 0.0.2

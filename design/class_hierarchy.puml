@@ -103,13 +103,13 @@ package "microla namespace" {
         **Template default: T = float**
     }
 
-    class "KalmanFilter<T, STATE_DIM, MEAS_DIM>" as KF {
-        - Vec<T, STATE_DIM> x
-        - Mat<T, STATE_DIM, STATE_DIM> P
-        - Mat<T, STATE_DIM, STATE_DIM> F
-        - Mat<T, MEAS_DIM, STATE_DIM> H
-        - Mat<T, STATE_DIM, STATE_DIM> Q
-        - Mat<T, MEAS_DIM, MEAS_DIM> R
+    class "KalmanFilter<T, StateDim, MeasDim>" as KF {
+        - Vec<T, StateDim> x
+        - Mat<T, StateDim, StateDim> P
+        - Mat<T, StateDim, StateDim> F
+        - Mat<T, MeasDim, StateDim> H
+        - Mat<T, StateDim, StateDim> Q
+        - Mat<T, MeasDim, MeasDim> R
         --
         + void predict()
         + void predict(control, B)
@@ -127,11 +127,11 @@ package "microla namespace" {
         **Template defaults to float**
     }
 
-    class "ExtendedKalmanFilter<T, STATE_DIM, MEAS_DIM>" as EKF {
-        - Vec<T, STATE_DIM> x
-        - Mat<T, STATE_DIM, STATE_DIM> P
-        - Mat<T, STATE_DIM, STATE_DIM> Q
-        - Mat<T, MEAS_DIM, MEAS_DIM> R
+    class "ExtendedKalmanFilter<T, StateDim, MeasDim>" as EKF {
+        - Vec<T, StateDim> x
+        - Mat<T, StateDim, StateDim> P
+        - Mat<T, StateDim, StateDim> Q
+        - Mat<T, MeasDim, MeasDim> R
         - StateTransitionFunc f
         - StateJacobianFunc F_jacobian
         - MeasurementFunc h

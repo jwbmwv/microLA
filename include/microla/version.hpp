@@ -14,10 +14,10 @@
 #define MICROLA_VERSION_MINOR 0
 
 /// @brief MicroLA patch version number
-#define MICROLA_VERSION_PATCH 1
+#define MICROLA_VERSION_PATCH 2
 
 /// @brief MicroLA version string
-#define MICROLA_VERSION_STRING "0.0.1"
+#define MICROLA_VERSION_STRING "0.0.2"
 
 /// @brief Combined version number (MAJOR * 10000 + MINOR * 100 + PATCH)
 #define MICROLA_VERSION_NUMBER ((MICROLA_VERSION_MAJOR * 10000) + (MICROLA_VERSION_MINOR * 100) + MICROLA_VERSION_PATCH)

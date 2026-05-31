@@ -94,14 +94,14 @@ constexpr auto safe_divide(T numerator, T denominator, T default_value = T(0)) n
     static_assert(std::is_arithmetic_v<T>, "safe_divide requires arithmetic type");
     if constexpr (std::is_floating_point_v<T>)
     {
-        if (std::abs(denominator) < std::numeric_limits<T>::epsilon())
+        if (std::abs(denominator) < std::numeric_limits<T>::epsilon()) [[unlikely]]
         {
             return default_value;
         }
     }
     else
     {
-        if (denominator == T(0))
+        if (denominator == T(0)) [[unlikely]]
         {
             return default_value;
         }
@@ -127,15 +127,22 @@ constexpr auto safe_reciprocal(T value, T default_value = T(0)) noexcept -> T
 /// @brief Safe square root with negative check
 /// @tparam T Floating-point type
 /// @param value Input value
-/// @return sqrt(value) if value >= 0, otherwise 0
+/// @return sqrt(value) if value >= 0, NaN if value < 0, preserves existing NaN
 template<typename T>
 inline auto safe_sqrt(T value) noexcept -> T
 {
     static_assert(std::is_floating_point_v<T>, "safe_sqrt requires floating-point type");
-    // Normalize to a non-negative value before calling std::sqrt so static analyzers
-    // can clearly see we never pass a negative value to std::sqrt.
-    T v = (value < T(0)) ? T(0) : value;
-    return std::sqrt(v);
+    // Preserve existing NaN to maintain diagnostic information
+    if (is_nan(value)) [[unlikely]]
+    {
+        return value;
+    }
+    // Return NaN for negative input to preserve mathematical correctness
+    if (value < T(0)) [[unlikely]]
+    {
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+    return std::sqrt(value);
 }
 
 /// @brief Safe arc-cosine with clamping to valid range [-1, 1]

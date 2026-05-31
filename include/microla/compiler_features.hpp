@@ -63,6 +63,9 @@
 #if !defined(CONFIG_MICROLA_MVE) && defined(__ARM_FEATURE_MVE)
 #define CONFIG_MICROLA_MVE
 #endif
+#if !defined(CONFIG_MICROLA_AVX512) && defined(__AVX512F__)
+#define CONFIG_MICROLA_AVX512
+#endif
 #if !defined(CONFIG_MICROLA_AVX) && (defined(__AVX__) || defined(__AVX2__))
 #define CONFIG_MICROLA_AVX
 #endif

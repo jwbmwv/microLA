@@ -24,7 +24,7 @@
 #include <algorithm>
 #include "compiler_features.hpp"
 
-#if defined(CONFIG_MICROLA_AVX)
+#if defined(CONFIG_MICROLA_AVX512) || defined(CONFIG_MICROLA_AVX)
 #include <immintrin.h>
 #endif
 
@@ -54,7 +54,25 @@ namespace simd
 ///                ensure externally that concurrent writes are safe.
 inline void fill_float(float* dst, std::size_t n, float value) noexcept
 {
-#if defined(CONFIG_MICROLA_AVX)
+#if defined(CONFIG_MICROLA_AVX512)
+    std::size_t i = 0;
+    const std::size_t stride = 16;
+    __m512 v = _mm512_set1_ps(value);
+    for (; i + stride <= n; i += stride)
+    {
+        _mm512_storeu_ps(dst + i, v);
+    }
+    // Tail handling with smaller vectors
+    if (i + 8 <= n)
+    {
+        _mm256_storeu_ps(dst + i, _mm256_set1_ps(value));
+        i += 8;
+    }
+    for (; i < n; ++i)
+    {
+        dst[i] = value;
+    }
+#elif defined(CONFIG_MICROLA_AVX)
     std::size_t i = 0;
     const std::size_t stride = 8;
     __m256 v = _mm256_set1_ps(value);
@@ -100,7 +118,26 @@ inline void fill_float(float* dst, std::size_t n, float value) noexcept
 /// @thread_safety Not thread-safe for overlapping buffers.
 inline void copy_n_float(const float* src, float* dst, std::size_t n) noexcept
 {
-#if defined(CONFIG_MICROLA_AVX)
+#if defined(CONFIG_MICROLA_AVX512)
+    std::size_t i = 0;
+    const std::size_t stride = 16;
+    for (; i + stride <= n; i += stride)
+    {
+        __m512 v = _mm512_loadu_ps(src + i);
+        _mm512_storeu_ps(dst + i, v);
+    }
+    // Tail handling with smaller vectors
+    if (i + 8 <= n)
+    {
+        __m256 v = _mm256_loadu_ps(src + i);
+        _mm256_storeu_ps(dst + i, v);
+        i += 8;
+    }
+    for (; i < n; ++i)
+    {
+        dst[i] = src[i];
+    }
+#elif defined(CONFIG_MICROLA_AVX)
     std::size_t i = 0;
     const std::size_t stride = 8;
     for (; i + stride <= n; i += stride)
@@ -563,7 +600,25 @@ inline void scatter_strided_float(const float* src, float* dst, std::size_t star
 /// @param value Value to write
 inline void fill_double(double* dst, std::size_t n, double value) noexcept
 {
-#if defined(CONFIG_MICROLA_AVX)
+#if defined(CONFIG_MICROLA_AVX512)
+    std::size_t i = 0;
+    const std::size_t stride = 8;  // AVX-512 512-bit = 8 doubles
+    __m512d v = _mm512_set1_pd(value);
+    for (; i + stride <= n; i += stride)
+    {
+        _mm512_storeu_pd(dst + i, v);
+    }
+    // Tail handling with smaller vectors
+    if (i + 4 <= n)
+    {
+        _mm256_storeu_pd(dst + i, _mm256_set1_pd(value));
+        i += 4;
+    }
+    for (; i < n; ++i)
+    {
+        dst[i] = value;
+    }
+#elif defined(CONFIG_MICROLA_AVX)
     std::size_t i = 0;
     const std::size_t stride = 4;  // AVX 256-bit = 4 doubles
     __m256d v = _mm256_set1_pd(value);
@@ -596,7 +651,26 @@ inline void fill_double(double* dst, std::size_t n, double value) noexcept
 /// @brief Copy n doubles from src to dst (SIMD-optimized)
 inline void copy_n_double(const double* src, double* dst, std::size_t n) noexcept
 {
-#if defined(CONFIG_MICROLA_AVX)
+#if defined(CONFIG_MICROLA_AVX512)
+    std::size_t i = 0;
+    const std::size_t stride = 8;  // AVX-512 512-bit = 8 doubles
+    for (; i + stride <= n; i += stride)
+    {
+        __m512d v = _mm512_loadu_pd(src + i);
+        _mm512_storeu_pd(dst + i, v);
+    }
+    // Tail handling with smaller vectors
+    if (i + 4 <= n)
+    {
+        __m256d v = _mm256_loadu_pd(src + i);
+        _mm256_storeu_pd(dst + i, v);
+        i += 4;
+    }
+    for (; i < n; ++i)
+    {
+        dst[i] = src[i];
+    }
+#elif defined(CONFIG_MICROLA_AVX)
     std::size_t i = 0;
     const std::size_t stride = 4;
     for (; i + stride <= n; i += stride)

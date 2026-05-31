@@ -25,6 +25,117 @@
 /// }
 /// @endcode
 ///
+/// @section practical_examples Practical Usage Examples
+///
+/// **Example 1: Block Matrix Assembly**
+/// @code{.cpp}
+/// // Build a 4×4 transform from rotation + translation
+/// Mat<float, 4, 4> transform = Mat<float, 4, 4>::identity();
+/// Mat<float, 3, 3> rotation = Mat<float, 3, 3>::rotation_z(deg_to_rad(45.0f));
+/// Vec<float, 3> translation{1.0f, 2.0f, 3.0f};
+///
+/// // Write rotation block (top-left 3×3)
+/// auto rot_view = MatrixView<float, 3, 3>(transform.data, 4, 0, 0);
+/// rot_view.set(rotation);
+///
+/// // Write translation (top-right 3×1)
+/// for (std::size_t i = 0; i < 3; ++i) {
+///     transform(i, 3) = translation[i];
+/// }
+/// @endcode
+///
+/// **Example 2: Block Matrix Multiplication**
+/// @code{.cpp}
+/// // Compute C = A * B using block decomposition
+/// Mat<float, 4, 4> A, B, C;
+/// // ... initialize A, B ...
+///
+/// // Process 2×2 blocks
+/// for (std::size_t i = 0; i < 2; ++i) {
+///     for (std::size_t j = 0; j < 2; ++j) {
+///         auto c_block = MatrixView<float, 2, 2>(C.data, 4, i*2, j*2);
+///         Mat<float, 2, 2> sum = Mat<float, 2, 2>::zero();
+///
+///         for (std::size_t k = 0; k < 2; ++k) {
+///             auto a_block = ConstMatrixView<float, 2, 2>(A.data, 4, i*2, k*2);
+///             auto b_block = ConstMatrixView<float, 2, 2>(B.data, 4, k*2, j*2);
+///             sum = sum + a_block.to_matrix() * b_block.to_matrix();
+///         }
+///
+///         c_block.set(sum);
+///     }
+/// }
+/// @endcode
+///
+/// **Example 3: In-Place Submatrix Modification**
+/// @code{.cpp}
+/// Mat<float, 8, 8> large_matrix = Mat<float, 8, 8>::identity();
+///
+/// // Zero out bottom-right 4×4 block
+/// auto corner = MatrixView<float, 4, 4>(large_matrix.data, 8, 4, 4);
+/// corner.fill(0.0f);
+///
+/// // Extract and process middle 2×2 block
+/// auto middle = ConstMatrixView<float, 2, 2>(large_matrix.data, 8, 3, 3);
+/// Mat<float, 2, 2> extracted = middle.to_matrix();
+/// float trace = extracted(0, 0) + extracted(1, 1);
+/// @endcode
+///
+/// **Example 4: Kalman Filter Covariance Block Updates**
+/// @code{.cpp}
+/// Mat<float, 6, 6> P = Mat<float, 6, 6>::identity();  // Full state covariance
+///
+/// // Update only position covariance (top-left 3×3)
+/// auto pos_cov = MatrixView<float, 3, 3>(P.data, 6, 0, 0);
+/// Mat<float, 3, 3> measurement_update = /* ... */;
+/// pos_cov.set(measurement_update);
+///
+/// // Read velocity covariance (bottom-right 3×3) without copying full matrix
+/// auto vel_cov = ConstMatrixView<float, 3, 3>(P.data, 6, 3, 3);
+/// float vel_variance_x = vel_cov(0, 0);
+/// @endcode
+///
+/// @section performance_notes Performance Notes
+///
+/// - **Zero-copy operations**: Views reference existing data, no allocation
+/// - **SIMD optimization**: `set()`, `to_matrix()`, and `fill()` use SIMD for float types
+/// - **Cache-friendly**: Block operations via views can improve cache locality
+/// - **Overhead**: View construction is ~3-4 instructions (pointer + stride arithmetic)
+/// - **Pass by value**: Views are 24-32 bytes, passing by value avoids indirection
+///
+/// @section common_pitfalls Common Pitfalls
+///
+/// **❌ Storing views in class members:**
+/// @code{.cpp}
+/// class BadExample {
+///     MatrixView<float, 2, 2> m_view;  // DANGER: lifetime tracking required
+/// };
+/// @endcode
+///
+/// **✅ Using views in local scope:**
+/// @code{.cpp}
+/// void goodExample(Mat<float, 4, 4>& matrix) {
+///     auto view = MatrixView<float, 2, 2>(matrix.data, 4, 0, 0);  // Safe: matrix outlives function
+///     view.fill(1.0f);
+/// }
+/// @endcode
+///
+/// **❌ Returning views from functions:**
+/// @code{.cpp}
+/// auto bad() {
+///     Mat<float, 4, 4> temp;
+///     return MatrixView<float, 2, 2>(temp.data, 4, 0, 0);  // DANGLING!
+/// }
+/// @endcode
+///
+/// **✅ Returning extracted data:**
+/// @code{.cpp}
+/// auto good(const Mat<float, 4, 4>& matrix) {
+///     auto view = ConstMatrixView<float, 2, 2>(matrix.data, 4, 0, 0);
+///     return view.to_matrix();  // Safe: returns owned data
+/// }
+/// @endcode
+///
 /// @copyright Copyright (c) 2026 James Baldwin. AI-assisted — see NOTICE.
 /// @author James Baldwin
 
