@@ -41,7 +41,7 @@ if [ $exit_code -eq 0 ]; then
     echo ""
     echo "✓ Documentation generated successfully"
     echo "  Output: docs/doxygen/html/index.html"
-    
+
     # Display statistics
     if [ -f "docs/doxygen/html/index.html" ]; then
         html_files=$(find docs/doxygen/html -name "*.html" | wc -l)

@@ -137,7 +137,7 @@ auto hypot3(T a, T b, T c) noexcept -> T
 
     // Check for extreme values that would overflow even after scaling
     // If max_val > sqrt(T_max) / 2, the result would overflow
-    constexpr T overflow_threshold = std::sqrt(std::numeric_limits<T>::max()) / T(2);
+    const T overflow_threshold = std::sqrt(std::numeric_limits<T>::max()) / T(2);
     if (max_val > overflow_threshold)
     {
         return std::numeric_limits<T>::infinity();
