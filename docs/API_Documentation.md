@@ -149,7 +149,7 @@ float degrees = radians * constants::rad_to_deg<float>;
 - `N`: Dimension (number of components)
 
 **Memory Layout:**
-- Contiguous storage: `alignas(16) T data[N]`
+- Contiguous storage: `alignas(MICROLA_DATA_ALIGNMENT) T data[N]` (4 B embedded, 16 B NEON/SSE, 32 B AVX)
 - Common indices: `X=0, Y=1, Z=2, W=3`
 
 ### Query Methods
@@ -409,7 +409,7 @@ constexpr std::size_t stride() noexcept; // Stride between elements in parent st
 - `C`: Number of columns
 
 **Memory Layout:**
-- Row-major storage: `alignas(16) T data[R * C]`
+- Row-major storage: `alignas(MICROLA_DATA_ALIGNMENT) T data[R * C]` (4 B embedded, 16 B NEON/SSE, 32 B AVX)
 - Element at (i,j): `data[(i * C) + j]`
 
 ### Query Methods
@@ -648,7 +648,7 @@ SquareMat<float, 4> T = SquareMat<float, 4>::translation(translation);
 `Quaternion<T>` represents a quaternion for 3D rotations with optimized memory layout.
 
 **Memory Layout:**
-- `alignas(16) T data[4]` stored as `[x, y, z, w]`
+- `alignas(MICROLA_DATA_ALIGNMENT) T data[4]` stored as `[x, y, z, w]`
 - Imaginary part (x,y,z) at indices 0-2 enables `Vec<T,3>` optimizations
 - Index constants: `X=0, Y=1, Z=2, W=3`
 

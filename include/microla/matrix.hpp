@@ -17,16 +17,23 @@
 #include <cmath>
 #include <initializer_list>
 #include <cassert>
-#include <stdexcept>
-#include <tuple>
-#if MICROLA_HAS_DYNAMIC_ALLOC
-#include <vector>
-#endif
-#include <optional>
-#include <variant>
 #include <type_traits>
 #include "simd_helpers.hpp"
 #include <algorithm>
+// tuple, optional, variant, and stdexcept are used by decomposition and
+// inversion APIs. On deeply embedded targets (MICROLA_EMBEDDED with a
+// non-hosted stdlib) these may not be available; guard them so the core
+// arithmetic surface compiles without them. The guarded APIs are excluded
+// via the MICROLA_NO_EXCEPTIONS / MICROLA_HAS_DYNAMIC_ALLOC gates below.
+#if !defined(MICROLA_EMBEDDED)
+#include <stdexcept>
+#include <tuple>
+#include <optional>
+#include <variant>
+#endif
+#if MICROLA_HAS_DYNAMIC_ALLOC
+#include <vector>
+#endif
 
 // SIMD support
 #ifdef CONFIG_MICROLA_NEON
@@ -110,7 +117,7 @@ public:
 
     /// @brief Raw data storage for matrix elements in row-major order
     /// @details Aligned to 16 bytes for SIMD performance
-    alignas(16) T data[R * C] = {};
+    alignas(MICROLA_DATA_ALIGNMENT) T data[R * C] = {};
 
     /// @brief Number of rows (compile-time)
     static constexpr auto rows() noexcept -> std::size_t { return R; }
@@ -718,8 +725,8 @@ public:
     /// @throws std::runtime_error if the matrix is singular (determinant is zero) when exceptions are enabled
     [[nodiscard]] auto inverse() const -> Mat
     {
-        auto result = try_inverse();
-        if (!result.has_value())
+        Mat result;
+        if (!inverse(result))
         {
 #if MICROLA_HAS_EXCEPTIONS
             throw std::runtime_error("Matrix is singular and cannot be inverted.");
@@ -727,9 +734,10 @@ public:
             return Mat::zero();
 #endif
         }
-        return *result;
+        return result;
     }
 
+#if !defined(MICROLA_EMBEDDED)
     /// @brief Computes the inverse in a non-throwing way
     /// @return Inverse matrix on success, std::nullopt if singular
     [[nodiscard]] auto try_inverse() const noexcept -> std::optional<Mat>
@@ -840,6 +848,7 @@ public:
 
         return result;
     }
+#endif  // !MICROLA_EMBEDDED
 
     /// @brief Equality comparison operator
     /// @param other The matrix to compare with
@@ -1768,6 +1777,7 @@ public:
         return angles;
     }
 
+#if !defined(MICROLA_EMBEDDED)
     /// @brief Performs LU decomposition with partial pivoting
     /// @return A tuple containing (L, U, P) where PA = LU
     /// @details Decomposes the matrix into:
@@ -1865,6 +1875,7 @@ public:
 
         return l;
     }
+#endif  // !MICROLA_EMBEDDED
 
     /// @brief Computes eigenvalues using the QR algorithm
     /// @param maxIterations Maximum number of QR iterations (default: 100)
@@ -1895,8 +1906,8 @@ public:
         bool converged = (R <= 1);
         for (std::size_t iter = 0; iter < maxIterations; ++iter)
         {
-            // QR decomposition
-            std::tie(q, r_mat) = a.qr();
+            // QR decomposition (call the embedded-safe helper that avoids tuple return)
+            a.qr_step(q, r_mat);
 
             // Update A
             a = r_mat * q;
@@ -1949,78 +1960,17 @@ public:
     ///          - Q: Orthogonal matrix (Q^T * Q = I)
     ///          - R: Upper triangular matrix
     ///          Only available for square matrices (R == C).
+#if !defined(MICROLA_EMBEDDED)
+    /// @brief Performs QR decomposition using Householder reflections
+    /// @return A tuple containing (Q, R) where A = QR
     [[nodiscard]] auto qr() const -> std::tuple<Mat, Mat>
     {
-        static_assert(R == C, "QR decomposition is only defined for square matrices.");
-        Mat q = identity();
-        Mat r_mat = *this;
-
-        for (std::size_t k = 0; k < std::min(R - 1, C); ++k)
-        {
-            // Compute column norm from k to end
-            T norm = T(0);
-            for (std::size_t i = k; i < R; ++i)
-            {
-                norm += r_mat(i, k) * r_mat(i, k);
-            }
-            norm = std::sqrt(norm);
-
-            if (norm < std::numeric_limits<T>::epsilon())
-            {
-                continue;  // Skip zero columns
-            }
-
-            // Compute Householder vector
-            T sign = (r_mat(k, k) >= T(0)) ? T(1) : T(-1);
-            T u1 = r_mat(k, k) + sign * norm;
-
-            // Store Householder vector in a temporary
-            Vec<T, R> v;
-            v[k] = u1;
-            for (std::size_t i = k + 1; i < R; ++i)
-            {
-                v[i] = r_mat(i, k);
-            }
-
-            // Compute beta for Householder reflection: beta = 2 / (v^T * v)
-            T v_norm_sq = u1 * u1;
-            for (std::size_t i = k + 1; i < R; ++i)
-            {
-                v_norm_sq += v[i] * v[i];
-            }
-            T beta = T(2) / v_norm_sq;
-
-            // Apply Householder transformation to R: R = (I - beta*v*v^T) * R
-            for (std::size_t j = k; j < C; ++j)
-            {
-                T sum = T(0);
-                for (std::size_t i = k; i < R; ++i)
-                {
-                    sum += v[i] * r_mat(i, j);
-                }
-                for (std::size_t i = k; i < R; ++i)
-                {
-                    r_mat(i, j) -= beta * sum * v[i];
-                }
-            }
-
-            // Apply Householder transformation to Q: Q = Q * (I - beta*v*v^T)
-            for (std::size_t i = 0; i < R; ++i)
-            {
-                T sum = T(0);
-                for (std::size_t j = k; j < R; ++j)
-                {
-                    sum += q(i, j) * v[j];
-                }
-                for (std::size_t j = k; j < R; ++j)
-                {
-                    q(i, j) -= beta * sum * v[j];
-                }
-            }
-        }
-
+        Mat q;
+        Mat r_mat;
+        qr_step(q, r_mat);
         return std::make_tuple(q, r_mat);
     }
+#endif  // !MICROLA_EMBEDDED
 
     /// @brief Performs Singular Value Decomposition (SVD) using Jacobi algorithm
     /// @param maxIterations Maximum number of iterations (default: 100)
@@ -2033,6 +1983,7 @@ public:
     ///          Uses the Jacobi algorithm which is stable for embedded systems.
     /// @note For non-square matrices, this uses the covariance method: A^T*A for tall matrices
     ///       or A*A^T for wide matrices. For best accuracy, prefer square or nearly-square matrices.
+#if !defined(MICROLA_EMBEDDED)
     [[nodiscard]] auto svd(std::size_t maxIterations = 100,
                            T tolerance = 1e-9) const -> std::tuple<Mat<T, R, R>, Mat<T, R, C>, Mat<T, C, C>>
     {
@@ -2345,6 +2296,77 @@ public:
             ++r;
         }
         return r;
+    }
+
+#endif  // !MICROLA_EMBEDDED
+
+private:
+    /// @brief Internal Householder QR step: fills q_out and r_out without returning a tuple.
+    /// @details Used by eigenvalues_qr (embedded-safe) and by the public qr() wrapper.
+    ///          Only available for square matrices (R == C).
+    void qr_step(Mat& q_out, Mat& r_out) const noexcept
+    {
+        static_assert(R == C, "QR decomposition is only defined for square matrices.");
+        q_out = identity();
+        r_out = *this;
+
+        for (std::size_t k = 0; k < std::min(R - 1, C); ++k)
+        {
+            T norm = T(0);
+            for (std::size_t i = k; i < R; ++i)
+            {
+                norm += r_out(i, k) * r_out(i, k);
+            }
+            norm = std::sqrt(norm);
+
+            if (norm < std::numeric_limits<T>::epsilon())
+            {
+                continue;
+            }
+
+            T sign = (r_out(k, k) >= T(0)) ? T(1) : T(-1);
+            T u1 = r_out(k, k) + sign * norm;
+
+            Vec<T, R> v;
+            v[k] = u1;
+            for (std::size_t i = k + 1; i < R; ++i)
+            {
+                v[i] = r_out(i, k);
+            }
+
+            T v_norm_sq = u1 * u1;
+            for (std::size_t i = k + 1; i < R; ++i)
+            {
+                v_norm_sq += v[i] * v[i];
+            }
+            T beta = T(2) / v_norm_sq;
+
+            for (std::size_t j = k; j < C; ++j)
+            {
+                T sum = T(0);
+                for (std::size_t i = k; i < R; ++i)
+                {
+                    sum += v[i] * r_out(i, j);
+                }
+                for (std::size_t i = k; i < R; ++i)
+                {
+                    r_out(i, j) -= beta * sum * v[i];
+                }
+            }
+
+            for (std::size_t i = 0; i < R; ++i)
+            {
+                T sum = T(0);
+                for (std::size_t j = k; j < R; ++j)
+                {
+                    sum += q_out(i, j) * v[j];
+                }
+                for (std::size_t j = k; j < R; ++j)
+                {
+                    q_out(i, j) -= beta * sum * v[j];
+                }
+            }
+        }
     }
 };
 

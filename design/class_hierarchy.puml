@@ -7,7 +7,7 @@ skinparam packageStyle rectangle
 package "microla namespace" {
 
     class "Vec<T, N>" as Vec {
-        + alignas(16) T data[N]
+        + alignas(MICROLA_DATA_ALIGNMENT) T data[N]
         --
         + Vec()
         + Vec(T...)
@@ -29,7 +29,7 @@ package "microla namespace" {
     }
 
     class "Mat<T, R, C>" as Mat {
-        + alignas(16) T data[R*C]
+        + alignas(MICROLA_DATA_ALIGNMENT) T data[R*C]
         --
         + Mat()
         + Mat(initializer_list)
@@ -80,7 +80,7 @@ package "microla namespace" {
     }
 
     class "Quaternion<T>" as Quat {
-        + alignas(16) T data[4]
+        + alignas(MICROLA_DATA_ALIGNMENT) T data[4]
         + // [x, y, z, w] layout
         --
         + Quaternion()

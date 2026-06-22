@@ -41,7 +41,7 @@ public:
     // Memory layout: [x, y, z, w] where x,y,z are imaginary components (i,j,k) and w is real
     // This ordering matches Hamilton convention: q = w + xi + yj + zk
     // IMPORTANT: Some libraries use [w,x,y,z] ordering - verify compatibility when interfacing
-    alignas(16) T data[4] = {T(0), T(0), T(0), T(1)};  // x, y, z, w (default identity)
+    alignas(MICROLA_DATA_ALIGNMENT) T data[4] = {T(0), T(0), T(0), T(1)};  // x, y, z, w (default identity)
 
     /// \brief Default constructor producing identity quaternion.
     constexpr Quaternion() noexcept = default;
@@ -487,7 +487,11 @@ public:
 
     /// \brief Equality operator.
     /// \param other The quaternion to compare.
-    /// \return True if equal (uses epsilon comparison for floating point types).
+    /// \return True if equal (uses epsilon comparison for floating-point types).
+    /// \note Uses `std::numeric_limits<T>::epsilon()` as an **absolute** tolerance.
+    ///       For quaternions representing physical rotations whose components may
+    ///       drift from unit scale, prefer `approx_equal(other, tol)` which uses
+    ///       a caller-supplied tolerance.
     constexpr auto operator==(const Quaternion& other) const noexcept -> bool
     {
 #ifdef CONFIG_MICROLA_NEON

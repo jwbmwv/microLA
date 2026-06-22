@@ -256,6 +256,46 @@ static_assert(stack_size_limit_is_valid(), "MICROLA_STACK_SIZE_LIMIT must be gre
 #define MICROLA_DMA_ALIGNED alignas(32)
 #endif
 
+// ==================== Data Alignment for SIMD Storage ====================
+// MICROLA_DATA_ALIGNMENT selects the minimum alignment that gives the best
+// performance for the active SIMD backend without over-aligning on scalar
+// embedded targets where padding wastes precious stack/BSS.
+//
+// Override at configure time by defining MICROLA_DATA_ALIGNMENT=N before
+// including any library header (e.g. via a compiler -D flag or CMake).
+//
+// Backend       Natural need   Comment
+// ------------  -------------  ----------------------------------------
+// AVX-512       64 B           512-bit aligned load (vmovaps)
+// AVX / AVX2    32 B           256-bit aligned load (vmovaps)
+// NEON / MVE    16 B           128-bit aligned vld1q_f32 / vldrw
+// RISC-V V      16 B           vle32 effective with 16-byte alignment
+// CMSIS-DSP     4 B            arm_*_f32 only requires word alignment
+// MICROLA_EMBEDDED (no SIMD)   4 B   Natural float; no SIMD loads
+// Host default  16 B           SSE2-compatible; future-proofs NEON ports
+#if !defined(MICROLA_DATA_ALIGNMENT)
+#if defined(CONFIG_MICROLA_AVX512)
+#define MICROLA_DATA_ALIGNMENT 64
+#elif defined(CONFIG_MICROLA_AVX)
+#define MICROLA_DATA_ALIGNMENT 32
+#elif defined(CONFIG_MICROLA_NEON) || defined(CONFIG_MICROLA_MVE)
+#define MICROLA_DATA_ALIGNMENT 16
+#elif defined(CONFIG_MICROLA_RISCV)
+#define MICROLA_DATA_ALIGNMENT 16
+#elif defined(CONFIG_MICROLA_CMSIS)
+// CMSIS-DSP arm_*_f32 functions only require 4-byte (word) alignment.
+// Keeping 4 bytes avoids up to 12 bytes of padding per Vec3f on Cortex-M targets.
+#define MICROLA_DATA_ALIGNMENT 4
+#elif defined(MICROLA_EMBEDDED)
+// Pure-scalar embedded build: natural float alignment, zero padding waste.
+#define MICROLA_DATA_ALIGNMENT 4
+#else
+// Host / unknown: 16 bytes is safe for SSE2, future NEON cross-compile, and
+// leaves Vec4f and Quaternion at their natural sizes.
+#define MICROLA_DATA_ALIGNMENT 16
+#endif
+#endif  // !defined(MICROLA_DATA_ALIGNMENT)
+
 // ==================== Deterministic Timing ====================
 // Mark code sections where timing determinism is critical
 #define MICROLA_TIMING_CRITICAL  // Documentation marker
