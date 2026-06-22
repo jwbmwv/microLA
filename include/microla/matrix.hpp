@@ -1965,7 +1965,8 @@ public:
     /// @return A tuple containing (Q, R) where A = QR
     [[nodiscard]] auto qr() const -> std::tuple<Mat, Mat>
     {
-        Mat q, r_mat;
+        Mat q;
+        Mat r_mat;
         qr_step(q, r_mat);
         return std::make_tuple(q, r_mat);
     }

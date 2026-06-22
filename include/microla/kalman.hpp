@@ -104,12 +104,20 @@ public:
         // Use condition-number-aware inversion: rejects ill-conditioned S regardless
         // of the absolute scale of measurement units (absolute det < epsilon is insufficient).
         MeasMat s_inv;
+#if !defined(MICROLA_EMBEDDED)
         auto s_result = s.inverse_checked();
         if (std::holds_alternative<typename MeasMat::InverseError>(s_result))
         {
             return false;  // Singular or ill-conditioned innovation covariance
         }
         s_inv = std::get<MeasMat>(s_result);
+#else
+        // Embedded: std::variant not available; use lightweight bool form.
+        if (!s.inverse(s_inv))
+        {
+            return false;  // Singular innovation covariance
+        }
+#endif
         StateToMeasMat k = P * H.transpose() * s_inv;
 
         // Update state estimate: x = x + K * y
@@ -138,12 +146,19 @@ public:
         MeasMat s = H * P * H.transpose() + R;
 
         MeasMat s_inv;
+#if !defined(MICROLA_EMBEDDED)
         auto s_result = s.inverse_checked();
         if (std::holds_alternative<typename MeasMat::InverseError>(s_result))
         {
             return false;  // Singular or ill-conditioned innovation covariance
         }
         s_inv = std::get<MeasMat>(s_result);
+#else
+        if (!s.inverse(s_inv))
+        {
+            return false;
+        }
+#endif
         StateToMeasMat k = P * H.transpose() * s_inv;
         x = x + k * y;
 

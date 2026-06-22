@@ -56,7 +56,7 @@ auto main() -> int
     // ========================================
     std::cout << "2. CHOLESKY DECOMPOSITION\n";
     std::cout << "-------------------------\n";
-
+#if !defined(MICROLA_EMBEDDED)
     // Create a symmetric positive-definite matrix
     Mat<float, 3, 3> spd_matrix = {4.0F, 2.0F, 1.0F, 2.0F, 5.0F, 3.0F, 1.0F, 3.0F, 6.0F};
 
@@ -75,6 +75,9 @@ auto main() -> int
     Mat<float, 3, 3> l_transpose = l.transpose();
     Mat<float, 3, 3> reconstructed = l * l_transpose;
     print_matrix("Reconstructed Matrix (L*L^T)", reconstructed);
+#else
+    std::cout << "Skipped in embedded build (requires std::optional)\n\n";
+#endif
 
     // ========================================
     // 3. Matrix Norms
@@ -109,7 +112,7 @@ auto main() -> int
     // ========================================
     std::cout << "5. PSEUDOINVERSE (Least Squares)\n";
     std::cout << "--------------------------------\n";
-
+#if !defined(MICROLA_EMBEDDED)
     // Overdetermined system: 5 equations, 3 unknowns
     Mat<float, 5, 3> a_tall = {1.0F, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 1.0F, 2.0F,
                                1.0F, 1.0F, 3.0F, 4.0F, 1.0F, 4.0F, 9.0F};
@@ -122,13 +125,16 @@ auto main() -> int
     // Verify pseudoinverse property: A * A+ * A ≈ A
     Mat<float, 5, 3> verification = a_tall * a_pinv * a_tall;
     print_matrix("Verification A*A+*A (should ≈ A)", verification);
+#else
+    std::cout << "Skipped in embedded build (requires std::tuple/SVD)\n\n";
+#endif
 
     // ========================================
     // 6. SVD Decomposition
     // ========================================
     std::cout << "6. SVD DECOMPOSITION\n";
     std::cout << "--------------------\n";
-
+#if !defined(MICROLA_EMBEDDED)
     Mat<float, 3, 3> svd_test = {3.0F, 2.0F, 2.0F, 2.0F, 3.0F, -2.0F, 2.0F, -2.0F, 3.0F};
 
     print_matrix("Matrix for SVD", svd_test);
@@ -146,6 +152,9 @@ auto main() -> int
     Mat<float, 3, 3> v_transpose = v.transpose();
     Mat<float, 3, 3> svd_reconstructed = u * s * v_transpose;
     print_matrix("Reconstructed Matrix (U*S*V^T)", svd_reconstructed);
+#else
+    std::cout << "Skipped in embedded build (requires std::tuple/SVD)\n\n";
+#endif
 
     // ========================================
     // 7. Memory Footprint Information
