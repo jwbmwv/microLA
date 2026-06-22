@@ -87,7 +87,7 @@ public:
     // Single-dimensional array ensures contiguous memory layout, POD compatibility,
     // and efficient SIMD operations. Row-major storage: data[i] = element i
     // Default-initialize to zero to preserve legacy semantics for `Vec()`.
-    alignas(16) T data[N] = {};  // Aligned for SIMD performance
+    alignas(MICROLA_DATA_ALIGNMENT) T data[N] = {};  // Aligned per MICROLA_DATA_ALIGNMENT (see compiler_features.hpp)
 
     /// \brief Copy constructor.
     /// \param other The vector to copy.
@@ -642,7 +642,12 @@ public:
 
     /// \brief Equality operator.
     /// \param other The vector to compare.
-    /// \return True if equal (uses epsilon comparison for floating point types).
+    /// \return True if equal (uses epsilon comparison for floating-point types).
+    /// \note Uses `std::numeric_limits<T>::epsilon()` as an **absolute** tolerance.
+    ///       This is correct for unit-scale values but is a footgun for physical
+    ///       quantities with large magnitude (e.g. two floats at 1e6 differing by
+    ///       0.5 compare unequal). For accuracy-sensitive comparisons prefer
+    ///       `approx_equal(other, rel_tol, abs_tol)` from `numerical_stability.hpp`.
     constexpr auto operator==(const Vec& other) const noexcept -> bool
     {
         // Optimized path for integral types (exact comparison)
@@ -822,17 +827,27 @@ public:
     /// \brief Scalar division assignment operator.
     /// \param scalar The scalar to divide by.
     /// \return Reference to this.
+    /// \note Division by zero fills the vector with NaN for floating-point types (consistent
+    ///       with operator/), or leaves it unchanged for integral types.
     constexpr auto operator/=(T scalar) noexcept -> Vec&
     {
-        // Check for zero to avoid undefined behavior (minimal overhead)
-        if (scalar == T(0))
+        if constexpr (std::is_floating_point_v<T>)
         {
-            // Set to zero for safety
-            for (std::size_t i = 0; i < N; ++i)
+            if (scalar == T(0))
             {
-                data[i] = T(0);
+                for (std::size_t i = 0; i < N; ++i)
+                {
+                    data[i] = std::numeric_limits<T>::quiet_NaN();
+                }
+                return *this;
             }
-            return *this;
+        }
+        else
+        {
+            if (scalar == T(0))
+            {
+                return *this;
+            }
         }
         if constexpr (std::is_same_v<T, float>)
         {

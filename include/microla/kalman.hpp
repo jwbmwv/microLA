@@ -100,19 +100,16 @@ public:
         // Innovation covariance: S = H * P * H^T + R
         MeasMat s = H * P * H.transpose() + R;
 
-        // Check if innovation covariance is invertible
-        T det = s.determinant();
-        if (std::abs(det) < std::numeric_limits<T>::epsilon())
-        {
-            return false;  // Singular innovation covariance, reject measurement
-        }
-
         // Kalman gain: K = P * H^T * S^(-1)
+        // Use condition-number-aware inversion: rejects ill-conditioned S regardless
+        // of the absolute scale of measurement units (absolute det < epsilon is insufficient).
         MeasMat s_inv;
-        if (!s.inverse(s_inv))
+        auto s_result = s.inverse_checked();
+        if (std::holds_alternative<typename MeasMat::InverseError>(s_result))
         {
-            return false;
+            return false;  // Singular or ill-conditioned innovation covariance
         }
+        s_inv = std::get<MeasMat>(s_result);
         StateToMeasMat k = P * H.transpose() * s_inv;
 
         // Update state estimate: x = x + K * y
@@ -140,17 +137,13 @@ public:
         MeasVec y = z - H * x;
         MeasMat s = H * P * H.transpose() + R;
 
-        T det = s.determinant();
-        if (std::abs(det) < std::numeric_limits<T>::epsilon())
-        {
-            return false;
-        }
-
         MeasMat s_inv;
-        if (!s.inverse(s_inv))
+        auto s_result = s.inverse_checked();
+        if (std::holds_alternative<typename MeasMat::InverseError>(s_result))
         {
-            return false;
+            return false;  // Singular or ill-conditioned innovation covariance
         }
+        s_inv = std::get<MeasMat>(s_result);
         StateToMeasMat k = P * H.transpose() * s_inv;
         x = x + k * y;
 

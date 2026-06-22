@@ -91,14 +91,20 @@ inline auto cos(T x) noexcept -> T
 }
 
 /// @brief Fast tangent approximation
-/// @details Uses tan(x) = sin(x) / cos(x)
+/// @details Uses tan(x) = sin(x) / cos(x). Returns infinity when cos(x) is
+///          below the float epsilon guard — consistent with IEEE 754 division
+///          behaviour at the ±π/2 singularity.
 /// @param x Angle in radians
-/// @return Approximate tangent value
+/// @return Approximate tangent value; ±infinity near ±π/2
 template<typename T = float>
 inline auto tan(T x) noexcept -> T
 {
     const T sine = sin(x);
     const T cosine = cos(x);
+    if (std::abs(cosine) < std::numeric_limits<T>::epsilon())
+    {
+        return sine >= T(0) ? std::numeric_limits<T>::infinity() : -std::numeric_limits<T>::infinity();
+    }
     return sine / cosine;
 }
 

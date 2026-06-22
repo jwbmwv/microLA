@@ -88,7 +88,14 @@ enum class StatusFlag : std::uint32_t
     drift_exceeds_nominal = 1U << 10,
     output_not_supported = 1U << 11,
     calibration_invalid = 1U << 12,
-    configuration_invalid = 1U << 13
+    configuration_invalid = 1U << 13,
+    /// @brief Accelerometer norm is below the minimum threshold — free-fall, jump flight phase, or sensor dropout.
+    freefall_detected = 1U << 14,
+    /// @brief Accelerometer norm exceeds the maximum threshold — ground impact, running footstrike, tumbling, or
+    /// clipping.
+    high_linear_acceleration = 1U << 15,
+    /// @brief Gyroscope norm exceeds the saturation threshold — rapid tumbling, aerobatics, or clipped sensor.
+    high_rotation_rate = 1U << 16
 };
 
 using StatusFlags = std::uint32_t;
@@ -121,6 +128,33 @@ constexpr auto has_flag(StatusFlags flags, StatusFlag flag) noexcept -> bool
 inline void set_flag(StatusFlags& flags, StatusFlag flag) noexcept
 {
     flags |= flag_mask(flag);
+}
+
+/// @brief Returns true when a float timestamp is old enough to cause microsecond-
+///        precision loss (~4.7 hours at 1 µs resolution).
+/// @details Single-precision floats have 24 mantissa bits, giving exact 1 µs
+///          representation only up to 2^24 µs ≈ 16 777 seconds ≈ 4.7 hours.
+///          Once `timestamp_s` exceeds this threshold, consecutive samples that
+///          differ by 1 µs may produce dt = 0 inside the estimator, silently
+///          stalling the fusion loop. Call this predicate periodically and reset
+///          the timestamp origin (and call OrientationEstimator::reset()) when
+///          it returns true.
+/// @param timestamp_s Current timestamp in seconds (float or double).
+/// @return true if a float timestamp is at or past the precision cliff.
+template<typename T>
+constexpr auto timestamp_needs_reset(T timestamp_s) noexcept -> bool
+{
+    static_assert(std::is_floating_point<T>::value, "timestamp_needs_reset requires a floating-point timestamp type");
+    // 2^24 seconds ≈ 16 777 216 s ≈ 4.655 hours — the last value a 32-bit float
+    // can represent with 1-second resolution (and thus ~microsecond precision at
+    // 1e6 samples/s).  For double the threshold is 2^53 s which is cosmological,
+    // so the check is meaningful only for float; for double we always return false.
+    if constexpr (sizeof(T) == sizeof(float))
+    {
+        constexpr T k_float_precision_cliff_s = static_cast<T>(1 << 24);  // 16 777 216 s
+        return timestamp_s >= k_float_precision_cliff_s;
+    }
+    return false;
 }
 
 /// @brief Accelerometer-only sample.
@@ -276,14 +310,32 @@ struct OrientationConfigBase
     static constexpr T expected_gravity_norm = constants::gravity<T>();
 
     /// @brief Minimum accepted accelerometer norm.
-    /// @details Samples below this often indicate free-fall, severe vibration, or a broken sensor.
+    /// @details Samples below this threshold set `StatusFlag::freefall_detected` and are excluded
+    ///          from gravity correction. Values around 8 m/s² cover free-fall entry, jump
+    ///          flight phases, and sensor dropout.
+    /// @note Default (8.0 m/s²) is tuned for **stationary to slow-walking** activity.
+    ///       For running, sports, or high-dynamics use cases widen to e.g. 2–5 m/s²;
+    ///       see `HighDynamicsImu6MahonyConfig` / `HighDynamicsImu9MahonyConfig`.
     static constexpr T accel_norm_min = static_cast<T>(8.0);
 
     /// @brief Maximum accepted accelerometer norm.
-    /// @details Samples above this usually indicate impact, strong linear acceleration, or clipping.
+    /// @details Samples above this threshold set `StatusFlag::high_linear_acceleration` and are
+    ///          excluded from gravity correction. Values around 11.5 m/s² filter out footstrike
+    ///          impacts (running: up to 3–4 g), violent tumbling, hard ground contact, or sensor
+    ///          clipping.
+    /// @note Default (11.5 m/s²) is tuned for **stationary to slow-walking** activity.
+    ///       For running, sports, or aerobatics widen to 30–50 m/s²;
+    ///       see `HighDynamicsImu6MahonyConfig` / `HighDynamicsImu9MahonyConfig`.
     static constexpr T accel_norm_max = static_cast<T>(11.5);
 
     /// @brief Maximum accepted gyroscope magnitude in rad/s.
+    /// @details Samples above this threshold set `StatusFlag::high_rotation_rate` and force the
+    ///          estimator into measurement-only mode. 35 rad/s ≈ 5.6 rev/s covers most human
+    ///          body-motion but is too tight for gymnastics (~15 rev/s), martial-arts spinning
+    ///          kicks, or aerobatic manoeuvres.
+    /// @note Default (35 rad/s) is tuned for **typical human body motion**.
+    ///       For high-dynamics applications raise to 100–200 rad/s;
+    ///       see `HighDynamicsImu6MahonyConfig` / `HighDynamicsImu9MahonyConfig`.
     static constexpr T gyro_norm_max = static_cast<T>(35.0);
 
     /// @brief Expected magnetic field norm in deployment-specific units after calibration.
@@ -310,6 +362,18 @@ struct OrientationConfigBase
     /// @details 1.0 uses the current sample directly. Smaller values react more slowly but reject
     ///          vibration and impulse contamination better.
     static constexpr T gravity_filter_alpha = static_cast<T>(0.2);
+
+    /// @brief Minimum confidence emitted when the accel-only orientation is held during a dynamics event.
+    /// @details When the accelerometer reading is outside the valid norm window (free-fall or high-g
+    ///          impact), the last computed orientation is frozen. If this is 0.0 (default) the output
+    ///          is marked `quality=invalid` while the estimate is held — appropriate for safety-critical
+    ///          applications that must not act on a stale tilt angle. If set to a small positive value
+    ///          (e.g. 0.25) the output is marked `quality=degraded` instead, signalling "held estimate,
+    ///          proceed with caution". Check `StatusFlag::freefall_detected` or
+    ///          `StatusFlag::high_linear_acceleration` to understand why the estimate is degraded.
+    /// @note Only meaningful for `SensorModel::accel_only`. Has no effect when a gyroscope is
+    ///       present because the gyro continues to propagate the estimate during accel rejection.
+    static constexpr T held_orientation_confidence = static_cast<T>(0.0);
 
     /// @brief Gyro norm threshold for stationary detection.
     static constexpr T stationary_gyro_norm_max = static_cast<T>(0.05);
@@ -377,6 +441,52 @@ struct DefaultAccelOnlyConfig : OrientationConfigBase<T>
     static constexpr bool enable_mag_correction = false;
 };
 
+/// @brief Accelerometer-only configuration tuned for running, jumping, and moderate high-dynamics.
+/// @details Suitable for wearable applications (running, stairs, jumping, moderate tumbling) where
+///          the default ±1.7 m/s² acceptance window around gravity is too narrow and rejects most
+///          samples during activity.
+///
+///          Key differences from `DefaultAccelOnlyConfig`:
+///          - `accel_norm_min` lowered to 2.0 m/s² — survives brief free-fall exit and low-g phases.
+///          - `accel_norm_max` raised to 25.0 m/s² — accepts moderate running footstrike (~2.5 g)
+///            while still rejecting severe impacts and clipping.
+///          - `gravity_filter_alpha` reduced to 0.05 — a single 25 m/s² spike shifts the filtered
+///            gravity estimate by only ≈0.75 m/s², keeping the tilt reference stable.
+///          - `held_orientation_confidence` set to 0.25 — emits `quality=degraded` instead of
+///            `quality=invalid` when the estimate is frozen during a brief high-g or low-g event;
+///            check `StatusFlag::freefall_detected` / `StatusFlag::high_linear_acceleration` for the
+///            sub-reason.
+///
+/// @note **Extended free-fall is unobservable**: tilt estimation requires a gravity reference.
+///       During skydiving, prolonged tumbling, or zero-g phases the estimator holds the last known
+///       orientation and flags `freefall_detected`. No amount of tuning can recover tilt without
+///       gravity or a gyroscope.
+/// @note **Heading (yaw) is never observable** with a 3-axis accelerometer alone. The output
+///       observability is always `tilt_only`. Use a 6-axis or 9-axis IMU for heading.
+template<typename T>
+struct HighDynamicsAccelOnlyConfig : OrientationConfigBase<T>
+{
+    // cppcheck-suppress duplInheritedMember
+    static constexpr SensorModel sensor_model = SensorModel::accel_only;
+    // cppcheck-suppress duplInheritedMember
+    static constexpr FusionBackend backend = FusionBackend::mahony;
+    // cppcheck-suppress duplInheritedMember
+    static constexpr bool estimate_gyro_bias = false;
+    // cppcheck-suppress duplInheritedMember
+    static constexpr bool enable_mag_correction = false;
+    /// Widen to 2–25 m/s² so moderate running dynamics pass the gate.
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T accel_norm_min = static_cast<T>(2.0);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T accel_norm_max = static_cast<T>(25.0);
+    /// Slow filter prevents footstrike spikes from corrupting the gravity reference.
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T gravity_filter_alpha = static_cast<T>(0.05);
+    /// Emit quality=degraded (not invalid) while holding a frozen estimate during brief high-g/low-g.
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T held_orientation_confidence = static_cast<T>(0.25);
+};
+
 /// @brief Default 6-axis IMU configuration using the Mahony backend.
 template<typename T>
 struct DefaultImu6MahonyConfig : OrientationConfigBase<T>
@@ -419,6 +529,61 @@ struct DefaultImu9EkfConfig : OrientationConfigBase<T>
     static constexpr SensorModel sensor_model = SensorModel::imu9;
     // cppcheck-suppress duplInheritedMember
     static constexpr FusionBackend backend = FusionBackend::mekf;
+};
+
+/// @brief 6-axis IMU Mahony configuration tuned for high-dynamics activities.
+/// @details Suitable for running, jumping, rolling on the ground, martial arts, gymnastics, and
+///          similar scenarios where the default ±1.7 m/s² accel acceptance window is too narrow.
+///          Key differences from the default:
+///          - `accel_norm_min` lowered to 2.0 m/s² to survive extended free-fall / jump phases.
+///          - `accel_norm_max` raised to 40.0 m/s² to pass footstrike peaks (~3–4 g) and
+///            hard impacts without dropping to gyro-only propagation.
+///          - `gyro_norm_max` raised to 150.0 rad/s to handle rapid tumbling.
+///          - `gravity_filter_alpha` reduced to 0.05 for stronger vibration rejection.
+///          - Gyro-bias estimation remains enabled but requires a slower, more stable zone.
+template<typename T>
+struct HighDynamicsImu6MahonyConfig : OrientationConfigBase<T>
+{
+    // cppcheck-suppress duplInheritedMember
+    static constexpr SensorModel sensor_model = SensorModel::imu6;
+    // cppcheck-suppress duplInheritedMember
+    static constexpr FusionBackend backend = FusionBackend::mahony;
+    // cppcheck-suppress duplInheritedMember
+    static constexpr bool enable_mag_correction = false;
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T accel_norm_min = static_cast<T>(2.0);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T accel_norm_max = static_cast<T>(40.0);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T gyro_norm_max = static_cast<T>(150.0);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T gravity_filter_alpha = static_cast<T>(0.05);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T stationary_gyro_norm_max = static_cast<T>(0.1);
+};
+
+/// @brief 9-axis IMU Mahony configuration tuned for high-dynamics activities.
+/// @details Same accel/gyro gate relaxations as `HighDynamicsImu6MahonyConfig` plus
+///          magnetometer heading correction from the 9-axis IMU.
+///          @note During rapid tumbling the magnetometer should be treated as untrustworthy;
+///               the heading observability and confidence metadata reflect this automatically.
+template<typename T>
+struct HighDynamicsImu9MahonyConfig : OrientationConfigBase<T>
+{
+    // cppcheck-suppress duplInheritedMember
+    static constexpr SensorModel sensor_model = SensorModel::imu9;
+    // cppcheck-suppress duplInheritedMember
+    static constexpr FusionBackend backend = FusionBackend::mahony;
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T accel_norm_min = static_cast<T>(2.0);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T accel_norm_max = static_cast<T>(40.0);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T gyro_norm_max = static_cast<T>(150.0);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T gravity_filter_alpha = static_cast<T>(0.05);
+    // cppcheck-suppress duplInheritedMember
+    static constexpr T stationary_gyro_norm_max = static_cast<T>(0.1);
 };
 
 /// @brief Shared compile-time policy knobs for relative-angle extraction.
@@ -562,11 +727,14 @@ inline auto wrap_pi(T angle) noexcept -> T
 {
     const T pi = constants::pi<T>();
     const T two_pi = constants::two_pi<T>();
-    while (angle > pi)
+    // Use fmod for O(1) wrapping regardless of the magnitude of `angle`.
+    // The while-loop alternative is O(|angle|/pi) and degrades for large inputs.
+    angle = std::fmod(angle, two_pi);
+    if (angle > pi)
     {
         angle -= two_pi;
     }
-    while (angle < -pi)
+    else if (angle < -pi)
     {
         angle += two_pi;
     }
@@ -1159,6 +1327,7 @@ private:
             !scalar_is_finite(Config::max_sample_age_s) || !scalar_is_finite(Config::expected_gravity_norm) ||
             !scalar_is_finite(Config::accel_norm_min) || !scalar_is_finite(Config::accel_norm_max) ||
             !scalar_is_finite(Config::gyro_norm_max) || !scalar_is_finite(Config::gravity_filter_alpha) ||
+            !scalar_is_finite(Config::held_orientation_confidence) ||
             !scalar_is_finite(Config::stationary_gyro_norm_max) ||
             !scalar_is_finite(Config::stationary_accel_error_max) ||
             !scalar_is_finite(Config::drift_rate_without_heading_rad_per_s) ||
@@ -1171,6 +1340,7 @@ private:
             !(Config::expected_gravity_norm > T(0)) || !(Config::accel_norm_min > T(0)) ||
             Config::accel_norm_max < Config::accel_norm_min || !(Config::gyro_norm_max > T(0)) ||
             Config::gravity_filter_alpha < T(0) || Config::gravity_filter_alpha > T(1) ||
+            Config::held_orientation_confidence < T(0) || Config::held_orientation_confidence > T(1) ||
             Config::stationary_gyro_norm_max < T(0) || Config::stationary_accel_error_max < T(0) ||
             Config::drift_rate_without_heading_rad_per_s < T(0) || !(Config::drift_confidence_limit_rad > T(0)))
         {
@@ -1540,12 +1710,13 @@ private:
     }
 
     /// @brief Applies a measurement-only correction when gyro propagation is unavailable.
-    void apply_measurement_only_update(const Vec<T, 3>& accel, const Vec<T, 3>& mag, bool accel_valid, bool mag_valid,
-                                       T dt) noexcept
+    void apply_measurement_only_update(const Vec<T, 3>& accel, const Vec<T, 3>& mag, const Vec<T, 3>& gyro,
+                                       bool accel_valid, bool mag_valid, T dt) noexcept
     {
         if constexpr (Config::sensor_model != SensorModel::accel_only)
         {
             set_flag(estimate_.flags, StatusFlag::gyro_rejected);
+            flag_gyro_rejection(gyro);
         }
 
         if (!accel_valid)
@@ -1582,9 +1753,14 @@ private:
     {
         if (!accel_is_valid(accel)) [[unlikely]]
         {
-            set_flag(estimate_.flags, StatusFlag::accel_rejected);
-            set_flag(estimate_.flags, StatusFlag::startup_not_initialized);
-            last_accel_confidence_ = T(0);
+            flag_accel_rejection(accel);
+            if (!initialized_)
+            {
+                set_flag(estimate_.flags, StatusFlag::startup_not_initialized);
+            }
+            // When already initialized, use held_orientation_confidence (if > 0) so the caller
+            // receives quality=degraded rather than quality=invalid for the held frozen estimate.
+            last_accel_confidence_ = initialized_ ? Config::held_orientation_confidence : T(0);
             last_mag_confidence_ = T(0);
             update_prediction_rate(Vec<T, 3>(), false);
             return;
@@ -1600,6 +1776,33 @@ private:
                                                               Config::accel_norm_min, Config::accel_norm_max);
         last_mag_confidence_ = T(0);
         update_prediction_rate(Vec<T, 3>(), false);
+    }
+
+    /// @brief Sets the `accel_rejected` flag plus the sub-reason flag based on the rejection cause.
+    void flag_accel_rejection(const Vec<T, 3>& accel) noexcept
+    {
+        set_flag(estimate_.flags, StatusFlag::accel_rejected);
+        if (detail::is_finite(accel))
+        {
+            const T norm = std::sqrt(accel.length_squared());
+            if (norm < Config::accel_norm_min)
+            {
+                set_flag(estimate_.flags, StatusFlag::freefall_detected);
+            }
+            else if (norm > Config::accel_norm_max)
+            {
+                set_flag(estimate_.flags, StatusFlag::high_linear_acceleration);
+            }
+        }
+    }
+
+    /// @brief Sets `high_rotation_rate` when a gyro sample is rejected due to exceeding the norm gate.
+    void flag_gyro_rejection(const Vec<T, 3>& gyro) noexcept
+    {
+        if (detail::is_finite(gyro) && std::sqrt(gyro.length_squared()) > Config::gyro_norm_max)
+        {
+            set_flag(estimate_.flags, StatusFlag::high_rotation_rate);
+        }
     }
 
     /// @brief Processes one update using the Mahony-style correction backend.
@@ -1629,7 +1832,7 @@ private:
         }
         else
         {
-            set_flag(estimate_.flags, StatusFlag::accel_rejected);
+            flag_accel_rejection(accel);
             last_accel_confidence_ = T(0);
         }
 
@@ -1705,7 +1908,7 @@ private:
         }
 
         update_prediction_rate(gyro - gyro_bias_estimate_, gyro_valid);
-        apply_measurement_only_update(accel, mag, accel_valid, mag_valid, dt);
+        apply_measurement_only_update(accel, mag, gyro, accel_valid, mag_valid, dt);
     }
 
     /// @brief Processes one update using the multiplicative EKF backend.
@@ -1733,7 +1936,7 @@ private:
         }
         else
         {
-            set_flag(estimate_.flags, StatusFlag::accel_rejected);
+            flag_accel_rejection(accel);
             last_accel_confidence_ = T(0);
         }
 
@@ -1816,7 +2019,7 @@ private:
         }
 
         update_prediction_rate(gyro - gyro_bias_estimate_, gyro_valid);
-        apply_measurement_only_update(accel, mag, accel_valid, mag_valid, dt);
+        apply_measurement_only_update(accel, mag, gyro, accel_valid, mag_valid, dt);
     }
 
     /// @brief Applies one vector measurement update to the MEKF state and covariance.

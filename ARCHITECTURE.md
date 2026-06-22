@@ -589,8 +589,12 @@ Mat<float, 2, 3> m = {
 
 ```cpp
 // 4x4 matrix: 16 floats = 64 bytes
-// Naturally aligned for SIMD loads
-alignas(16) float data[16];
+// Alignment is controlled by MICROLA_DATA_ALIGNMENT (auto-detected from SIMD backend):
+//   4 B  - MICROLA_EMBEDDED without SIMD (Cortex-M0, CMSIS-DSP)
+//   16 B - NEON / SSE2 (default host)
+//   32 B - AVX / AVX2
+//   64 B - AVX-512
+alignas(MICROLA_DATA_ALIGNMENT) float data[16];
 
 // ARM NEON: Load 4 floats at once
 float32x4_t vec = vld1q_f32(&data[0]);

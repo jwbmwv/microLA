@@ -122,6 +122,52 @@ If the chosen scalar requires heading but only drift is available, the estimator
 - `quality`
 - `StatusFlag::drift_exceeds_nominal` when applicable
 
+## High-Dynamics Configs
+
+The default configs are tuned for stationary-to-slow-walking activity. Wider sensor-acceptance
+gates are available as drop-in replacements:
+
+| Config | `accel_norm_min` | `accel_norm_max` | `gyro_norm_max` | `gravity_filter_alpha` | `held_orientation_confidence` |
+|--------|-----------------|-----------------|----------------|----------------------|-------------------------------|
+| `DefaultAccelOnlyConfig<T>` | 8.0 m/s² | 11.5 m/s² | — | 0.2 | 0.0 (invalid) |
+| `HighDynamicsAccelOnlyConfig<T>` | 2.0 m/s² | 25.0 m/s² | — | 0.05 | 0.25 (degraded) |
+| `DefaultImu6MahonyConfig<T>` | 8.0 m/s² | 11.5 m/s² | 35 rad/s | 0.2 | 0.0 |
+| `HighDynamicsImu6MahonyConfig<T>` | 2.0 m/s² | 40.0 m/s² | 150 rad/s | 0.05 | 0.0 |
+| `DefaultImu9MahonyConfig<T>` | 8.0 m/s² | 11.5 m/s² | 35 rad/s | 0.2 | 0.0 |
+| `HighDynamicsImu9MahonyConfig<T>` | 2.0 m/s² | 40.0 m/s² | 150 rad/s | 0.05 | 0.0 |
+
+### `held_orientation_confidence`
+
+For accel-only estimators, when the accel reading is outside the valid norm window the
+orientation is frozen at the last known tilt. By default `held_orientation_confidence = 0.0`,
+making `quality = invalid` while the estimate is held — appropriate for safety-critical use.
+
+Setting it to a small positive value (e.g. `0.25`) emits `quality = degraded` instead:
+
+```cpp
+struct RunningAccelConfig : microla::fusion::HighDynamicsAccelOnlyConfig<float>
+{
+    // Already 0.25 in HighDynamicsAccelOnlyConfig; override here for strict mode:
+    // static constexpr float held_orientation_confidence = 0.0F;
+};
+```
+
+Check `StatusFlag::freefall_detected` or `StatusFlag::high_linear_acceleration` to understand
+why the estimate is degraded regardless of the confidence setting.
+
+### `timestamp_needs_reset()`
+
+A free function in the `microla::fusion` namespace that returns `true` when a `float`
+timestamp approaches the 2²⁴ ≈ 4.7-hour precision cliff where 1 µs increments can no
+longer be represented. For `double` timestamps it always returns `false`.
+
+```cpp
+if (microla::fusion::timestamp_needs_reset(current_time_s)) {
+    estimator.reset();
+    time_origin_s = current_time_s;
+}
+```
+
 ## Compile-Time Policy Model
 
 The algorithm is configured with policy types rather than runtime option bags. This keeps invalid combinations out of the binary and lets the compiler remove unused code.
@@ -133,6 +179,9 @@ Recommended starting points:
 - `DefaultImu6EkfConfig<T>`
 - `DefaultImu9MahonyConfig<T>`
 - `DefaultImu9EkfConfig<T>`
+- `HighDynamicsAccelOnlyConfig<T>` — running, jumping, moderate accel-only dynamics
+- `HighDynamicsImu6MahonyConfig<T>` — running, tumbling, aerobatics (6-axis)
+- `HighDynamicsImu9MahonyConfig<T>` — same with magnetometer heading
 - `DefaultRelativeAngleConfig<T>`
 
 Create your own policy by deriving from one of these and overriding only the members you need.
@@ -540,7 +589,7 @@ This assumption breaks down in several common scenarios:
 **Problem:** During freefall, the accelerometer reads near zero.
 
 - Freefall: gravity - drag ≈ 0 m/s² (well below `accel_norm_min = 8.0`)
-- **All accelerometer samples are rejected** (`StatusFlag::accel_rejected`)
+- **All accelerometer samples are rejected** (`StatusFlag::accel_rejected` + `StatusFlag::freefall_detected`)
 - System enters **gyro-only propagation** mode
 - **Tilt reference is completely lost** - only gyro integration remains
 - Rapid drift accumulation: at default `drift_rate_without_heading_rad_per_s = 0.02`, a 60-second freefall accumulates **1.2 radians (69°) of drift**
@@ -557,7 +606,7 @@ This assumption breaks down in several common scenarios:
 
 - Impact landing: 3-5g → **30-50 m/s²** (above `accel_norm_max = 11.5`)
 - Aggressive vehicle maneuvering: 2-3g sustained
-- **Samples rejected during high-acceleration events**
+- **Samples rejected during high-acceleration events** (`StatusFlag::accel_rejected` + `StatusFlag::high_linear_acceleration`)
 - Brief propagation-only mode until acceleration settles
 
 **Sustained high acceleration:**
@@ -584,7 +633,7 @@ This assumption breaks down in several common scenarios:
 **Problem:** Extremely fast rotation exceeds sensor and validation limits.
 
 - Aggressive tumbling can exceed `gyro_norm_max = 35 rad/s` (2000 deg/s)
-- **Gyro samples rejected** (`StatusFlag::gyro_rejected`)
+- **Gyro samples rejected** (`StatusFlag::gyro_rejected` + `StatusFlag::high_rotation_rate`)
 - **No propagation occurs** - orientation estimate freezes
 - Even if software gate allows it, physical sensor may saturate first
 
@@ -619,14 +668,14 @@ This assumption breaks down in several common scenarios:
 
 ### Summary Table
 
-| Scenario | Accelerometer | Gyroscope | Magnetometer | Tilt Observable? | Heading Observable? | Typical Quality |
-|----------|---------------|-----------|--------------|------------------|---------------------|-----------------|
-| Freefall | Rejected (0g) | OK | OK | **No** | No (gyro-only) | `invalid` |
-| High-G Impact | Rejected (>3g) | OK | OK | **No** (temporarily) | Depends on mag | `invalid` → recovers |
-| Tumbling | Rejected (high-g) | Rejected (high rate) | OK | **No** | **No** | `invalid` |
-| Running | Intermittent | OK | OK | Intermittent | Yes (if mag clean) | `usable` ↔ `nominal` |
-| Near Electronics | OK | OK | Rejected (distorted) | Yes | **No** (drift mode) | `usable` |
-| Quasi-Static | OK | OK | OK | Yes | Yes | `nominal` |
+| Scenario | Accelerometer | Gyroscope | Magnetometer | Tilt Observable? | Heading Observable? | Typical Quality | New Sub-flags |
+|----------|---------------|-----------|--------------|------------------|---------------------|-----------------|---------------|
+| Freefall | Rejected (0g) | OK | OK | **No** | No (gyro-only) | `invalid` | `freefall_detected` |
+| High-G Impact | Rejected (>3g) | OK | OK | **No** (temporarily) | Depends on mag | `invalid` → recovers | `high_linear_acceleration` |
+| Tumbling | Rejected (high-g) | Rejected (high rate) | OK | **No** | **No** | `invalid` | `freefall_detected` / `high_linear_acceleration`, `high_rotation_rate` |
+| Running | Intermittent | OK | OK | Intermittent | Yes (if mag clean) | `usable` ↔ `nominal` | `high_linear_acceleration` at footstrike |
+| Near Electronics | OK | OK | Rejected (distorted) | Yes | **No** (drift mode) | `usable` | — |
+| Quasi-Static | OK | OK | OK | Yes | Yes | `nominal` | — |
 
 ### Design Response
 
@@ -634,7 +683,12 @@ Rather than pretending these scenarios produce valid output, microLA's sensor fu
 
 - **Observability levels** (`none`, `tilt_only`, `heading_with_drift`, `full_3d`)
 - **Quality grades** (`invalid`, `degraded`, `usable`, `nominal`)
-- **Status flags** (sensor rejection, drift limits, propagation-only mode)
+- **Status flags** (sensor rejection, drift limits, propagation-only mode):
+  - `accel_rejected` + `freefall_detected` — accelerometer below minimum (free-fall / zero-g)
+  - `accel_rejected` + `high_linear_acceleration` — accelerometer above maximum (impact / high-g)
+  - `gyro_rejected` + `high_rotation_rate` — gyroscope saturated (rapid tumbling / aerobatics)
+  - `mag_rejected` — magnetometer distorted or outside learned norm
+  - `propagation_only` — gyro-only integration, no measurement correction
 - **Drift estimates** (`estimated_drift_rad`)
 - **Confidence scores** (0-1 scale)
 

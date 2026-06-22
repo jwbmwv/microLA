@@ -1160,3 +1160,135 @@ TEST(VectorViewExtended, ConstViewToVec)
     EXPECT_FLOAT_EQ(copy[0], 3.0F);
     EXPECT_FLOAT_EQ(copy[1], 4.0F);
 }
+
+// ============================================================================
+// Large-N vector tests (N = 8, 16, 32) — exercises the generic scalar fallback
+// loop for all operations that have no SIMD specialisation beyond N=4.
+// ============================================================================
+
+template<std::size_t N>
+static void large_n_basic_ops()
+{
+    Vec<float, N> a, b;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        a[i] = static_cast<float>(i + 1);
+        b[i] = static_cast<float>(N - i);
+    }
+
+    // addition / subtraction round-trip
+    const Vec<float, N> sum = a + b;
+    const Vec<float, N> diff = sum - b;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        EXPECT_FLOAT_EQ(diff[i], a[i]) << "N=" << N << " i=" << i;
+    }
+
+    // scalar multiply / divide round-trip
+    const Vec<float, N> scaled = a * 3.0F;
+    const Vec<float, N> restored = scaled / 3.0F;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        EXPECT_NEAR(restored[i], a[i], 1e-5F) << "N=" << N << " i=" << i;
+    }
+
+    // dot product: a · a == sum of squares
+    float expected_dot = 0.0F;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        expected_dot += a[i] * a[i];
+    }
+    EXPECT_NEAR(a.dot(a), expected_dot, expected_dot * 1e-5F) << "N=" << N;
+
+    // length: ||a|| == sqrt(a · a)
+    EXPECT_NEAR(a.length(), std::sqrt(expected_dot), std::sqrt(expected_dot) * 1e-5F) << "N=" << N;
+
+    // normalized: ||a.normalized()|| == 1
+    const Vec<float, N> unit = a.normalized();
+    EXPECT_NEAR(unit.length(), 1.0F, 1e-5F) << "N=" << N;
+
+    // safe_normalized on zero vector returns zero
+    const Vec<float, N> zero_vec;
+    const Vec<float, N> safe_zero = zero_vec.safe_normalized();
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        EXPECT_FLOAT_EQ(safe_zero[i], 0.0F) << "N=" << N << " i=" << i;
+    }
+}
+
+TEST(LargeNVector, N8BasicOps)
+{
+    large_n_basic_ops<8>();
+}
+TEST(LargeNVector, N16BasicOps)
+{
+    large_n_basic_ops<16>();
+}
+TEST(LargeNVector, N32BasicOps)
+{
+    large_n_basic_ops<32>();
+}
+
+template<std::size_t N>
+static void large_n_assignment_ops()
+{
+    Vec<float, N> a;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        a[i] = static_cast<float>(i + 1);
+    }
+    Vec<float, N> b = a;
+
+    b += a;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        EXPECT_FLOAT_EQ(b[i], 2.0F * a[i]) << "N=" << N << " i=" << i;
+    }
+
+    b -= a;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        EXPECT_FLOAT_EQ(b[i], a[i]) << "N=" << N << " i=" << i;
+    }
+
+    b *= 2.0F;
+    b /= 2.0F;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        EXPECT_NEAR(b[i], a[i], 1e-5F) << "N=" << N << " i=" << i;
+    }
+
+    // /= with zero denominator should produce NaN for floats
+    Vec<float, N> c = a;
+    c /= 0.0F;
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        EXPECT_TRUE(std::isnan(c[i])) << "N=" << N << " i=" << i;
+    }
+}
+
+TEST(LargeNVector, N8AssignOps)
+{
+    large_n_assignment_ops<8>();
+}
+TEST(LargeNVector, N16AssignOps)
+{
+    large_n_assignment_ops<16>();
+}
+TEST(LargeNVector, N32AssignOps)
+{
+    large_n_assignment_ops<32>();
+}
+
+TEST(LargeNVector, N32DotProductKahan)
+{
+    // Kahan-accurate dot over 32 elements — exercises the plain accumulation
+    // loop for large N and catches precision issues.
+    Vec<float, 32> a;
+    for (std::size_t i = 0; i < 32; ++i)
+    {
+        a[i] = 1.0F;  // sum of squares == 32
+    }
+    EXPECT_NEAR(a.dot(a), 32.0F, 1e-4F);
+    EXPECT_NEAR(a.length(), std::sqrt(32.0F), 1e-4F);
+}

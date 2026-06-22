@@ -33,8 +33,10 @@ struct VecLayoutCheck
     // Vec must be standard layout for DMA and C compatibility
     static_assert(std::is_standard_layout_v<VecType>, "Vec must be standard layout for DMA compatibility");
 
-    // Vec should have minimal padding (aligned to 16 bytes or size of elements)
-    static_assert(sizeof(VecType) == sizeof(T) * N || sizeof(VecType) == ((sizeof(T) * N + 15) & ~15),
+    // Vec should have minimal padding (size is either exact or rounded up to the active data alignment)
+    static_assert(sizeof(VecType) == sizeof(T) * N ||
+                      sizeof(VecType) == ((sizeof(T) * N + MICROLA_DATA_ALIGNMENT - 1) &
+                                          ~static_cast<std::size_t>(MICROLA_DATA_ALIGNMENT - 1)),
                   "Vec has unexpected padding - check alignment settings");
 
 #ifdef MICROLA_STACK_SIZE_LIMIT
@@ -80,8 +82,10 @@ struct QuaternionLayoutCheck
     static_assert(sizeof(QuatType) <= MICROLA_STACK_SIZE_LIMIT, "Quaternion size exceeds MICROLA_STACK_SIZE_LIMIT");
 #endif
 
-    // Verify expected size (4 components + alignment)
-    static_assert(sizeof(QuatType) == sizeof(T) * 4 || sizeof(QuatType) == ((sizeof(T) * 4 + 15) & ~15),
+    // Verify expected size (4 components + alignment padding up to MICROLA_DATA_ALIGNMENT)
+    static_assert(sizeof(QuatType) == sizeof(T) * 4 ||
+                      sizeof(QuatType) == ((sizeof(T) * 4 + MICROLA_DATA_ALIGNMENT - 1) &
+                                           ~static_cast<std::size_t>(MICROLA_DATA_ALIGNMENT - 1)),
                   "Quaternion has unexpected size");
 };
 
