@@ -1050,37 +1050,34 @@ TEST(Version, VersionString)
 {
     const char* vs = Version::string();
     ASSERT_NE(vs, nullptr);
-    EXPECT_STREQ(vs, "0.0.2");
+    EXPECT_STREQ(vs, MICROLA_VERSION_STRING);
 }
 
 TEST(Version, VersionNumber)
 {
     int num = Version::number();
-    // major*10000 + minor*100 + patch = 0*10000 + 0*100 + 2 = 2
-    EXPECT_EQ(num, 2);
+    EXPECT_EQ(num, MICROLA_VERSION_NUMBER);
 }
 
 TEST(Version, VersionComponents)
 {
-    EXPECT_EQ(Version::get_major(), 0);
-    EXPECT_EQ(Version::get_minor(), 0);
-    EXPECT_EQ(Version::get_patch(), 2);
+    EXPECT_EQ(Version::get_major(), MICROLA_VERSION_MAJOR);
+    EXPECT_EQ(Version::get_minor(), MICROLA_VERSION_MINOR);
+    EXPECT_EQ(Version::get_patch(), MICROLA_VERSION_PATCH);
 }
 
 TEST(Version, FreeFunction)
 {
-    EXPECT_STREQ(get_version_string(), "0.0.2");
-    EXPECT_EQ(get_version_number(), 2);
+    EXPECT_STREQ(get_version_string(), MICROLA_VERSION_STRING);
+    EXPECT_EQ(get_version_number(), MICROLA_VERSION_NUMBER);
 }
 
 TEST(Version, VersionAtLeast)
 {
-    EXPECT_TRUE(microla::version_at_least(0, 0, 2));
-    EXPECT_TRUE(microla::version_at_least(0, 0, 1));
-    EXPECT_TRUE(microla::version_at_least(0, 0, 0));
-    EXPECT_FALSE(microla::version_at_least(0, 0, 3));
-    EXPECT_FALSE(microla::version_at_least(0, 1, 0));
-    EXPECT_FALSE(microla::version_at_least(1, 0, 0));
+    EXPECT_TRUE(microla::version_at_least(MICROLA_VERSION_MAJOR, MICROLA_VERSION_MINOR, MICROLA_VERSION_PATCH));
+    EXPECT_TRUE(microla::version_at_least(MICROLA_VERSION_MAJOR, MICROLA_VERSION_MINOR, 0));
+    EXPECT_FALSE(microla::version_at_least(MICROLA_VERSION_MAJOR, MICROLA_VERSION_MINOR + 1, 0));
+    EXPECT_FALSE(microla::version_at_least(MICROLA_VERSION_MAJOR + 1, 0, 0));
 }
 
 // =============================================================================

@@ -386,7 +386,13 @@ jobs:
 
       - name: Install Zephyr Python requirements
         run: |
-          pip3 install --user -r zephyr-rtos/scripts/requirements.txt
+          if [ -f zephyr-rtos/scripts/requirements.txt ]; then
+            pip3 install --user -r zephyr-rtos/scripts/requirements.txt
+            pip3 install --user natsort anytree ply intelhex pytest tabulate junitparser
+          else
+            echo "Warning: zephyr-rtos not found, installing minimal requirements"
+            pip3 install --user pyelftools PyYAML pykwalify canopen packaging progress psutil pylink-square natsort anytree ply intelhex pytest tabulate junitparser
+          fi
 
       - name: Install Renode
         run: |
