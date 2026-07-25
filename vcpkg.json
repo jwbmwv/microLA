@@ -1,6 +1,6 @@
 {
   "name": "microla",
-  "version": "1.0.0",
+  "version": "0.0.3",
   "port-version": 0,
   "description": "High-performance C++20 linear algebra library for embedded systems with SIMD optimizations",
   "homepage": "https://github.com/jwbmwv/microla",

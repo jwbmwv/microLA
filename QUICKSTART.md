@@ -6,7 +6,7 @@
 microla/
 ├── README.md              # Main documentation
 ├── LICENSE                # Apache License 2.0 with SPDX identifier
-├── VERSION                # Version number (0.0.2)
+├── VERSION                # Version number (0.0.3)
 ├── CMakeLists.txt         # Main CMake configuration
 ├── .gitignore             # Git ignore rules
 ├── .ai-generation-prompt.md  # AI regeneration prompt
@@ -52,6 +52,23 @@ microla/
 │
 └── cmake/                # CMake modules
     └── microla-config.cmake.in
+```
+
+## Compile-Checked Smoke Test
+
+This standalone example is compiled by the documentation CI job against the public headers.
+
+```cpp
+#include <microla/vector.hpp>
+
+int main()
+{
+  const microla::Vec<float, 3> first(1.0F, 2.0F, 3.0F);
+  const microla::Vec<float, 3> second(4.0F, 5.0F, 6.0F);
+  const microla::Vec<float, 3> sum = first + second;
+
+  return sum[0] == 5.0F ? 0 : 1;
+}
 ```
 
 ## Usage Methods
@@ -119,11 +136,9 @@ Just copy `include/microla/` to your project's include path.
 
    // Option 2: Modular includes (faster compilation)
 
-   #include <microla/vector.hpp>      // Base vector template
+  #include <microla/vector.hpp>      // Vec<T,N> and fixed-size aliases
 
-   #include <microla/vec3D.hpp>       // 3D type aliases
-
-   #include <microla/matrix3D.hpp>    // 3D transformations
+  #include <microla/matrix.hpp>      // Mat<T,R,C> and 2D/3D transformations
 
    using namespace microla;
    ```
@@ -270,8 +285,7 @@ The repository also includes a GitHub Actions workflow `.github/workflows/embedd
 
 // Or use modular includes:
 // #include <microla/vector.hpp>
-// #include <microla/vec3D.hpp>
-// #include <microla/matrix3D.hpp>
+// #include <microla/matrix.hpp>
 
 using namespace microla;
 
@@ -315,7 +329,7 @@ int main() {
 
 ## Version
 
-Current version: 0.0.2 (see [VERSION](VERSION))
+Current version: 0.0.3 (see [VERSION](VERSION))
 
 ## License
 

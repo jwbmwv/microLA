@@ -8,12 +8,10 @@ A lightweight, header-only C++20 linear algebra library optimized for embedded s
 - **Fixed-size core types**: `Vec`, `Mat`, and `Quaternion` store data inline with no heap allocation for core arithmetic
 - **C-friendly layouts**: Core math types are standard-layout and trivially copyable for DMA and C interop
 - **Default template parameters**: Use `Vec<>`, `Mat<>`, `Quaternion<>` for common float types
-- **SIMD optimized**: ARM NEON (2-4× speedup) for Cortex-A/ARM64, CMSIS-DSP for Cortex-M processors, RISC-V V extensions for RISC-V architectures
-  - **FMA instructions**: Fused multiply-add for better performance and accuracy
-  - **Fast reciprocal/rsqrt**: Newton-Raphson optimized division and normalize
-  - **Vec3 optimized**: Eliminated temporary arrays, 1.4× faster
-  - **NEON quaternion multiply**: 3.5× faster than scalar
-  - **Matrix SIMD**: 3-4× speedup for 3×3 and 4×4 operations
+- **SIMD-aware**: Scalar paths are always available; optional NEON, CMSIS-DSP, and MVE configuration depends on the target, toolchain, and supplied external libraries
+  - **NEON**: Intended for NEON-capable Arm application processors
+  - **CMSIS-DSP**: Requires an application-provided CMSIS-DSP dependency on supported Cortex-M devices
+  - **MVE**: Configuration support is available for Helium-capable Cortex-M profiles; application workloads must measure the resulting code on target
 - **C++20 baseline with forward-looking feature gates**: Uses C++20 directly and enables C++23/C++26 improvements when available
 - **Embedded-aware APIs**: Caller-provided buffer overloads are available for allocation-sensitive paths such as QR eigenvalue extraction
 - **Namespaced**: All classes in `microla` namespace to avoid pollution
@@ -26,7 +24,7 @@ A lightweight, header-only C++20 linear algebra library optimized for embedded s
 - **Sensor fusion ready**: Coordinate transforms, safe normalization, Euler/quaternion conversions, and documented SI-unit conventions
 - **Kalman filtering**: Standard and Extended Kalman Filters for state estimation
 - **Safe math**: Protected operations with overflow/underflow detection and clamping
-- **Fast math**: High-performance approximations (2-10× speedup) for embedded systems
+- **Fast math**: Optional approximations for applications that choose their accuracy/performance trade-off
 - **Numerical stability**: Kahan summation, stable hypot, condition number checks
 
 ## Quick Start
@@ -747,4 +745,4 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 
 ## Version
 
-Current Version: 0.0.2
+Current Version: 0.0.3

@@ -23,7 +23,7 @@ The API is designed for embedded use:
 - `SensorCalibration<T>`: runtime mounting and bias calibration
 - `RelativeAngleResult<T>`: relative quaternion, selected scalar output, drift estimate, confidence, and status flags
 
-Changing runtime calibration with `set_calibration()` intentionally resets the affected estimator state so orientation, drift, and any learned magnetic-field reference are rebuilt under the new calibration frame.
+Changing runtime calibration with `set_calibration()` intentionally resets the affected estimator state so orientation, drift, and any learned magnetic-field reference are rebuilt under the new calibration frame. On a `RelativeAngleEstimator`, changing either entity calibration also clears a captured neutral reference pose because it belongs to the previous calibration frame.
 
 ## Units Policy
 
@@ -47,6 +47,29 @@ The shipped example in `examples/sensor_fusion.cpp` uses the public API directly
 - Drift-aware diagnostics when one side lacks absolute heading correction
 
 That example is also executed as a CTest smoke test when examples and tests are enabled together, so the documented flow is exercised in CI instead of being compile-only.
+
+## Compile-Checked Orientation Smoke Test
+
+The following standalone sample verifies the public 6-axis orientation API used by an application update loop:
+
+```cpp
+#include <microla/sensor_fusion.hpp>
+
+int main()
+{
+  using microla::Vec;
+  using namespace microla::fusion;
+
+  OrientationEstimator<float, DefaultImu6MahonyConfig<float>> estimator;
+  const Imu6Sample<float> sample{
+    0.0F,
+    Vec<float, 3>(0.0F, 0.0F, 0.0F),
+    Vec<float, 3>(0.0F, 0.0F, -microla::constants::gravity<float>())};
+
+  estimator.update(sample);
+  return estimator.estimate().valid ? 0 : 1;
+}
+```
 
 ## Backend Choices
 
@@ -158,15 +181,23 @@ why the estimate is degraded regardless of the confidence setting.
 ### `timestamp_needs_reset()`
 
 A free function in the `microla::fusion` namespace that returns `true` when a `float`
-timestamp approaches the 2²⁴ ≈ 4.7-hour precision cliff where 1 µs increments can no
-longer be represented. For `double` timestamps it always returns `false`.
+timestamp approaches the 2²⁴ ms ≈ 4.7-hour precision cliff where 1 ms increments can no
+longer be represented exactly. For `double` timestamps it always returns `false`.
 
 ```cpp
-if (microla::fusion::timestamp_needs_reset(current_time_s)) {
-    estimator.reset();
-    time_origin_s = current_time_s;
+float timestamp_origin_s = 0.0F;
+float timestamp_s = raw_timestamp_s - timestamp_origin_s;
+
+if (microla::fusion::timestamp_needs_reset(timestamp_s)) {
+  timestamp_origin_s = raw_timestamp_s;
+  timestamp_s = 0.0F;
+  estimator.rebase_timestamp(timestamp_s);
 }
 ```
+
+`rebase_timestamp()` preserves orientation, calibration, covariance, drift, and learned
+magnetic-field state. For a `RelativeAngleEstimator`, rebase both entities to the same
+timestamp origin with `rebase_left_timestamp()` and `rebase_right_timestamp()`.
 
 ## Compile-Time Policy Model
 
@@ -221,8 +252,8 @@ The following knobs are implemented in the public policy types and affect runtim
 ### Timing and freshness
 
 - `min_dt_s`
-  - Rejects zero or implausibly tiny intervals
-  - Protects against duplicate timestamps and bad packet ordering
+  - Rejects zero or implausibly tiny intervals for propagation
+  - Drops out-of-order samples before they can modify estimator state
 
 - `max_dt_s`
   - Suppresses propagation across large gaps
@@ -310,6 +341,7 @@ The following knobs are implemented in the public policy types and affect runtim
 - `accel_nis_gate`
 - `mag_nis_gate`
   - Innovation gates used to reject improbable vector measurements
+  - A rejected accelerometer innovation sets `StatusFlag::accel_rejected`; a rejected magnetometer innovation sets `StatusFlag::mag_rejected` and falls back to heading-with-drift observability
 
 ### Frame conventions
 

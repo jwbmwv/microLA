@@ -1,7 +1,7 @@
 # MicroLA Documentation Index
 
-**Version:** 0.0.2
-**Date:** March 7, 2026
+**Version:** 0.0.3
+**Release Date:** July 25, 2026
 
 ## 📚 Documentation Structure
 
@@ -29,6 +29,7 @@
 | [SIMD_Optimizations.md](docs/SIMD_Optimizations.md) | NEON and CMSIS-DSP optimization details |
 | [Cpp_Standard_Optimizations.md](docs/Cpp_Standard_Optimizations.md) | C++17-C++26 feature usage |
 | [SENSOR_FUSION.md](docs/SENSOR_FUSION.md) | Relative sensor fusion, observability, and tuning knobs |
+| [RELEASE_CONTRACT.md](docs/RELEASE_CONTRACT.md) | Supported configurations, resource checks, and release validation scope |
 
 ### Design Diagrams (`design/`)
 
@@ -120,8 +121,8 @@ cmake --build --preset benchmark
 
 ### Build System
 
-- **CMake:** 3.20+ required
-- **C++ Standard:** C++17 minimum (C++26 recommended)
+- **CMake:** 3.13+ for basic package configuration; 3.23+ for checked-in presets
+- **C++ Standard:** C++20 minimum; C++23/C++26 features are optional enhancements
 - **Package Managers:** vcpkg, Conan supported
 - **Embedded:** Zephyr RTOS module available
 

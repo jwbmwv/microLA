@@ -2,6 +2,12 @@
 
 All notable changes are summarized here.
 
+## [0.0.3] - 2026-07-25
+
+- **Sensor fusion**: Corrected timestamp, calibration, reference-pose, and measurement-rejection behavior with deterministic trace-replay coverage.
+- **Embedded validation**: Added target compile/resource reports, alignment sanitizer coverage, and a Cortex-M4F Renode runtime CI lane.
+- **Release engineering**: Added a release contract, explicit validation boundaries, and an ABI-specific estimator-state planning tool.
+
 ## [0.0.2] - 2026-05-31
 
 Comprehensive code review and quality improvements:
@@ -25,4 +31,4 @@ Initial release: header-only C++ linear algebra library for embedded and real-ti
 - Safety utilities (safe math, saturating arithmetic)
 - Basic benchmarks and tests included
 
-Current Version: **0.0.2**
+Current Version: **0.0.3**

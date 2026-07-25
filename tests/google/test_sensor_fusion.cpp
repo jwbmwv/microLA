@@ -77,6 +77,12 @@ struct ReferencedHeadingRelativeConfig : HeadingRelativeConfig<T>
 };
 
 template<typename T>
+struct ReferencedTiltRelativeConfig : TiltRelativeConfig<T>
+{
+    static constexpr bool apply_reference_pose = true;
+};
+
+template<typename T>
 struct MismatchedWorldImu9Config : DefaultImu9MahonyConfig<T>
 {
     static auto world_gravity_direction() noexcept -> Vec<T, 3> { return Vec<T, 3>(T(0), T(0), T(1)); }
@@ -144,6 +150,45 @@ TEST(SensorFusionOrientationTest, RejectsNonFiniteStartupTimestamp)
     EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::sample_time_invalid));
     EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::startup_not_initialized));
     EXPECT_FLOAT_EQ(estimate.timestamp_s, 0.0F);
+}
+
+TEST(SensorFusionOrientationTest, OutOfOrderSampleDoesNotChangeOrientation)
+{
+    OrientationEstimator<float, DefaultAccelOnlyConfig<float>> estimator;
+    const Vec<float, 3> level_accel(0.0F, 0.0F, -constants::gravity<float>());
+    const Vec<float, 3> tilted_accel(0.0F, -constants::gravity<float>(), 0.0F);
+
+    estimator.update(AccelSample<float>{1.0F, level_accel});
+    ASSERT_TRUE(estimator.estimate().valid);
+    const Quaternion<float> orientation_before = estimator.orientation();
+
+    estimator.update(AccelSample<float>{0.5F, tilted_accel});
+
+    const OrientationEstimate<float>& estimate = estimator.estimate();
+    EXPECT_FALSE(estimate.valid);
+    EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::sample_time_invalid));
+    EXPECT_NEAR(quaternion_distance(estimator.orientation(), orientation_before), 0.0F, 1e-6F);
+    EXPECT_FLOAT_EQ(estimate.timestamp_s, 1.0F);
+}
+
+TEST(SensorFusionOrientationTest, TimestampRebasePreservesOrientationState)
+{
+    OrientationEstimator<float, DefaultImu6MahonyConfig<float>> estimator;
+    const Vec<float, 3> gravity(0.0F, 0.0F, -constants::gravity<float>());
+    const Vec<float, 3> yaw_rate(0.0F, 0.0F, 1.0F);
+
+    estimator.update(Imu6Sample<float>{1000.0F, Vec<float, 3>(), gravity});
+    estimator.update(Imu6Sample<float>{1000.1F, yaw_rate, gravity});
+    const Quaternion<float> orientation_before_rebase = estimator.orientation();
+
+    ASSERT_TRUE(estimator.rebase_timestamp(0.0F));
+    EXPECT_NEAR(quaternion_distance(estimator.orientation(), orientation_before_rebase), 0.0F, 1e-6F);
+    EXPECT_FLOAT_EQ(estimator.estimate().timestamp_s, 0.0F);
+
+    estimator.update(Imu6Sample<float>{0.1F, yaw_rate, gravity});
+
+    EXPECT_NEAR(quaternion_distance(estimator.orientation(), Quaternion<float>::identity()), 0.2F, 2e-2F);
+    EXPECT_FALSE(estimator.rebase_timestamp(std::numeric_limits<float>::quiet_NaN()));
 }
 
 TEST(SensorFusionOrientationTest, Imu9MagRejectionFallsBackToHeadingWithDrift)
@@ -221,6 +266,25 @@ TEST(SensorFusionOrientationTest, DirectionalMagneticDisturbanceIsRejectedAfterH
     estimator.update(Imu9Sample<float>{0.1F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
                                        Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
                                        Vec<float, 3>(-0.8F, 0.0F, 0.0F)});
+
+    const OrientationEstimate<float>& estimate = estimator.estimate();
+    EXPECT_TRUE(estimate.valid);
+    EXPECT_FALSE(estimate.heading_referenced);
+    EXPECT_EQ(estimate.observability, Observability::heading_with_drift);
+    EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::mag_rejected));
+    EXPECT_TRUE(has_flag(estimate.flags, StatusFlag::propagation_only));
+}
+
+TEST(SensorFusionOrientationTest, EkfNisRejectedMagnetometerFallsBackToHeadingWithDrift)
+{
+    OrientationEstimator<float, DefaultImu9EkfConfig<float>> estimator;
+
+    estimator.update(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                       Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
+                                       Vec<float, 3>(50.0F, 0.0F, 0.0F)});
+    estimator.update(Imu9Sample<float>{0.1F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                       Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
+                                       Vec<float, 3>(0.0F, -50.0F, 0.0F)});
 
     const OrientationEstimate<float>& estimate = estimator.estimate();
     EXPECT_TRUE(estimate.valid);
@@ -372,6 +436,25 @@ TEST(SensorFusionTest, Imu6HeadingDeltaIsReturnedWithDriftMetadata)
     EXPECT_TRUE(has_flag(result.right_entity.flags, StatusFlag::propagation_only));
 }
 
+TEST(SensorFusionTest, RelativeResultPropagatesEntityStatusFlags)
+{
+    RelativeAngleEstimator<float, DefaultImu9MahonyConfig<float>, DefaultImu9MahonyConfig<float>> estimator;
+
+    const Vec<float, 3> gravity(0.0F, 0.0F, -constants::gravity<float>());
+    const Vec<float, 3> magnetic_field(50.0F, 0.0F, 0.0F);
+    estimator.update_left(Imu9Sample<float>{0.0F, Vec<float, 3>(), gravity, magnetic_field});
+    estimator.update_right(Imu9Sample<float>{0.0F, Vec<float, 3>(), gravity, magnetic_field});
+    estimator.update_left(Imu9Sample<float>{0.1F, Vec<float, 3>(), gravity, magnetic_field});
+    estimator.update_right(Imu9Sample<float>{0.1F, Vec<float, 3>(100.0F, 0.0F, 0.0F), gravity, magnetic_field});
+
+    const RelativeAngleResult<float> result = estimator.compute();
+
+    EXPECT_TRUE(result.valid);
+    EXPECT_TRUE(has_flag(result.right_entity.flags, StatusFlag::gyro_rejected));
+    EXPECT_TRUE(has_flag(result.primary.flags, StatusFlag::gyro_rejected));
+    EXPECT_EQ(result.primary.quality, SolutionQuality::degraded);
+}
+
 TEST(SensorFusionTest, Imu9EkfProvidesFull3DHeadingDelta)
 {
     RelativeAngleEstimator<float, LeftImu9EkfConfig<float>, RightImu9EkfConfig<float>, HeadingRelativeConfig<float>>
@@ -503,13 +586,18 @@ TEST(SensorFusionTest, DriftDisabledPolicyRejectsHeadingOnlyDriftResult)
 
 TEST(SensorFusionTest, ReferencePoseCanZeroRelativeOutput)
 {
-    RelativeAngleEstimator<float, LeftImu6Config<float>, RightImu6Config<float>, ReferencedHeadingRelativeConfig<float>>
+    RelativeAngleEstimator<float, LeftImu9EkfConfig<float>, RightImu9EkfConfig<float>,
+                           ReferencedHeadingRelativeConfig<float>>
         estimator;
 
-    estimator.update_left(Imu6Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
-                                            Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>())});
-    estimator.update_right(Imu6Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
-                                             Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>())});
+    const Quaternion<float> right_orientation =
+        Quaternion<float>::from_axis_angle(Vec<float, 3>(0.0F, 0.0F, 1.0F), deg_to_rad_local(30.0F));
+
+    estimator.update_left(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                            make_accel_body(Quaternion<float>::identity()),
+                                            make_mag_body(Quaternion<float>::identity())});
+    estimator.update_right(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F), make_accel_body(right_orientation),
+                                             make_mag_body(right_orientation)});
 
     ASSERT_TRUE(estimator.capture_reference_pose());
 
@@ -517,6 +605,56 @@ TEST(SensorFusionTest, ReferencePoseCanZeroRelativeOutput)
 
     EXPECT_TRUE(result.primary.valid);
     EXPECT_NEAR(result.primary.angle_rad, 0.0F, 1e-5F);
+    EXPECT_NEAR(result.heading_delta_rad, 0.0F, 1e-5F);
+}
+
+TEST(SensorFusionTest, ReferencePoseCanZeroRelativeTilt)
+{
+    RelativeAngleEstimator<float, LeftImu9EkfConfig<float>, RightImu9EkfConfig<float>,
+                           ReferencedTiltRelativeConfig<float>>
+        estimator;
+
+    const Quaternion<float> right_orientation =
+        Quaternion<float>::from_axis_angle(Vec<float, 3>(1.0F, 0.0F, 0.0F), deg_to_rad_local(20.0F));
+
+    estimator.update_left(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F),
+                                            make_accel_body(Quaternion<float>::identity()),
+                                            make_mag_body(Quaternion<float>::identity())});
+    estimator.update_right(Imu9Sample<float>{0.0F, Vec<float, 3>(0.0F, 0.0F, 0.0F), make_accel_body(right_orientation),
+                                             make_mag_body(right_orientation)});
+
+    ASSERT_TRUE(estimator.capture_reference_pose());
+
+    const RelativeAngleResult<float> result = estimator.compute();
+
+    EXPECT_TRUE(result.primary.valid);
+    EXPECT_NEAR(result.primary.angle_rad, 0.0F, 1e-5F);
+}
+
+TEST(SensorFusionTest, CalibrationChangeClearsCapturedReferencePose)
+{
+    RelativeAngleEstimator<float, LeftImu9EkfConfig<float>, RightImu9EkfConfig<float>,
+                           ReferencedHeadingRelativeConfig<float>>
+        estimator;
+
+    const Quaternion<float> right_orientation =
+        Quaternion<float>::from_axis_angle(Vec<float, 3>(0.0F, 0.0F, 1.0F), deg_to_rad_local(30.0F));
+    const Imu9Sample<float> left_sample{0.0F, Vec<float, 3>(), make_accel_body(Quaternion<float>::identity()),
+                                        make_mag_body(Quaternion<float>::identity())};
+    const Imu9Sample<float> right_sample{0.0F, Vec<float, 3>(), make_accel_body(right_orientation),
+                                         make_mag_body(right_orientation)};
+
+    estimator.update_left(left_sample);
+    estimator.update_right(right_sample);
+    ASSERT_TRUE(estimator.capture_reference_pose());
+
+    estimator.set_left_calibration(SensorCalibration<float>{});
+    estimator.update_left(left_sample);
+
+    const RelativeAngleResult<float> result = estimator.compute();
+    EXPECT_TRUE(result.primary.valid);
+    EXPECT_FALSE(result.reference_active);
+    EXPECT_NEAR(result.primary.angle_rad, deg_to_rad_local(30.0F), 5e-2F);
 }
 
 TEST(SensorFusionTest, MismatchedWorldFramesAreRejected)

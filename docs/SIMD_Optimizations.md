@@ -446,5 +446,5 @@ Potential additional improvements:
 ---
 
 **Date:** May 31, 2026
-**MicroLA Version:** 0.0.2
+**MicroLA Version:** 0.0.3
 **Optimization Level:** Production-ready

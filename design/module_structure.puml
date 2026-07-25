@@ -209,7 +209,7 @@ package "Core Headers (include/microla/)" {
     end note
 
     [matrix_view.hpp] as matrix_view #E6FFD0
-    note right of matview
+    note right of matrix_view
         **Matrix Views:**
         • Non-owning matrix slices
         • Block operations

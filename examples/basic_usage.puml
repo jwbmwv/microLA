@@ -4,13 +4,13 @@
 title Basic usage: vector and matrix ops
 actor User as Main
 participant "Example (basic_usage)" as Example
-participant "microla::Vector / microla::Matrix" as Microla
+participant "microla::Vec / microla::Mat" as Microla
 
 Main -> Example: run()
-Example -> Microla: create Vector v1
-Example -> Microla: create Vector v2
+Example -> Microla: create Vec v1
+Example -> Microla: create Vec v2
 Example -> Microla: v3 = v1 + v2
-Example -> Microla: m = Matrix::identity()
+Example -> Microla: m = Mat::identity()
 Example -> Microla: m *= scalar
 Example -> Microla: result = m * v3
 Example -> Main: print(result)

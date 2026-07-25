@@ -14,10 +14,16 @@
 #define MICROLA_VERSION_MINOR 0
 
 /// @brief MicroLA patch version number
-#define MICROLA_VERSION_PATCH 2
+#define MICROLA_VERSION_PATCH 3
+
+// Expand a version component before converting it to a string literal.
+#define MICROLA_VERSION_STRINGIFY_IMPL(value) #value
+#define MICROLA_VERSION_STRINGIFY(value) MICROLA_VERSION_STRINGIFY_IMPL(value)
 
 /// @brief MicroLA version string
-#define MICROLA_VERSION_STRING "0.0.2"
+#define MICROLA_VERSION_STRING                       \
+    MICROLA_VERSION_STRINGIFY(MICROLA_VERSION_MAJOR) \
+    "." MICROLA_VERSION_STRINGIFY(MICROLA_VERSION_MINOR) "." MICROLA_VERSION_STRINGIFY(MICROLA_VERSION_PATCH)
 
 /// @brief Combined version number (MAJOR * 10000 + MINOR * 100 + PATCH)
 #define MICROLA_VERSION_NUMBER ((MICROLA_VERSION_MAJOR * 10000) + (MICROLA_VERSION_MINOR * 100) + MICROLA_VERSION_PATCH)

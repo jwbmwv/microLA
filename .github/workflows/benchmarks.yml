@@ -20,35 +20,50 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake ninja-build libbenchmark-dev
+          sudo apt-get install -y build-essential cmake ninja-build
 
       - name: Configure
-        run: |
-          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DMICROLA_LINEAR_BUILD_BENCHMARKS=ON -DCMAKE_CXX_STANDARD=20
+        run: cmake --preset benchmark-ci
 
       - name: Build
-        run: cmake --build build --config Release -- -j$(nproc)
+        run: cmake --build --preset benchmark-ci --parallel 2
+
+      - name: Capture benchmark environment
+        run: |
+          {
+            echo "runner.os=${{ runner.os }}"
+            echo "runner.arch=${{ runner.arch }}"
+            echo
+            echo "Compiler:"
+            c++ --version
+            echo
+            echo "CMake:"
+            cmake --version
+            echo
+            echo "CPU:"
+            lscpu
+          } > build/benchmark-ci/benchmarks/benchmark-environment.txt
 
       - name: Run benchmarks and collect JSON
         run: |
-          mkdir -p build/benchmarks/results
+          mkdir -p build/benchmark-ci/benchmarks/results
           BENCHES=(bench_matrix_multiply bench_simd bench_vector_ops bench_constexpr bench_quaternion bench_algorithms bench_geometry bench_large_matrices bench_safe_math bench_matrix_param bench_kalman bench_sensor_fusion bench_memory_threaded)
           for b in "${BENCHES[@]}"; do
-            if [ -x build/benchmarks/$b ]; then
-              echo "Running $b"
-              ./build/benchmarks/$b --benchmark_min_time=0.01s --benchmark_format=json --benchmark_out=build/benchmarks/results/${b}_results.json || true
-            fi
+            echo "Running $b"
+            ./build/benchmark-ci/benchmarks/$b --benchmark_min_time=0.01s --benchmark_format=json --benchmark_out=build/benchmark-ci/benchmarks/results/${b}_results.json
           done
 
       - name: Upload benchmark results
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
-          path: build/benchmarks/results/
+          path: |
+            build/benchmark-ci/benchmarks/results/
+            build/benchmark-ci/benchmarks/benchmark-environment.txt
 
       - name: Compare against baseline
         run: |
-          python3 scripts/compare_benchmarks.py --baseline benchmarks/baseline --current build/benchmarks/results --threshold 1.05
+          python3 scripts/compare_benchmarks.py --baseline benchmarks/baseline --current build/benchmark-ci/benchmarks/results --threshold 1.05
 
 
   windows-build:
@@ -69,9 +84,7 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: |
-          set -e
-          ctest --test-dir build -C Release --output-on-failure || true
+        run: ctest --test-dir build -C Release --output-on-failure
 
       - name: Upload test logs
         uses: actions/upload-artifact@v4

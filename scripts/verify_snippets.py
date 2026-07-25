@@ -12,7 +12,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 class CodeSnippet:
     """Represents a code snippet extracted from markdown."""
@@ -61,30 +61,6 @@ def extract_snippets_from_file(md_file: Path) -> List[CodeSnippet]:
             snippets.append(snippet)
 
     return snippets
-
-
-def create_test_wrapper(snippet: CodeSnippet, include_dir: Path) -> str:
-    """Wrap incomplete snippet in a minimal test harness."""
-
-    # Check if snippet already has includes and main
-    if snippet.is_complete:
-        return snippet.code
-
-    # Create wrapper for incomplete snippets
-    wrapper = f"""// Auto-generated test wrapper for snippet at {snippet.file}:{snippet.line}
-#include <iostream>
-#include <cmath>
-
-// Original snippet:
-{snippet.code}
-
-// Minimal main to check compilation
-int main() {{
-    // Snippet wrapped in test harness
-    return 0;
-}}
-"""
-    return wrapper
 
 
 def compile_snippet(snippet: CodeSnippet, include_dir: Path, compiler: str = 'g++',
@@ -206,6 +182,11 @@ def main():
         action='store_true',
         help='Stop on first failure'
     )
+    parser.add_argument(
+        '--require-compiled',
+        action='store_true',
+        help='Fail when no standalone snippet is compiled'
+    )
 
     args = parser.parse_args()
 
@@ -232,6 +213,7 @@ def main():
     total_snippets = 0
     failed_snippets = []
     skipped_snippets = 0
+    compiled_snippets = 0
 
     for md_file in sorted(md_files):
         if not md_file.exists():
@@ -264,6 +246,7 @@ def main():
                 if args.verbose:
                     print(f"    ⊘ {message}")
             elif success:
+                compiled_snippets += 1
                 if args.verbose:
                     print(f"    ✓ {message}")
             else:
@@ -279,7 +262,7 @@ def main():
     # Summary
     print("=" * 70)
     print(f"Total snippets checked: {total_snippets}")
-    print(f"Passed: {total_snippets - len(failed_snippets) - skipped_snippets}")
+    print(f"Compiled: {compiled_snippets}")
     print(f"Skipped: {skipped_snippets}")
     print(f"Failed: {len(failed_snippets)}")
 
@@ -290,8 +273,13 @@ def main():
             print(f"  - {snippet.file}:{snippet.line}")
         return 1
 
+    if args.require_compiled and compiled_snippets == 0:
+        print()
+        print("No standalone documentation snippets were compiled.")
+        return 1
+
     print()
-    print("✓ All code snippets compile successfully!")
+    print(f"✓ {compiled_snippets} standalone documentation snippet(s) compiled successfully.")
     return 0
 
 

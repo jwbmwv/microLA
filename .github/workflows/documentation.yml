@@ -31,7 +31,7 @@ jobs:
 
       - name: Verify code snippets compile
         run: |
-          python3 scripts/verify_snippets.py --verbose
+          python3 scripts/verify_snippets.py --verbose --require-compiled
 
       - name: Summary
         if: always()
