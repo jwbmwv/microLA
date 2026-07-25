@@ -1,0 +1,26 @@
+var fast__math_8hpp =
+[
+    [ "abs", "fast__math_8hpp.html#a4bfcd9d25eb99367efebcca5f8723cba", null ],
+    [ "atan2", "fast__math_8hpp.html#af30492e05cc9306402daa298c7649202", null ],
+    [ "cos", "fast__math_8hpp.html#add80dc06092a4302c08c02964f337ac1", null ],
+    [ "exp", "fast__math_8hpp.html#a3719d013aec1c264f485305ce3db5cbf", null ],
+    [ "lerp", "fast__math_8hpp.html#a83525abe127286f99e68595fc995e4e2", null ],
+    [ "ln", "fast__math_8hpp.html#a5a376017902880ab2d97b3f6076e4922", null ],
+    [ "pow", "fast__math_8hpp.html#a3e7ee9fb8dc3719e8de76dfa71b4efed", null ],
+    [ "rsqrt", "fast__math_8hpp.html#a599fc1c0baf0465bc49fad84eb72f49e", null ],
+    [ "sign", "fast__math_8hpp.html#a0a5db86d0e7e76e13c547854d9b9f7bf", null ],
+    [ "sin", "fast__math_8hpp.html#a220f6609ffc98299a980af23d03d40fe", null ],
+    [ "smoothstep", "fast__math_8hpp.html#a0113bad450f7c363824fac466391e3ed", null ],
+    [ "sqrt", "fast__math_8hpp.html#a4c1453ae5898d0dbbea008fb5f1d7f97", null ],
+    [ "tan", "fast__math_8hpp.html#ac2f9fc23de75f18b7ae0c449caa00c66", null ],
+    [ "ATAN2_POLY_COEFF", "fast__math_8hpp.html#a116cf056be540a3d254e1223dde80bd8", null ],
+    [ "BHASKARA_SINE_DENOMINATOR_COEFF", "fast__math_8hpp.html#a060a706b190bf97dbcb8441dd2cc84f1", null ],
+    [ "BHASKARA_SINE_NUMERATOR_COEFF", "fast__math_8hpp.html#a6bbe1caf25a3611dfdc7c63553f9577a", null ],
+    [ "LN_POLY_COEFF_A", "fast__math_8hpp.html#af5d3687d8ce37fdd618b346a99680a1f", null ],
+    [ "LN_POLY_COEFF_B", "fast__math_8hpp.html#a7141fff38e80ea4a0f93cde84cf0f4a8", null ],
+    [ "LN_POLY_COEFF_C", "fast__math_8hpp.html#ad17784ee7085a90e185897607a66cbc3", null ],
+    [ "PADE_CONSTANT", "fast__math_8hpp.html#a1694a8e043969d6f2b674e2788a811a6", null ],
+    [ "PADE_LINEAR_COEFF", "fast__math_8hpp.html#ad24f510249bd8bbd90d2a619599c156f", null ],
+    [ "RSQRT_MAGIC_CONSTANT", "fast__math_8hpp.html#af2cf471089e0e6e2848035b27d4be602", null ],
+    [ "SMOOTHSTEP_COEFF", "fast__math_8hpp.html#aedb0fc628af6144954e8de017d86d5fc", null ]
+];

@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['tan_0',['tan',['../namespacemicrola_1_1fast.html#ac2f9fc23de75f18b7ae0c449caa00c66',1,'microla::fast']]],
+  ['theoretical_5fsize_1',['theoretical_size',['../structmicrola_1_1resource__checks_1_1MatSizeInfo.html#a1a2efacaaaf9f0097314ed9f117529fd',1,'microla::resource_checks::MatSizeInfo::theoretical_size()'],['../structmicrola_1_1resource__checks_1_1QuaternionSizeInfo.html#ab45aea487b3b14d49ad0c60bb04cf4c8',1,'microla::resource_checks::QuaternionSizeInfo::theoretical_size()'],['../structmicrola_1_1resource__checks_1_1VecSizeInfo.html#a5fcde8bf12df03745886eeb451f47160',1,'microla::resource_checks::VecSizeInfo::theoretical_size()']]],
+  ['timestamp_2',['timestamp',['../structmicrola_1_1fusion_1_1detail_1_1SampleTraits_3_01AccelSample_3_01T_01_4_01_4.html#ae5efcf58e7c8b61f213a21fd7535fc12',1,'microla::fusion::detail::SampleTraits&lt; AccelSample&lt; T &gt; &gt;::timestamp()'],['../structmicrola_1_1fusion_1_1detail_1_1SampleTraits_3_01Imu6Sample_3_01T_01_4_01_4.html#ae83a311a6c6ca8b144f9fd08cd9c7c59',1,'microla::fusion::detail::SampleTraits&lt; Imu6Sample&lt; T &gt; &gt;::timestamp()'],['../structmicrola_1_1fusion_1_1detail_1_1SampleTraits_3_01Imu9Sample_3_01T_01_4_01_4.html#a77fd88b65aa5fc4fe53474df13842047',1,'microla::fusion::detail::SampleTraits&lt; Imu9Sample&lt; T &gt; &gt;::timestamp()']]],
+  ['timestamp_5fneeds_5freset_3',['timestamp_needs_reset',['../namespacemicrola_1_1fusion.html#a26eaae9a20610b151486a26036230063',1,'microla::fusion']]],
+  ['to_5faabb_4',['to_aabb',['../structmicrola_1_1geometry_1_1Sphere.html#a47ce57f71988b2ba0ed9380d091fe7eb',1,'microla::geometry::Sphere::to_aabb()'],['../structmicrola_1_1geometry_1_1Triangle.html#a27b33f86e5460e56b61f8c91bcae4529',1,'microla::geometry::Triangle::to_aabb()']]],
+  ['to_5feuler_5',['to_euler',['../classmicrola_1_1Quaternion.html#a444f02118f18aecde85c4953ade65ec3',1,'microla::Quaternion']]],
+  ['to_5fhomogeneous_6',['to_homogeneous',['../classmicrola_1_1Vec.html#a573feae10b8fcd86cf6f7f9d9a4fa37e',1,'microla::Vec']]],
+  ['to_5fmatrix_7',['to_matrix',['../classmicrola_1_1Quaternion.html#a240bdccdcf6b7a644d1f462a6daa198b',1,'microla::Quaternion::to_matrix()'],['../classmicrola_1_1ConstMatrixView.html#a3011b4c2a935bebd0dfc52f1d80866b5',1,'microla::ConstMatrixView::to_matrix()'],['../classmicrola_1_1MatrixView.html#a9e6e5555097d2e6151ae32bad851d7e6',1,'microla::MatrixView::to_matrix()']]],
+  ['to_5fvec_8',['to_vec',['../classmicrola_1_1VectorView.html#a3ec7bc95fadee24ee7cad3b1cee30141',1,'microla::VectorView::to_vec()'],['../classmicrola_1_1ConstVectorView.html#a58ea8e57cb6e3512e2fe4077f00f6200',1,'microla::ConstVectorView::to_vec()']]],
+  ['trace_9',['trace',['../classmicrola_1_1Mat.html#adf4ecb4bc1209fd0969dfbd793f75aa2',1,'microla::Mat']]],
+  ['transpose_10',['transpose',['../classmicrola_1_1Mat.html#a55aca8641f50aff0df8b3e0e8c0f7f3b',1,'microla::Mat']]],
+  ['triangle_11',['triangle',['../structmicrola_1_1geometry_1_1Triangle.html#a4e375e875dcbb3bb3bb86a9cc21f1efb',1,'microla::geometry::Triangle::Triangle()'],['../structmicrola_1_1geometry_1_1Triangle.html#a095e5e73627fa52d32305ab68aace499',1,'microla::geometry::Triangle::Triangle(const Vec&lt; T, 3 &gt; &amp;a, const Vec&lt; T, 3 &gt; &amp;b, const Vec&lt; T, 3 &gt; &amp;c)']]],
+  ['try_5finverse_12',['try_inverse',['../classmicrola_1_1Mat.html#a0cfe744a1d0bafbf4e1edbec4de9f644',1,'microla::Mat']]],
+  ['twist_5fangle_5fabout_5faxis_13',['twist_angle_about_axis',['../namespacemicrola_1_1fusion_1_1detail.html#ad1c3fee404944e0bb53ee99ab92b495f',1,'microla::fusion::detail']]],
+  ['twist_5fquaternion_5fabout_5faxis_14',['twist_quaternion_about_axis',['../namespacemicrola_1_1fusion_1_1detail.html#a3d2a12b3c28b6b3be2e24eca6f530018',1,'microla::fusion::detail']]],
+  ['two_5fpi_5fvalue_15',['two_pi_value',['../namespacemicrola_1_1constants_1_1detail.html#aedc2ae5afb81d93e9979234278dcbb53',1,'microla::constants::detail']]]
+];

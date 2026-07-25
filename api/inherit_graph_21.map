@@ -1,0 +1,19 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" href="$structmicrola_1_1fusion_1_1OrientationConfigBase.html" title="Shared compile&#45;time policy knobs for one entity orientation estimator." alt="" coords="5,229,205,269"/>
+<area shape="rect" id="Node000001" href="$structmicrola_1_1fusion_1_1DefaultAccelOnlyConfig.html" title="Default accelerometer&#45;only configuration." alt="" coords="277,5,452,45"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="121,216,142,178,172,135,209,92,252,55,276,42,278,47,255,60,212,96,176,138,147,181,125,218"/>
+<area shape="rect" id="Node000002" href="$structmicrola_1_1fusion_1_1DefaultImu6EkfConfig.html" title="Default 6&#45;axis IMU configuration using the optional MEKF backend." alt="" coords="277,69,452,109"/>
+<area shape="poly" id="edge2_Node000000_Node000002" title=" " alt="" coords="132,217,185,167,217,141,252,119,278,107,281,112,255,124,220,146,188,171,136,221"/>
+<area shape="rect" id="Node000003" href="$structmicrola_1_1fusion_1_1DefaultImu6MahonyConfig.html" title="Default 6&#45;axis IMU configuration using the Mahony backend." alt="" coords="271,133,458,173"/>
+<area shape="poly" id="edge3_Node000000_Node000003" title=" " alt="" coords="160,221,252,183,289,171,290,176,254,188,163,226"/>
+<area shape="rect" id="Node000004" href="$structmicrola_1_1fusion_1_1DefaultImu9EkfConfig.html" title="Default 9&#45;axis IMU configuration using the optional MEKF backend." alt="" coords="277,197,452,237"/>
+<area shape="poly" id="edge4_Node000000_Node000004" title=" " alt="" coords="219,233,277,225,277,231,219,238"/>
+<area shape="rect" id="Node000005" href="$structmicrola_1_1fusion_1_1DefaultImu9MahonyConfig.html" title="Default 9&#45;axis IMU configuration using the Mahony backend." alt="" coords="271,261,458,301"/>
+<area shape="poly" id="edge5_Node000000_Node000005" title=" " alt="" coords="219,261,272,267,271,272,218,266"/>
+<area shape="rect" id="Node000006" href="$structmicrola_1_1fusion_1_1HighDynamicsAccelOnlyConfig.html" title="Accelerometer&#45;only configuration tuned for running, jumping, and moderate high&#45;dynamics." alt="" coords="253,325,476,365"/>
+<area shape="poly" id="edge6_Node000000_Node000006" title=" " alt="" coords="163,273,254,311,290,323,289,328,252,316,160,278"/>
+<area shape="rect" id="Node000007" href="$structmicrola_1_1fusion_1_1HighDynamicsImu6MahonyConfig.html" title="6&#45;axis IMU Mahony configuration tuned for high&#45;dynamics activities." alt="" coords="253,389,476,429"/>
+<area shape="poly" id="edge7_Node000000_Node000007" title=" " alt="" coords="136,278,188,328,220,353,255,375,281,387,278,392,252,380,217,357,185,332,132,282"/>
+<area shape="rect" id="Node000008" href="$structmicrola_1_1fusion_1_1HighDynamicsImu9MahonyConfig.html" title="9&#45;axis IMU Mahony configuration tuned for high&#45;dynamics activities." alt="" coords="253,453,476,493"/>
+<area shape="poly" id="edge8_Node000000_Node000008" title=" " alt="" coords="125,280,147,318,176,360,212,403,255,439,276,451,274,456,252,444,209,407,172,364,142,320,121,283"/>
+</map>

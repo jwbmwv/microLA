@@ -1,0 +1,43 @@
+<map id="microla/vector_view.hpp" name="microla/vector_view.hpp">
+<area shape="rect" id="Node000001" title="Non&#45;owning vector views for subvector operations." alt="" coords="585,5,767,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="545,225,612,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="673,32,592,213,587,211,668,30"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,75,177"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="626,33,89,155,87,150,625,28"/>
+<area shape="rect" id="Node000004" href="$vector_8hpp.html" title="Generic vector class Vec&lt;T,N&gt; with full operator support." alt="" coords="435,79,525,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="645,33,526,76,524,71,644,28"/>
+<area shape="rect" id="Node000010" href="$compiler__features_8hpp.html" title="Compiler feature detection and cross&#45;version C++ feature macros." alt="" coords="841,225,1009,251"/>
+<area shape="poly" id="edge25_Node000001_Node000010" title=" " alt="" coords="710,28,752,46,802,72,854,107,898,150,915,180,924,211,919,212,910,182,894,154,850,111,800,77,750,51,707,33"/>
+<area shape="rect" id="Node000014" href="$simd__helpers_8hpp.html" title="Small SIMD utility helpers used by view implementations." alt="" coords="714,152,851,177"/>
+<area shape="poly" id="edge26_Node000001_Node000014" title=" " alt="" coords="687,30,768,139,764,142,683,33"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="500,102,525,123,550,150,566,181,576,211,571,212,561,183,546,154,522,127,496,106"/>
+<area shape="poly" id="edge9_Node000004_Node000003" title=" " alt="" coords="435,101,283,123,94,155,89,156,88,150,93,149,283,118,434,96"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="358,299,450,324"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="435,102,256,129,176,143,139,154,130,167,126,180,127,192,131,203,150,225,181,245,220,262,263,276,345,296,344,302,261,281,218,267,179,249,147,229,126,206,121,193,121,179,125,165,136,150,174,138,255,123,434,96"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="150,152,213,177"/>
+<area shape="poly" id="edge6_Node000004_Node000006" title=" " alt="" coords="435,105,227,154,226,149,434,100"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="636,225,721,251"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="501,102,575,150,657,214,653,218,572,154,498,106"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="308,225,367,251"/>
+<area shape="poly" id="edge8_Node000004_Node000008" title=" " alt="" coords="467,106,413,154,357,216,353,213,409,150,463,102"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="237,152,347,177"/>
+<area shape="poly" id="edge10_Node000004_Node000009" title=" " alt="" coords="451,107,336,149,335,144,449,102"/>
+<area shape="poly" id="edge11_Node000004_Node000010" title=" " alt="" coords="526,93,707,111,799,127,837,138,864,150,881,163,896,179,917,211,912,214,891,182,877,167,861,154,835,143,798,132,706,116,525,98"/>
+<area shape="rect" id="Node000012" href="$constants_8hpp.html" title="Mathematical constants with C++20&#45;C++26 optimizations." alt="" coords="423,152,537,177"/>
+<area shape="poly" id="edge14_Node000004_Node000012" title=" " alt="" coords="483,104,483,138,477,138,477,104"/>
+<area shape="poly" id="edge20_Node000004_Node000014" title=" " alt="" coords="527,101,721,146,720,151,525,106"/>
+<area shape="poly" id="edge12_Node000010_Node000005" title=" " alt="" coords="842,253,464,305,464,299,841,248"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="892,299,959,324"/>
+<area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="928,251,928,285,923,285,923,251"/>
+<area shape="poly" id="edge15_Node000012_Node000002" title=" " alt="" coords="497,175,553,215,550,219,494,180"/>
+<area shape="poly" id="edge18_Node000012_Node000005" title=" " alt="" coords="469,179,450,200,432,227,419,256,411,286,406,284,414,255,427,224,446,197,466,176"/>
+<area shape="poly" id="edge16_Node000012_Node000008" title=" " alt="" coords="458,180,374,221,372,217,456,175"/>
+<area shape="poly" id="edge19_Node000012_Node000010" title=" " alt="" coords="537,172,841,221,840,226,536,178"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="442,225,521,251"/>
+<area shape="poly" id="edge17_Node000012_Node000013" title=" " alt="" coords="483,178,484,212,478,212,478,178"/>
+<area shape="poly" id="edge22_Node000014_Node000002" title=" " alt="" coords="751,180,625,223,624,218,749,175"/>
+<area shape="poly" id="edge23_Node000014_Node000007" title=" " alt="" coords="767,180,709,219,706,215,764,175"/>
+<area shape="poly" id="edge24_Node000014_Node000010" title=" " alt="" coords="807,175,891,217,889,221,804,180"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="746,225,817,251"/>
+<area shape="poly" id="edge21_Node000014_Node000015" title=" " alt="" coords="785,178,784,212,779,212,780,178"/>
+</map>

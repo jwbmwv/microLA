@@ -1,0 +1,7 @@
+<map id="microla/resource_checks.hpp" name="microla/resource_checks.hpp">
+<area shape="rect" id="Node000001" title="Compile&#45;time resource usage validation for embedded systems." alt="" coords="5,5,216,31"/>
+<area shape="rect" id="Node000002" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="35,79,187,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,44,113,79,108,79,108,44"/>
+<area shape="rect" id="Node000003" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="29,152,193,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,118,113,152,108,152,108,118"/>
+</map>

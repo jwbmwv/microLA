@@ -1,0 +1,7 @@
+<map id="microla/safe_math.hpp" name="microla/safe_math.hpp">
+<area shape="rect" id="Node000001" title="Safe math operations with optional bounds checking for safety&#45;critical systems." alt="" coords="5,5,177,31"/>
+<area shape="rect" id="Node000002" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="15,79,167,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,44,94,79,89,79,89,44"/>
+<area shape="rect" id="Node000003" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="9,152,173,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,118,94,152,89,152,89,118"/>
+</map>

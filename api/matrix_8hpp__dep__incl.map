@@ -1,0 +1,23 @@
+<map id="microla/matrix.hpp" name="microla/matrix.hpp">
+<area shape="rect" id="Node000001" title="Generic matrix class Mat&lt;T,R,C&gt; with full operator support." alt="" coords="492,5,639,31"/>
+<area shape="rect" id="Node000002" href="$extended__kalman_8hpp.html" title="Extended Kalman filter for nonlinear systems." alt="" coords="5,79,224,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="480,35,188,81,187,76,479,30"/>
+<area shape="rect" id="Node000003" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="489,152,641,177"/>
+<area shape="poly" id="edge9_Node000001_Node000003" title=" " alt="" coords="478,22,398,26,325,40,298,50,282,64,278,81,289,102,301,113,319,122,370,137,430,148,489,155,489,160,430,153,369,142,318,127,298,117,285,106,272,81,277,61,295,46,323,34,398,21,478,16"/>
+<area shape="rect" id="Node000004" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="774,225,938,251"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="652,20,784,26,932,37,1058,54,1101,64,1124,77,1135,91,1140,105,1140,119,1135,132,1114,155,1083,175,1043,192,1000,207,916,228,915,223,998,202,1041,187,1080,170,1111,151,1130,129,1135,118,1135,106,1130,94,1121,81,1099,69,1057,59,931,43,784,31,652,25"/>
+<area shape="rect" id="Node000005" href="$kalman_8hpp.html" title="Standard Kalman filter implementation for embedded systems." alt="" coords="299,79,450,104"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="523,38,407,81,405,76,521,33"/>
+<area shape="rect" id="Node000006" href="$matrix__view_8hpp.html" title="Non&#45;owning matrix views for submatrix operations." alt="" coords="474,79,657,104"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="568,44,568,79,563,79,563,44"/>
+<area shape="rect" id="Node000007" href="$resource__checks_8hpp.html" title="Compile&#45;time resource usage validation for embedded systems." alt="" coords="681,79,892,104"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="614,32,752,76,750,81,613,37"/>
+<area shape="rect" id="Node000008" href="$sensor__fusion_8hpp.html" title="Relative sensor&#45;fusion utilities for angle estimation between two entities." alt="" coords="917,79,1110,104"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="651,30,942,76,941,81,651,35"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="201,103,493,149,492,155,200,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="626,178,810,223,808,228,625,183"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="419,106,535,149,533,154,417,111"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="568,118,568,152,563,152,563,118"/>
+<area shape="poly" id="edge11_Node000007_Node000003" title=" " alt="" coords="739,111,602,154,600,149,738,106"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="928,109,638,155,637,149,927,104"/>
+</map>

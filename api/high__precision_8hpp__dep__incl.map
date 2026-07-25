@@ -1,0 +1,10 @@
+<map id="microla/high_precision.hpp" name="microla/high_precision.hpp">
+<area shape="rect" id="Node000001" title="Selects a high&#45;precision intermediate type when beneficial." alt="" coords="5,5,203,31"/>
+<area shape="rect" id="Node000002" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="13,225,177,251"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,42,68,59,57,80,52,100,52,120,60,161,75,198,90,224,85,227,70,200,55,163,47,121,47,99,52,78,64,56,78,38"/>
+<area shape="rect" id="Node000003" href="$numerical__stability_8hpp.html" title="Numerical stability helpers and utilities." alt="" coords="67,79,293,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="128,38,169,76,166,80,124,42"/>
+<area shape="rect" id="Node000004" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="85,152,237,177"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="176,118,167,153,162,151,171,117"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="143,190,107,227,104,223,139,186"/>
+</map>

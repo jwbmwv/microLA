@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['mag_0',['mag',['../structmicrola_1_1fusion_1_1Imu9Sample.html#a165702eafa970232c0509ae1341d4c2e',1,'microla::fusion::Imu9Sample']]],
+  ['mag_5falignment_5fmax_5ferror_5frad_1',['mag_alignment_max_error_rad',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#af79d7cbd9677a1b234a18f68d6f02223',1,'microla::fusion::OrientationConfigBase']]],
+  ['mag_5fbias_2',['mag_bias',['../structmicrola_1_1fusion_1_1SensorCalibration.html#abc34ec526dda3ff5099335df2f8bab37',1,'microla::fusion::SensorCalibration']]],
+  ['mag_5fnis_5fgate_3',['mag_nis_gate',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#a0706738628250be05221c88d3de9fb7b',1,'microla::fusion::OrientationConfigBase']]],
+  ['mag_5fnorm_5fmax_4',['mag_norm_max',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#ad4dc983708c315b9a1993a7a156340a1',1,'microla::fusion::OrientationConfigBase']]],
+  ['mag_5fnorm_5fmin_5',['mag_norm_min',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#acc6d6ff0573a787936cccb5a34e48778',1,'microla::fusion::OrientationConfigBase']]],
+  ['mag_5freference_5flearning_5falpha_6',['mag_reference_learning_alpha',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#a39c647d1c4623384d7fc22c05dd1c1ce',1,'microla::fusion::OrientationConfigBase']]],
+  ['mag_5frelative_5fnorm_5ftolerance_7',['mag_relative_norm_tolerance',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#a36adcdf902788b240f2121576ff9e149',1,'microla::fusion::OrientationConfigBase']]],
+  ['mag_5fsoft_5firon_8',['mag_soft_iron',['../structmicrola_1_1fusion_1_1SensorCalibration.html#a35580ab9442577a554aaf29da694d261',1,'microla::fusion::SensorCalibration']]],
+  ['major_9',['major',['../structmicrola_1_1Version.html#a48e1183adc9c6dc7d8a3d6674589e11c',1,'microla::Version']]],
+  ['max_10',['max',['../structmicrola_1_1geometry_1_1AABB.html#aac2f56321a54d0744a0f3e3d72a85f19',1,'microla::geometry::AABB']]],
+  ['max_5falignment_5fhorizon_5fs_11',['max_alignment_horizon_s',['../structmicrola_1_1fusion_1_1RelativeAngleConfigBase.html#ab724bec058e1411bab878ef92eb641fd',1,'microla::fusion::RelativeAngleConfigBase']]],
+  ['max_5fdt_5fs_12',['max_dt_s',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#aaa194811ee1f77d3831ef2282d6bafc2',1,'microla::fusion::OrientationConfigBase']]],
+  ['max_5fpair_5fskew_5fs_13',['max_pair_skew_s',['../structmicrola_1_1fusion_1_1RelativeAngleConfigBase.html#acd7658737f7f5b48d6567c26319b968a',1,'microla::fusion::RelativeAngleConfigBase']]],
+  ['max_5fsample_5fage_5fs_14',['max_sample_age_s',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#ae5cdce76a544073273b61be3f2522091',1,'microla::fusion::OrientationConfigBase']]],
+  ['min_15',['min',['../structmicrola_1_1geometry_1_1AABB.html#a3c5dc541a82817e22b504496235742f3',1,'microla::geometry::AABB']]],
+  ['min_5fconfidence_5fto_5fpublish_16',['min_confidence_to_publish',['../structmicrola_1_1fusion_1_1RelativeAngleConfigBase.html#af24a1b2d7d2868351d3896c5dbfd7d04',1,'microla::fusion::RelativeAngleConfigBase']]],
+  ['min_5fdt_5fs_17',['min_dt_s',['../structmicrola_1_1fusion_1_1OrientationConfigBase.html#af1aeeddcd93476732d831a4f6e89c6fc',1,'microla::fusion::OrientationConfigBase']]],
+  ['minor_18',['minor',['../structmicrola_1_1Version.html#a8a7ea2e84f1cdba9358407751cd93b07',1,'microla::Version']]],
+  ['mode_19',['mode',['../structmicrola_1_1fusion_1_1ScalarAngleResult.html#ae7f80a3f0b1802c169f19657a4e1fcac',1,'microla::fusion::ScalarAngleResult']]]
+];

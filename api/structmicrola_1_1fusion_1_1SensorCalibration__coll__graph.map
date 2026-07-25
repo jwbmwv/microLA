@@ -1,0 +1,15 @@
+<map id="microla::fusion::SensorCalibration&lt; T &gt;" name="microla::fusion::SensorCalibration&lt; T &gt;">
+<area shape="rect" id="Node000001" title="Runtime calibration for one entity&#39;s sensor package." alt="" coords="159,240,439,265"/>
+<area shape="rect" id="Node000002" href="$classmicrola_1_1Quaternion.html" title=" " alt="" coords="7,93,196,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,129,146,172,165,195,188,214,213,228,241,237,239,242,211,232,185,218,162,199,141,176,112,132"/>
+<area shape="rect" id="Node000003" href="$classmicrola_1_1Quaternion.html" title="A quaternion class for 3D rotations, templated on type T." alt="" coords="5,5,195,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="103,45,104,93,98,93,98,45"/>
+<area shape="rect" id="Node000004" href="$classmicrola_1_1Vec.html" title=" " alt="" coords="221,93,377,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="301,133,301,240,296,240,296,133"/>
+<area shape="rect" id="Node000005" href="$classmicrola_1_1Vec.html" title=" " alt="" coords="219,5,378,31"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="301,45,301,93,296,93,296,45"/>
+<area shape="rect" id="Node000006" href="$classmicrola_1_1Mat.html" title=" " alt="" coords="402,93,577,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="474,131,434,174,381,218,334,242,331,237,379,214,430,170,470,128"/>
+<area shape="rect" id="Node000007" href="$classmicrola_1_1Mat.html" title="Generic matrix class template with fixed dimensions at compile time." alt="" coords="403,5,579,31"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="493,45,492,93,487,93,488,45"/>
+</map>

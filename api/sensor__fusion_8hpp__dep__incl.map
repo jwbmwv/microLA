@@ -1,0 +1,7 @@
+<map id="microla/sensor_fusion.hpp" name="microla/sensor_fusion.hpp">
+<area shape="rect" id="Node000001" title="Relative sensor&#45;fusion utilities for angle estimation between two entities." alt="" coords="5,5,199,31"/>
+<area shape="rect" id="Node000002" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="26,79,178,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,44,105,79,99,79,99,44"/>
+<area shape="rect" id="Node000003" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="20,152,184,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,118,105,152,99,152,99,118"/>
+</map>

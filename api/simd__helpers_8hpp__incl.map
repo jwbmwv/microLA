@@ -1,0 +1,15 @@
+<map id="microla/simd_helpers.hpp" name="microla/simd_helpers.hpp">
+<area shape="rect" id="Node000001" title="Small SIMD utility helpers used by view implementations." alt="" coords="88,5,279,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,76,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,33,77,75,75,70,159,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="101,79,167,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,33,152,69,148,66,173,29"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="191,79,277,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="194,29,220,66,216,69,190,33"/>
+<area shape="rect" id="Node000005" href="$compiler__features_8hpp.html" title="Compiler feature detection and cross&#45;version C++ feature macros." alt="" coords="301,79,469,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="217,28,340,71,338,77,215,33"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="287,152,379,177"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="378,106,351,142,347,139,374,103"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="403,152,470,177"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="395,103,422,139,418,142,391,106"/>
+</map>

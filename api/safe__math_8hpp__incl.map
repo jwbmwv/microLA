@@ -1,0 +1,19 @@
+<map id="microla/safe_math.hpp" name="microla/safe_math.hpp">
+<area shape="rect" id="Node000001" title="Safe math operations with optional bounds checking for safety&#45;critical systems." alt="" coords="212,5,384,31"/>
+<area shape="rect" id="Node000002" href="$compiler__features_8hpp.html" title="Compiler feature detection and cross&#45;version C++ feature macros." alt="" coords="24,79,192,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="269,33,153,76,151,71,267,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="6,152,98,177"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="212,28,153,35,94,46,44,61,26,70,14,80,8,94,11,110,32,141,27,144,6,112,3,94,10,77,23,66,42,56,93,41,152,30,212,23"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="130,152,197,177"/>
+<area shape="poly" id="edge8_Node000001_Node000004" title=" " alt="" coords="289,33,186,144,182,140,285,29"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="267,79,330,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="301,31,301,65,296,65,296,31"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="354,79,413,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="314,29,361,68,358,72,310,33"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="437,79,504,104"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="327,28,431,71,429,76,325,33"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="528,79,607,104"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="342,28,516,74,515,79,341,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="101,106,71,143,67,140,96,103"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="119,103,148,140,144,143,115,106"/>
+</map>

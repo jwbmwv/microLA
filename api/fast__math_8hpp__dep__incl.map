@@ -1,0 +1,7 @@
+<map id="microla/fast_math.hpp" name="microla/fast_math.hpp">
+<area shape="rect" id="Node000001" title="Fast approximations for common math functions." alt="" coords="5,5,175,31"/>
+<area shape="rect" id="Node000002" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="14,79,166,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,44,93,79,87,79,87,44"/>
+<area shape="rect" id="Node000003" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="8,152,172,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="93,118,93,152,87,152,87,118"/>
+</map>

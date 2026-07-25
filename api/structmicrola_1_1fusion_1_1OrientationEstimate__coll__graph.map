@@ -1,0 +1,7 @@
+<map id="microla::fusion::OrientationEstimate&lt; T &gt;" name="microla::fusion::OrientationEstimate&lt; T &gt;">
+<area shape="rect" id="Node000001" title="Per&#45;entity orientation estimate with quality and drift metadata." alt="" coords="5,181,205,221"/>
+<area shape="rect" id="Node000002" href="$classmicrola_1_1Quaternion.html" title=" " alt="" coords="11,93,200,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,132,108,181,103,181,103,132"/>
+<area shape="rect" id="Node000003" href="$classmicrola_1_1Quaternion.html" title="A quaternion class for 3D rotations, templated on type T." alt="" coords="11,5,200,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="108,45,108,93,103,93,103,45"/>
+</map>
