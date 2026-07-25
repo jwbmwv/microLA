@@ -832,10 +832,10 @@ using namespace microla;
 std::string version = get_version_string();  // "0.0.3"
 
 // Get numeric version
-uint32_t version_num = get_version_number(); // 2
+uint32_t version_num = get_version_number(); // 3
 
 // Check minimum version
-if (version_at_least(0, 0, 2)) {
+if (version_at_least(0, 0, 3)) {
     // Use library features
 }
 
@@ -848,9 +848,9 @@ if (version_at_least(0, 0, 2)) {
 // Compile-time version macros
 MICROLA_VERSION_MAJOR  // 0
 MICROLA_VERSION_MINOR  // 0
-MICROLA_VERSION_PATCH  // 2
+MICROLA_VERSION_PATCH  // 3
 MICROLA_VERSION_STRING // "0.0.3"
-MICROLA_VERSION_NUMBER // 2
+MICROLA_VERSION_NUMBER // 3
 
 ```
 
@@ -859,11 +859,11 @@ MICROLA_VERSION_NUMBER // 2
 ```cpp
 
 namespace microla {
-    struct Version {
-        static constexpr uint8_t major = 0;
-        static constexpr uint8_t minor = 0;
-        static constexpr uint8_t patch = 1;
-    };
+    const char* version = Version::string();  // "0.0.3"
+    int version_number = Version::number();   // 3
+    int major = Version::get_major();          // 0
+    int minor = Version::get_minor();          // 0
+    int patch = Version::get_patch();          // 3
 }
 
 ```

@@ -81,15 +81,19 @@ endif()
 # Optional NEON support (ARM Cortex-A, Apple Silicon, ARM64)
 option(MICROLA_ENABLE_NEON "Enable ARM NEON optimizations" OFF)
 if(MICROLA_ENABLE_NEON)
-    target_compile_definitions(microla INTERFACE CONFIG_MICROLA_NEON)
-    # Enable NEON on ARM platforms
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^[Aa][Rr][Mm]($|[Vv][0-9]+)")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^[Aa][Aa][Rr][Cc][Hh]64$" OR
+       CMAKE_SYSTEM_PROCESSOR MATCHES "^[Aa][Rr][Mm]64$")
+        target_compile_definitions(microla INTERFACE CONFIG_MICROLA_NEON)
+    elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "^[Aa][Rr][Mm]([Vv][0-9]+)?[A-Za-z0-9_-]*$")
+        target_compile_definitions(microla INTERFACE CONFIG_MICROLA_NEON)
         if(CMAKE_CXX_COMPILER_ID MATCHES "IAR")
             # IAR: NEON is typically enabled via project settings or --fpu=VFPv4_sp
             target_compile_options(microla INTERFACE --fpu=VFPv4_sp)
         else()
             target_compile_options(microla INTERFACE -mfpu=neon)
         endif()
+    else()
+        message(FATAL_ERROR "MICROLA_ENABLE_NEON requires a 32-bit Arm or AArch64 target")
     endif()
 endif()
 
