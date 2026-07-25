@@ -1,10 +1,7 @@
 # Test Status Report
 
-**Date:** March 29, 2026  
 **Primary Host Preset:** `host-tests`  
-**Total Tests:** 530  
-**Passing:** 530 (100%)  
-**Failing:** 0
+**Test Count:** Determined by the configured CTest preset
 
 ## Summary
 
@@ -12,7 +9,7 @@ MicroLA's current host-side Google Test surface is green in a clean C++20 build.
 
 The release-style CI preset extends that proof surface further:
 
-- `ci-release-cxx20`: `531/531` passing, including `sensor_fusion_example_smoke`
+- `ci-release-cxx20`: runs the host suite plus `sensor_fusion_example_smoke`
 
 ## Key Covered Areas
 

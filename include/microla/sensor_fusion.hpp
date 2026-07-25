@@ -130,12 +130,12 @@ inline void set_flag(StatusFlags& flags, StatusFlag flag) noexcept
     flags |= flag_mask(flag);
 }
 
-/// @brief Returns true when a float timestamp is old enough to cause microsecond-
-///        precision loss (~4.7 hours at 1 µs resolution).
-/// @details Single-precision floats have 24 mantissa bits, giving exact 1 µs
-///          representation only up to 2^24 µs ≈ 16 777 seconds ≈ 4.7 hours.
+/// @brief Returns true when a float timestamp is old enough to cause millisecond-
+///        precision loss (~4.7 hours at 1 ms resolution).
+/// @details Single-precision floats have 24 mantissa bits, giving exact integer
+///          millisecond representation only up to 2^24 ms ≈ 16 777 s ≈ 4.7 hours.
 ///          Once `timestamp_s` exceeds this threshold, consecutive samples that
-///          differ by 1 µs may produce dt = 0 inside the estimator, silently
+///          differ by 1 ms may produce dt = 0 inside the estimator, silently
 ///          stalling the fusion loop. Call this predicate periodically and reset
 ///          the timestamp origin (and call OrientationEstimator::reset()) when
 ///          it returns true.
@@ -145,13 +145,14 @@ template<typename T>
 constexpr auto timestamp_needs_reset(T timestamp_s) noexcept -> bool
 {
     static_assert(std::is_floating_point<T>::value, "timestamp_needs_reset requires a floating-point timestamp type");
-    // 2^24 seconds ≈ 16 777 216 s ≈ 4.655 hours — the last value a 32-bit float
-    // can represent with 1-second resolution (and thus ~microsecond precision at
-    // 1e6 samples/s).  For double the threshold is 2^53 s which is cosmological,
-    // so the check is meaningful only for float; for double we always return false.
+    // 2^24 ms ≈ 16 777 s ≈ 4.66 hours — the last timestamp a 32-bit float can
+    // represent with exact 1 ms resolution (24 mantissa bits allow exact integer
+    // millisecond values up to 2^24).  For double the threshold is 2^53 ms which
+    // is cosmological, so the check is meaningful only for float; for double we
+    // always return false.
     if constexpr (sizeof(T) == sizeof(float))
     {
-        constexpr T k_float_precision_cliff_s = static_cast<T>(1 << 24);  // 16 777 216 s
+        constexpr T k_float_precision_cliff_s = static_cast<T>(1 << 24) / static_cast<T>(1000);  // 16 777.216 s
         return timestamp_s >= k_float_precision_cliff_s;
     }
     return false;
@@ -159,7 +160,7 @@ constexpr auto timestamp_needs_reset(T timestamp_s) noexcept -> bool
 
 /// @brief Accelerometer-only sample.
 /// @details `timestamp_s` is in seconds and `accel` is expected in m/s^2 in the sensor frame.
-/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 μs).
+/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 ms).
 ///          For long-running systems, use double or implement timestamp wrapping/resetting.
 template<typename T>
 struct AccelSample
@@ -170,7 +171,7 @@ struct AccelSample
 
 /// @brief 6-axis IMU sample (gyro + accel).
 /// @details `timestamp_s` is in seconds, `gyro` is in rad/s, and `accel` is in m/s^2.
-/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 μs).
+/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 ms).
 ///          For long-running systems, use double or implement timestamp wrapping/resetting.
 template<typename T>
 struct Imu6Sample
@@ -183,7 +184,7 @@ struct Imu6Sample
 /// @brief 9-axis IMU sample (gyro + accel + mag).
 /// @details `timestamp_s` is in seconds, `gyro` is in rad/s, `accel` is in m/s^2, and `mag`
 ///          uses any consistent magnetic-field unit after calibration (for example uT).
-/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 μs).
+/// @warning When using float for timestamps, precision loss occurs after ~4.7 hours (2^24 ms).
 ///          For long-running systems, use double or implement timestamp wrapping/resetting.
 template<typename T>
 struct Imu9Sample
@@ -1122,6 +1123,11 @@ public:
         if (have_timestamp_) [[likely]]
         {
             dt = estimate_.timestamp_s - last_timestamp_s_;
+            if (dt < T(0)) [[unlikely]]
+            {
+                reject_current_sample(StatusFlag::sample_time_invalid);
+                return;
+            }
             if (dt < Config::min_dt_s) [[unlikely]]
             {
                 set_flag(estimate_.flags, StatusFlag::sample_time_invalid);
@@ -1185,6 +1191,22 @@ public:
         have_mag_reference_norm_ = false;
         last_body_rate_rad_per_s_ = Vec<T, 3>();
         can_predict_forward_ = false;
+    }
+
+    /// @brief Changes the timestamp origin without resetting orientation state.
+    /// @param timestamp_s Timestamp assigned to the current estimator state in seconds.
+    /// @return false when `timestamp_s` is not finite and no state was changed.
+    auto rebase_timestamp(T timestamp_s) noexcept -> bool
+    {
+        if (!std::isfinite(timestamp_s))
+        {
+            return false;
+        }
+
+        last_timestamp_s_ = timestamp_s;
+        have_timestamp_ = true;
+        estimate_.timestamp_s = timestamp_s;
+        return true;
     }
 
     /// @brief Sets runtime sensor calibration and resets estimator state.
@@ -1441,7 +1463,8 @@ private:
             return false;
         }
 
-        return detail::is_finite(mag) && std::sqrt(mag.length_squared()) > std::numeric_limits<T>::epsilon();
+        const T minimum_norm = std::numeric_limits<T>::epsilon();
+        return detail::is_finite(mag) && mag.length_squared() > minimum_norm * minimum_norm;
     }
 
     /// @brief Scores magnetic-field strength against the learned or configured reference norm.
@@ -1611,8 +1634,9 @@ private:
     {
         if (detail::is_finite(accel)) [[likely]]
         {
-            const T norm = std::sqrt(accel.length_squared());
-            return norm >= Config::accel_norm_min && norm <= Config::accel_norm_max;
+            const T norm_squared = accel.length_squared();
+            return norm_squared >= Config::accel_norm_min * Config::accel_norm_min &&
+                   norm_squared <= Config::accel_norm_max * Config::accel_norm_max;
         }
 
         return false;
@@ -1623,7 +1647,7 @@ private:
     {
         if (detail::is_finite(gyro)) [[likely]]
         {
-            return std::sqrt(gyro.length_squared()) <= Config::gyro_norm_max;
+            return gyro.length_squared() <= Config::gyro_norm_max * Config::gyro_norm_max;
         }
 
         return false;
@@ -1636,9 +1660,8 @@ private:
     auto is_stationary(const Vec<T, 3>& accel, const Vec<T, 3>& gyro) const noexcept -> bool
     {
         const T accel_norm = std::sqrt(accel.length_squared());
-        const T gyro_norm = std::sqrt(gyro.length_squared());
         return std::abs(accel_norm - Config::expected_gravity_norm) <= Config::stationary_accel_error_max &&
-               gyro_norm <= Config::stationary_gyro_norm_max;
+               gyro.length_squared() <= Config::stationary_gyro_norm_max * Config::stationary_gyro_norm_max;
     }
 
     /// @brief Initializes state from the first valid gravity or gravity-plus-magnetic measurement.
@@ -1784,12 +1807,12 @@ private:
         set_flag(estimate_.flags, StatusFlag::accel_rejected);
         if (detail::is_finite(accel))
         {
-            const T norm = std::sqrt(accel.length_squared());
-            if (norm < Config::accel_norm_min)
+            const T norm_squared = accel.length_squared();
+            if (norm_squared < Config::accel_norm_min * Config::accel_norm_min)
             {
                 set_flag(estimate_.flags, StatusFlag::freefall_detected);
             }
-            else if (norm > Config::accel_norm_max)
+            else if (norm_squared > Config::accel_norm_max * Config::accel_norm_max)
             {
                 set_flag(estimate_.flags, StatusFlag::high_linear_acceleration);
             }
@@ -1799,7 +1822,7 @@ private:
     /// @brief Sets `high_rotation_rate` when a gyro sample is rejected due to exceeding the norm gate.
     void flag_gyro_rejection(const Vec<T, 3>& gyro) noexcept
     {
-        if (detail::is_finite(gyro) && std::sqrt(gyro.length_squared()) > Config::gyro_norm_max)
+        if (detail::is_finite(gyro) && gyro.length_squared() > Config::gyro_norm_max * Config::gyro_norm_max)
         {
             set_flag(estimate_.flags, StatusFlag::high_rotation_rate);
         }
@@ -1988,21 +2011,30 @@ private:
 
             if (accel_valid && Config::enable_accel_correction)
             {
-                apply_vector_measurement_update(
-                    detail::normalized_or(accel, Config::world_gravity_direction()),
-                    detail::normalized_or(Config::world_gravity_direction(), Vec<T, 3>(T(0), T(0), T(-1))),
-                    Config::r_accel, Config::accel_nis_gate);
+                if (!apply_vector_measurement_update(
+                        detail::normalized_or(accel, Config::world_gravity_direction()),
+                        detail::normalized_or(Config::world_gravity_direction(), Vec<T, 3>(T(0), T(0), T(-1))),
+                        Config::r_accel, Config::accel_nis_gate))
+                {
+                    flag_accel_rejection(accel);
+                    last_accel_confidence_ = T(0);
+                }
             }
 
             if constexpr (Config::sensor_model == SensorModel::imu9)
             {
                 if (mag_valid && Config::enable_mag_correction)
                 {
-                    apply_vector_measurement_update(
+                    const bool mag_update_accepted = apply_vector_measurement_update(
                         detail::normalized_or(mag, Config::world_magnetic_reference()),
                         detail::normalized_or(Config::world_magnetic_reference(), Vec<T, 3>(T(1), T(0), T(0))),
                         Config::r_mag, Config::mag_nis_gate);
-                    update_heading_state(true, dt);
+                    if (!mag_update_accepted)
+                    {
+                        set_flag(estimate_.flags, StatusFlag::mag_rejected);
+                        last_mag_confidence_ = T(0);
+                    }
+                    update_heading_state(mag_update_accepted, dt);
                 }
                 else
                 {
@@ -2023,8 +2055,8 @@ private:
     }
 
     /// @brief Applies one vector measurement update to the MEKF state and covariance.
-    void apply_vector_measurement_update(const Vec<T, 3>& measured_body, const Vec<T, 3>& reference_world, T variance,
-                                         T nis_gate) noexcept
+    auto apply_vector_measurement_update(const Vec<T, 3>& measured_body, const Vec<T, 3>& reference_world, T variance,
+                                         T nis_gate) noexcept -> bool
     {
         const Vec<T, 3> predicted_body = orientation_.rotate_inverse(reference_world);
         const Vec<T, 3> residual = measured_body - predicted_body;
@@ -2044,14 +2076,14 @@ private:
         Mat<T, 3, 3> s_inv = Mat<T, 3, 3>::zero();
         if (!s.inverse(s_inv))
         {
-            return;
+            return false;
         }
 
         const Vec<T, 3> s_inv_residual = s_inv * residual;
         const T nis = residual.dot(s_inv_residual);
         if (nis > nis_gate)
         {
-            return;
+            return false;
         }
 
         const Mat<T, 6, 3> k = covariance_ * h.transpose() * s_inv;
@@ -2064,6 +2096,7 @@ private:
         const Mat<T, 6, 6> i = Mat<T, 6, 6>::identity();
         const Mat<T, 6, 6> ikh = i - k * h;
         covariance_ = ikh * covariance_ * ikh.transpose() + k * r * k.transpose();
+        return true;
     }
 
     /// @brief Derives the current observability class from initialization and heading state.
@@ -2155,14 +2188,25 @@ public:
         reference_valid_ = false;
     }
 
-    /// @brief Sets the left-entity runtime calibration.
-    void set_left_calibration(const SensorCalibration<T>& calibration) noexcept { left_.set_calibration(calibration); }
+    /// @brief Sets the left-entity runtime calibration and clears the captured reference pose.
+    void set_left_calibration(const SensorCalibration<T>& calibration) noexcept
+    {
+        left_.set_calibration(calibration);
+        clear_reference_pose();
+    }
 
-    /// @brief Sets the right-entity runtime calibration.
+    /// @brief Sets the right-entity runtime calibration and clears the captured reference pose.
     void set_right_calibration(const SensorCalibration<T>& calibration) noexcept
     {
         right_.set_calibration(calibration);
+        clear_reference_pose();
     }
+
+    /// @brief Changes the left timestamp origin without resetting orientation state.
+    auto rebase_left_timestamp(T timestamp_s) noexcept -> bool { return left_.rebase_timestamp(timestamp_s); }
+
+    /// @brief Changes the right timestamp origin without resetting orientation state.
+    auto rebase_right_timestamp(T timestamp_s) noexcept -> bool { return right_.rebase_timestamp(timestamp_s); }
 
     /// @brief Captures the current relative pose as the neutral reference.
     auto capture_reference_pose() noexcept -> bool
@@ -2345,6 +2389,8 @@ private:
             return result;
         }
 
+        result.primary.flags = result.left_entity.flags | result.right_entity.flags;
+
         if (!policy_is_valid(mode) || !frames_are_consistent(mode))
         {
             reject_invalid_configuration(result, detail::output_requires_heading(mode));
@@ -2382,33 +2428,41 @@ private:
         result.q_left_to_right = q_left_to_right;
         result.relative_euler_rad = q_left_to_right.to_euler();
 
-        const Vec<T, 3> left_down_world = left_orientation.rotate(LeftConfig::body_down_axis());
-        const Vec<T, 3> right_down_world = right_orientation.rotate(RightConfig::body_down_axis());
         const Vec<T, 3> world_up =
             detail::normalized_or(-LeftConfig::world_gravity_direction(), Vec<T, 3>(T(0), T(0), T(1)));
-
-        const Vec<T, 3> left_heading_world =
-            detail::project_onto_plane(left_orientation.rotate(LeftConfig::body_heading_axis()), world_up);
-        const Vec<T, 3> right_heading_world =
-            detail::project_onto_plane(right_orientation.rotate(RightConfig::body_heading_axis()), world_up);
+        const bool reference_applied = reference_valid_ && RelativeConfig::apply_reference_pose;
+        const Vec<T, 3> left_down =
+            reference_applied ? LeftConfig::body_down_axis() : left_orientation.rotate(LeftConfig::body_down_axis());
+        const Vec<T, 3> right_down = reference_applied ? q_left_to_right.rotate(RightConfig::body_down_axis())
+                                                       : right_orientation.rotate(RightConfig::body_down_axis());
+        const Vec<T, 3> heading_plane_normal = reference_applied ? -LeftConfig::body_down_axis() : world_up;
+        const Vec<T, 3> left_heading =
+            detail::project_onto_plane(reference_applied ? LeftConfig::body_heading_axis()
+                                                         : left_orientation.rotate(LeftConfig::body_heading_axis()),
+                                       heading_plane_normal);
+        const Vec<T, 3> right_heading =
+            detail::project_onto_plane(reference_applied ? q_left_to_right.rotate(RightConfig::body_heading_axis())
+                                                         : right_orientation.rotate(RightConfig::body_heading_axis()),
+                                       heading_plane_normal);
         Vec<T, 3> hinge_axis_left =
             detail::normalized_or(RelativeConfig::hinge_axis_left(), Vec<T, 3>(T(0), T(0), T(1)));
         const bool hinge_axes_consistent = resolve_hinge_axis_left(q_left_to_right, hinge_axis_left);
 
         result.shortest_3d_angle_rad = detail::shortest_angle_from_quaternion(q_left_to_right);
-        result.tilt_angle_rad = detail::normalized_or(left_down_world, LeftConfig::body_down_axis())
-                                    .angle(detail::normalized_or(right_down_world, RightConfig::body_down_axis()));
+        result.tilt_angle_rad = detail::normalized_or(left_down, LeftConfig::body_down_axis())
+                                    .angle(detail::normalized_or(right_down, RightConfig::body_down_axis()));
         result.heading_delta_rad =
-            (left_heading_world.length_squared() > std::numeric_limits<T>::epsilon() &&
-             right_heading_world.length_squared() > std::numeric_limits<T>::epsilon())
-                ? detail::normalized_or(left_heading_world, Vec<T, 3>(T(1), T(0), T(0)))
-                      .signed_angle(detail::normalized_or(right_heading_world, Vec<T, 3>(T(1), T(0), T(0))), world_up)
+            (left_heading.length_squared() > std::numeric_limits<T>::epsilon() &&
+             right_heading.length_squared() > std::numeric_limits<T>::epsilon())
+                ? detail::normalized_or(left_heading, Vec<T, 3>(T(1), T(0), T(0)))
+                      .signed_angle(detail::normalized_or(right_heading, Vec<T, 3>(T(1), T(0), T(0))),
+                                    heading_plane_normal)
                 : T(0);
         result.hinge_twist_rad = detail::twist_angle_about_axis(q_left_to_right, hinge_axis_left);
         result.swing_angle_rad = detail::swing_angle_about_axis(q_left_to_right, hinge_axis_left);
 
         if (detail::output_requires_heading(mode) &&
-            (!detail::is_usable_direction(left_heading_world) || !detail::is_usable_direction(right_heading_world)))
+            (!detail::is_usable_direction(left_heading) || !detail::is_usable_direction(right_heading)))
         {
             reject_invalid_configuration(result, true);
             return result;

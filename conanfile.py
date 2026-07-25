@@ -6,7 +6,7 @@ import os
 
 class MicroLAConan(ConanFile):
     name = "microla"
-    version = "1.0.0"
+    version = "0.0.3"
     license = "Apache-2.0"
     author = "James Baldwin"
     url = "https://github.com/jwbmwv/microla"

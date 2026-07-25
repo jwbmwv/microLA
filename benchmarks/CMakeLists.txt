@@ -4,20 +4,26 @@
 cmake_minimum_required(VERSION 3.13.1)
 project(microla_benchmarks CXX)
 
-# C++ Standard
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # Find MicroLA
 if(NOT TARGET microla)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_BINARY_DIR}/microla)
 endif()
 
-# Find Google Benchmark
-find_package(benchmark QUIET)
+# Build an immutable, Release-configured benchmark dependency instead of using
+# whatever binary package happens to be installed on the runner.
+include(FetchContent)
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    google_benchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG 344117638c8ff7e239044fd0fa7085839fc03021
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(google_benchmark)
 
-if(benchmark_FOUND)
-    # Matrix multiplication benchmark
+# Matrix multiplication benchmark
     add_executable(bench_matrix_multiply bench_matrix_multiply.cpp)
     target_link_libraries(bench_matrix_multiply
         PRIVATE
@@ -130,10 +136,4 @@ if(benchmark_FOUND)
             benchmark::benchmark_main
     )
 
-    message(STATUS "MicroLA benchmarks enabled")
-else()
-    message(STATUS "Google Benchmark not found. Benchmarks will not be built.")
-    message(STATUS "Install with: sudo apt install libbenchmark-dev (Ubuntu)")
-    message(STATUS "           or: brew install google-benchmark (macOS)")
-    message(STATUS "           or: vcpkg install benchmark (Windows)")
-endif()
+message(STATUS "MicroLA benchmarks enabled with Google Benchmark 1.8.3")

@@ -92,6 +92,21 @@ west flash
 west build -t run
 ```
 
+#### 4. For nRF52840-DK through Renode
+
+The CI runtime lane builds the same tests for `nrf52840dk/nrf52840` and runs the
+ELF against Renode's nRF52840 SoC model. It validates Cortex-M4F execution and
+UART test completion without claiming physical-board coverage.
+
+```bash
+west build -b nrf52840dk/nrf52840 -d build/zephyr-renode tests/zephyr
+```
+
+Use `tests/zephyr/support/nrf52840_headless.resc` as the headless Renode launcher
+template. Substitute `RENODE_ELF_PLACEHOLDER` and `RENODE_LOG_PLACEHOLDER` before
+invoking `renode --disable-xwt`; successful ztest output contains
+`PROJECT EXECUTION SUCCESSFUL`.
+
 ### Using Twister (Zephyr Test Runner)
 
 Twister is Zephyr's test runner that can execute tests across multiple platforms:
@@ -218,6 +233,7 @@ The tests are configured to run on:
 - **qemu_cortex_m3** - ARM Cortex-M3 emulation
 - **qemu_cortex_m0** - ARM Cortex-M0 emulation
 - **qemu_cortex_a53** - ARM Cortex-A53 emulation
+- **nrf52840dk/nrf52840** - Cortex-M4F nRF52840 SoC simulation through Renode
 - Any Zephyr-supported hardware board with sufficient resources
 
 ### Minimum Hardware Requirements

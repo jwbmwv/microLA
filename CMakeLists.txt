@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.13.1)
 
-project(microla VERSION 1.0.0 LANGUAGES CXX)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" MICROLA_VERSION)
+string(STRIP "${MICROLA_VERSION}" MICROLA_VERSION)
+
+project(microla VERSION ${MICROLA_VERSION} LANGUAGES CXX)
 
 # Interface library (header-only)
 add_library(microla INTERFACE)
@@ -80,7 +83,7 @@ option(MICROLA_ENABLE_NEON "Enable ARM NEON optimizations" OFF)
 if(MICROLA_ENABLE_NEON)
     target_compile_definitions(microla INTERFACE CONFIG_MICROLA_NEON)
     # Enable NEON on ARM platforms
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64)")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^[Aa][Rr][Mm]($|[Vv][0-9]+)")
         if(CMAKE_CXX_COMPILER_ID MATCHES "IAR")
             # IAR: NEON is typically enabled via project settings or --fpu=VFPv4_sp
             target_compile_options(microla INTERFACE --fpu=VFPv4_sp)
@@ -120,6 +123,43 @@ endif()
 option(MICROLA_LINEAR_BUILD_BENCHMARKS "Build benchmark programs" OFF)
 if(MICROLA_LINEAR_BUILD_BENCHMARKS)
     add_subdirectory(benchmarks)
+endif()
+
+# Optional: compile representative embedded workloads without a board linker script.
+option(MICROLA_LINEAR_BUILD_TARGET_SMOKE "Build target compile-only resource smoke test" OFF)
+if(MICROLA_LINEAR_BUILD_TARGET_SMOKE)
+    add_library(microla_target_smoke OBJECT tools/target_smoke.cpp)
+    target_link_libraries(microla_target_smoke PRIVATE microla)
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(microla_target_smoke PRIVATE -fstack-usage -ffunction-sections -fdata-sections)
+    endif()
+
+    set(MICROLA_SIZE_TOOL "" CACHE FILEPATH "Size-reporting tool for target resource smoke tests")
+    if(NOT MICROLA_SIZE_TOOL)
+        find_program(MICROLA_SIZE_TOOL_PATH NAMES arm-none-eabi-size size)
+        if(NOT MICROLA_SIZE_TOOL_PATH)
+            message(FATAL_ERROR "No size-reporting tool found for target resource smoke tests")
+        endif()
+        set(MICROLA_SIZE_TOOL "${MICROLA_SIZE_TOOL_PATH}" CACHE FILEPATH
+            "Size-reporting tool for target resource smoke tests" FORCE)
+    endif()
+
+    add_custom_target(microla_target_resource_report
+        COMMAND ${CMAKE_COMMAND} -E env "MICROLA_SIZE_TOOL=${MICROLA_SIZE_TOOL}"
+            bash ${CMAKE_CURRENT_SOURCE_DIR}/scripts/report_target_resources.sh ${CMAKE_BINARY_DIR}
+        DEPENDS microla_target_smoke
+        COMMENT "Reporting compile-only target object size and stack usage"
+        VERBATIM
+    )
+endif()
+
+# Optional: print ABI-specific persistent-state sizes for resource planning.
+option(MICROLA_LINEAR_BUILD_RESOURCE_PLAN "Build the sensor-fusion resource planning probe" OFF)
+if(MICROLA_LINEAR_BUILD_RESOURCE_PLAN)
+    add_executable(microla_resource_plan tools/resource_plan.cpp)
+    target_link_libraries(microla_resource_plan PRIVATE microla)
+    target_compile_features(microla_resource_plan PRIVATE cxx_std_20)
 endif()
 
 # Optional: Build documentation

@@ -34,16 +34,10 @@ using namespace microla;
 ### Option 2: Modular Includes (Recommended for Faster Compilation)
 
 ```cpp
-// Base templates
+// Vectors, aliases, and vector operations
 #include <microla/constants.hpp>     // Mathematical constants (can be used standalone)
-#include <microla/vector.hpp>        // Generic Vec<T,N> template
-#include <microla/matrix.hpp>        // Generic Mat<T,R,C> and SquareMat<T,N>
-
-// Dimension-specific headers
-#include <microla/vec2D.hpp>         // Vec2f, Vec2d type aliases
-#include <microla/vec3D.hpp>         // Vec3f, Vec3d type aliases
-#include <microla/matrix2D.hpp>      // 2D transformations (rotation, scale)
-#include <microla/matrix3D.hpp>      // 3D/4D transformations (rotations, look-at, etc.)
+#include <microla/vector.hpp>        // Vec<T,N> plus Vec2f, Vec3f, and Vec4f aliases
+#include <microla/matrix.hpp>        // Mat<T,R,C>, SquareMat<T,N>, aliases, and transformations
 
 // Other components
 #include <microla/quaternion.hpp>
@@ -57,12 +51,8 @@ using namespace microla;
 - **compiler_features.hpp** - C++ feature detection macros (MICROLA_CONSTEXPR, MICROLA_NODISCARD, MICROLA_BIT_CAST, etc.) - **independent**, provides centralized feature detection
 - **microla.hpp** - Convenience header that includes all components and utility functions
 - **constants.hpp** - Mathematical constants (pi, e, sqrt2, golden_ratio, etc.) with C++20-C++26 optimizations - **independent**, can be used standalone
-- **vector.hpp** - Generic `Vec<T,N>` template with all vector operations
-- **vec2D.hpp** - 2D vector type aliases (`Vec2<T>`, `Vec2f`, `Vec2d`, `Vec2i`, `Vec2u`)
-- **vec3D.hpp** - 3D vector type aliases (`Vec3<T>`, `Vec3f`, `Vec3d`, `Vec3i`, `Vec3u`)
-- **matrix.hpp** - Generic `Mat<T,R,C>` and `SquareMat<T,N>` templates
-- **matrix2D.hpp** - 2D transformation matrices (`SquareMat<T,2>` specializations)
-- **matrix3D.hpp** - 3D/4D transformation matrices (`SquareMat<T,3>` and `SquareMat<T,4>` specializations)
+- **vector.hpp** - Generic `Vec<T,N>` template, vector operations, and fixed-size aliases such as `Vec2f` and `Vec3f`
+- **matrix.hpp** - Generic `Mat<T,R,C>` and `SquareMat<T,N>` templates, fixed-size aliases, and transformation helpers
 - **quaternion.hpp** - Quaternion rotations
 - **version.hpp** - Runtime version API
 
@@ -839,13 +829,13 @@ The version API allows runtime version checking and compatibility verification.
 using namespace microla;
 
 // Get version string
-std::string version = get_version_string();  // "0.0.2"
+std::string version = get_version_string();  // "0.0.3"
 
 // Get numeric version
-uint32_t version_num = get_version_number(); // 1
+uint32_t version_num = get_version_number(); // 2
 
 // Check minimum version
-if (version_at_least(0, 0, 1)) {
+if (version_at_least(0, 0, 2)) {
     // Use library features
 }
 
@@ -858,9 +848,9 @@ if (version_at_least(0, 0, 1)) {
 // Compile-time version macros
 MICROLA_VERSION_MAJOR  // 0
 MICROLA_VERSION_MINOR  // 0
-MICROLA_VERSION_PATCH  // 1
-MICROLA_VERSION_STRING // "0.0.2"
-MICROLA_VERSION_NUMBER // 1
+MICROLA_VERSION_PATCH  // 2
+MICROLA_VERSION_STRING // "0.0.3"
+MICROLA_VERSION_NUMBER // 2
 
 ```
 
@@ -1230,7 +1220,7 @@ For IAR-specific integration instructions, see [IAR Integration Guide](IAR_Integ
 
 ## Version
 
-Current Version: **0.0.2**
+Current Version: **0.0.3**
 Check runtime version: `microla::get_version_string()`
 
 ## License

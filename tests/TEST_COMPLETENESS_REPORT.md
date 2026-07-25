@@ -1,12 +1,11 @@
 # Test Coverage Evaluation Report
 
-**Date:** March 29, 2026  
-**Host Test Count:** 530  
+**Test Count:** Determined by the configured CTest preset
 **Scope:** Host-side Google Test coverage for the shipped C++20 library sources, plus CI-adjacent smoke checks for maintained examples and diagrams.
 
 ## Executive Summary
 
-MicroLA currently has broad automated coverage across the shipped library headers and example surface. The core host-side test preset now passes with 530 tests in the dedicated host configuration, while the release-style C++20 preset adds the maintained `sensor_fusion` example smoke test for 531 passing checks.
+MicroLA currently has broad automated coverage across the shipped library headers and example surface. The core host-side test preset runs the dedicated Google Test and embedded-contract suites, while the release-style C++20 preset additionally executes the maintained `sensor_fusion` example smoke test. Use `ctest --preset host-tests -N` to inspect the configured test count.
 
 That means the project is no longer relying only on unit coverage for the new fusion API. The public `sensor_fusion.hpp` surface is covered by direct unit tests, the maintained example is executed in CI-equivalent release presets, and the updated estimator paths were rerun through the host, embedded, coverage, sanitizer, and constexpr Linux presets.
 

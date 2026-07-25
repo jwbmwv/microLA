@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: Apache-2.0
+
+:name: MicroLA nRF52840 ztest
+:description: Runs the MicroLA Zephyr ztest suite on an nRF52840 SoC model.
+
+$elf?=@RENODE_ELF_PLACEHOLDER
+$log?=@RENODE_LOG_PLACEHOLDER
+
+using sysbus
+
+mach create
+machine LoadPlatformDescription @platforms/cpus/nrf52840.repl
+
+uart0 CreateFileBackend $log true
+
+macro reset
+"""
+    sysbus LoadELF $elf
+"""
+runMacro $reset
+start
+sleep 150
+quit

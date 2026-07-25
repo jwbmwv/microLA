@@ -46,3 +46,26 @@ tests:
       - native_sim
     min_ram: 32
     min_flash: 64
+
+  libraries.microla.renode_nrf52840:
+    platform_allow:
+      - nrf52840dk/nrf52840
+    tags:
+      - library
+      - math
+      - microla
+      - renode
+    harness: console
+    harness_config:
+      type: multi_line
+      ordered: false
+      regex:
+        - "TESTSUITE microla_vector"
+        - "TESTSUITE microla_matrix"
+        - "TESTSUITE microla_quaternion"
+        - "TESTSUITE microla_integration"
+        - "PROJECT EXECUTION SUCCESSFUL"
+    integration_platforms:
+      - nrf52840dk/nrf52840
+    min_ram: 64
+    min_flash: 256

@@ -151,7 +151,7 @@ class MyClass {
 };
 
 // source.cpp
-#include <microla/vec3D.hpp>
+#include <microla/vector.hpp>
 // Implementation here
 ```
 
@@ -162,8 +162,8 @@ class MyClass {
 // ❌ #include <microla/microla.hpp>
 
 // ✅ Include only what you need
-#include <microla/vec3D.hpp>
-#include <microla/matrix3D.hpp>
+#include <microla/vector.hpp>
+#include <microla/matrix.hpp>
 ```
 
 3. **Use precompiled headers** (CMake):
@@ -750,7 +750,7 @@ If you're still stuck:
 ### Bug Report Template
 
 ```markdown
-**MicroLA Version**: 0.0.2
+**MicroLA Version**: 0.0.3
 **Compiler**: GCC 11.4 / MSVC 19.35 / Clang 14.0
 **Platform**: x86-64 / ARM Cortex-A72 / STM32F4
 **Build**: Debug / Release
@@ -781,4 +781,4 @@ int main() {
 ---
 
 **Date**: May 31, 2026
-**MicroLA Version**: 0.0.2
+**MicroLA Version**: 0.0.3

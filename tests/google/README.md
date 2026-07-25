@@ -115,7 +115,7 @@ Run with verbose output:
 
 ## Test Coverage
 
-The current host-side validation surface is anchored by the `host-tests` preset, which now passes **530/530** tests in a clean C++20 build.
+The current host-side validation surface is anchored by the `host-tests` preset. Run `ctest --preset host-tests` after configuring the preset; use `ctest --preset host-tests -N` to inspect its current registered test count.
 
 That host surface covers:
 

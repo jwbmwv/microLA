@@ -108,6 +108,19 @@
       }
     },
     {
+      "name": "resource-plan",
+      "displayName": "Sensor-Fusion Resource Plan",
+      "description": "Build the ABI-specific sensor-fusion persistent-state sizing probe",
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF",
+        "MICROLA_LINEAR_BUILD_RESOURCE_PLAN": "ON"
+      }
+    },
+    {
       "name": "coverage-ci",
       "displayName": "Coverage CI",
       "description": "Coverage-instrumented test build for CI",
@@ -123,14 +136,14 @@
     {
       "name": "sanitizers-ci",
       "displayName": "Sanitizers CI",
-      "description": "ASan and UBSan build for CI",
+      "description": "ASan, UBSan, and alignment-sanitized build for CI",
       "inherits": "default",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "MICROLA_LINEAR_BUILD_TESTS": "ON",
         "MICROLA_LINEAR_BUILD_EXAMPLES": "OFF",
         "MICROLA_LINEAR_BUILD_BENCHMARKS": "ON",
-        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer"
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined,alignment -fno-omit-frame-pointer"
       }
     },
     {
@@ -199,6 +212,96 @@
       }
     },
     {
+      "name": "arm-cortex-m0plus-compile",
+      "displayName": "Arm Cortex-M0+ Compile Smoke",
+      "description": "Compile representative embedded workloads for Cortex-M0+ without linking firmware",
+      "inherits": "default",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF",
+        "MICROLA_LINEAR_BUILD_TARGET_SMOKE": "ON",
+        "CMAKE_CXX_FLAGS": "-mcpu=cortex-m0plus -mthumb -mfloat-abi=soft"
+      }
+    },
+    {
+      "name": "arm-cortex-m3-compile",
+      "displayName": "Arm Cortex-M3 Compile Smoke",
+      "description": "Compile representative embedded workloads for Cortex-M3 without linking firmware",
+      "inherits": "default",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF",
+        "MICROLA_LINEAR_BUILD_TARGET_SMOKE": "ON",
+        "CMAKE_CXX_FLAGS": "-mcpu=cortex-m3 -mthumb -mfloat-abi=soft"
+      }
+    },
+    {
+      "name": "arm-cortex-m4f-compile",
+      "displayName": "Arm Cortex-M4F Compile Smoke",
+      "description": "Compile representative embedded workloads for Cortex-M4F without linking firmware",
+      "inherits": "default",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF",
+        "MICROLA_LINEAR_BUILD_TARGET_SMOKE": "ON",
+        "CMAKE_CXX_FLAGS": "-mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard"
+      }
+    },
+    {
+      "name": "arm-cortex-m7f-compile",
+      "displayName": "Arm Cortex-M7F Compile Smoke",
+      "description": "Compile representative embedded workloads for Cortex-M7F without linking firmware",
+      "inherits": "default",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF",
+        "MICROLA_LINEAR_BUILD_TARGET_SMOKE": "ON",
+        "CMAKE_CXX_FLAGS": "-mcpu=cortex-m7 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard"
+      }
+    },
+    {
+      "name": "aarch64-compile",
+      "displayName": "AArch64 Compile Smoke",
+      "description": "Compile representative embedded workloads for AArch64 without linking firmware",
+      "inherits": "default",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/aarch64-linux-gnu.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF",
+        "MICROLA_LINEAR_BUILD_TARGET_SMOKE": "ON",
+        "CMAKE_CXX_FLAGS": "-march=armv8-a"
+      }
+    },
+    {
+      "name": "riscv64-compile",
+      "displayName": "RISC-V RV64GC Compile Smoke",
+      "description": "Compile representative embedded workloads for RV64GC without linking firmware",
+      "inherits": "default",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/riscv64-linux-gnu.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel",
+        "MICROLA_EMBEDDED": "ON",
+        "MICROLA_USE_LONG_DOUBLE_INTERMEDIATES": "OFF",
+        "MICROLA_AUTODETECT_SIMD": "OFF",
+        "MICROLA_LINEAR_BUILD_TARGET_SMOKE": "ON",
+        "CMAKE_CXX_FLAGS": "-march=rv64gc -mabi=lp64d"
+      }
+    },
+    {
       "name": "windows-debug",
       "displayName": "Windows Debug (MSVC)",
       "description": "Debug build for Windows with MSVC",
@@ -262,6 +365,69 @@
       "configurePreset": "embedded-tests",
       "displayName": "Build Embedded Tests",
       "description": "Build the host-side test suite with MICROLA_EMBEDDED enabled"
+    },
+    {
+      "name": "resource-plan",
+      "configurePreset": "resource-plan",
+      "displayName": "Build Sensor-Fusion Resource Plan",
+      "description": "Build the ABI-specific sensor-fusion persistent-state sizing probe",
+      "targets": [
+        "microla_resource_plan"
+      ]
+    },
+    {
+      "name": "arm-cortex-m0plus-compile",
+      "configurePreset": "arm-cortex-m0plus-compile",
+      "displayName": "Build Arm Cortex-M0+ Compile Smoke",
+      "description": "Compile representative Cortex-M0+ workloads and report object size and stack usage",
+      "targets": [
+        "microla_target_resource_report"
+      ]
+    },
+    {
+      "name": "arm-cortex-m3-compile",
+      "configurePreset": "arm-cortex-m3-compile",
+      "displayName": "Build Arm Cortex-M3 Compile Smoke",
+      "description": "Compile representative Cortex-M3 workloads and report object size and stack usage",
+      "targets": [
+        "microla_target_resource_report"
+      ]
+    },
+    {
+      "name": "arm-cortex-m4f-compile",
+      "configurePreset": "arm-cortex-m4f-compile",
+      "displayName": "Build Arm Cortex-M4F Compile Smoke",
+      "description": "Compile representative Cortex-M4F workloads and report object size and stack usage",
+      "targets": [
+        "microla_target_resource_report"
+      ]
+    },
+    {
+      "name": "arm-cortex-m7f-compile",
+      "configurePreset": "arm-cortex-m7f-compile",
+      "displayName": "Build Arm Cortex-M7F Compile Smoke",
+      "description": "Compile representative Cortex-M7F workloads and report object size and stack usage",
+      "targets": [
+        "microla_target_resource_report"
+      ]
+    },
+    {
+      "name": "aarch64-compile",
+      "configurePreset": "aarch64-compile",
+      "displayName": "Build AArch64 Compile Smoke",
+      "description": "Compile representative AArch64 workloads and report object size and stack usage",
+      "targets": [
+        "microla_target_resource_report"
+      ]
+    },
+    {
+      "name": "riscv64-compile",
+      "configurePreset": "riscv64-compile",
+      "displayName": "Build RISC-V RV64GC Compile Smoke",
+      "description": "Compile representative RV64GC workloads and report object size and stack usage",
+      "targets": [
+        "microla_target_resource_report"
+      ]
     },
     {
       "name": "coverage-ci",

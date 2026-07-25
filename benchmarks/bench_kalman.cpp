@@ -27,7 +27,7 @@ static void bm_kalman_4_d_2_meas(benchmark::State& state)
         z[0] = 1.0F;
         z[1] = 0.5F;
         kf.update(z);
-        benchmark::DoNotOptimize(kf.get_state());
+        benchmark::DoNotOptimize(kf);
     }
 }
 BENCHMARK(bm_kalman_4_d_2_meas)->Unit(benchmark::kMicrosecond);

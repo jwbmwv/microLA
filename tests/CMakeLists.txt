@@ -19,7 +19,7 @@ endif()
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG main
+    GIT_TAG b78aa5ee64be299ae50932e7b4d7e5d7b89a72f6
 )
 FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
@@ -49,6 +49,7 @@ file(GLOB_RECURSE TEST_SOURCES
     "google/test_traits_and_constexpr.cpp"
     "google/test_coverage_gaps.cpp"
     "google/test_sensor_fusion.cpp"
+    "google/test_sensor_fusion_trace_replay.cpp"
 )
 
 set(EMBEDDED_CONTRACT_TEST_SOURCES

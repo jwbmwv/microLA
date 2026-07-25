@@ -113,6 +113,51 @@ jobs:
         run: ctest --preset ci-release-cxx20
         shell: bash
 
+  arm-target-compile:
+    name: Arm target compile - ${{ matrix.preset }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - preset: arm-cortex-m0plus-compile
+            toolchain_package: gcc-arm-none-eabi
+          - preset: arm-cortex-m3-compile
+            toolchain_package: gcc-arm-none-eabi
+          - preset: arm-cortex-m4f-compile
+            toolchain_package: gcc-arm-none-eabi
+          - preset: arm-cortex-m7f-compile
+            toolchain_package: gcc-arm-none-eabi
+          - preset: aarch64-compile
+            toolchain_package: g++-aarch64-linux-gnu
+          - preset: riscv64-compile
+            toolchain_package: g++-riscv64-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Arm GNU toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build ${{ matrix.toolchain_package }}
+
+      - name: Configure target smoke
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Compile target smoke and report static resources
+        run: cmake --build --preset ${{ matrix.preset }} --parallel 2
+
+      - name: Upload target resource report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.preset }}-resources
+          path: |
+            build/${{ matrix.preset }}/microla-target-resource-report.txt
+            build/${{ matrix.preset }}/CMakeFiles/microla_target_smoke.dir/**/*.su
+          if-no-files-found: warn
+          retention-days: 30
+
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
@@ -157,7 +202,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   sanitizers:
-    name: Sanitizers (ASan + UBSan)
+    name: Sanitizers (ASan + UBSan + alignment)
     runs-on: ubuntu-latest
 
     steps:
@@ -302,6 +347,93 @@ jobs:
         with:
           name: zephyr-test-results
           path: tests/zephyr/twister-out/
+          retention-days: 30
+
+  zephyr-renode-nrf52840:
+    name: Zephyr Renode nRF52840 Runtime Tests
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            git cmake ninja-build gperf ccache dfu-util \
+            device-tree-compiler wget python3-dev python3-pip \
+            python3-setuptools python3-tk python3-wheel xz-utils file \
+            make gcc gcc-multilib g++-multilib libsdl2-dev libmagic1
+
+      - name: Install West and Python dependencies
+        run: |
+          pip3 install --user -U west
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Set up Zephyr workspace
+        run: |
+          west init -l .
+          west update --narrow -o=--depth=1
+          west zephyr-export
+
+      - name: Install Zephyr SDK
+        run: |
+          cd ~
+          wget -q https://github.com/zephyrproject-rtos/sdk-ng/releases/download/v0.17.0/zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
+          tar xf zephyr-sdk-0.17.0_linux-x86_64_minimal.tar.xz
+          cd zephyr-sdk-0.17.0
+          ./setup.sh -t arm-zephyr-eabi -h -c
+
+      - name: Install Zephyr Python requirements
+        run: |
+          pip3 install --user -r zephyr-rtos/scripts/requirements.txt
+
+      - name: Install Renode
+        run: |
+          wget -q https://github.com/renode/renode/releases/download/v1.16.1/renode-1.16.1.linux-portable.tar.gz
+          tar xf renode-1.16.1.linux-portable.tar.gz
+          echo "$PWD/renode_1.16.1_portable" >> $GITHUB_PATH
+
+      - name: Build nRF52840 Zephyr test image
+        run: |
+          export ZEPHYR_SDK_INSTALL_DIR="$HOME/zephyr-sdk-0.17.0"
+          west build -b nrf52840dk/nrf52840 tests/zephyr -d build/zephyr-renode
+
+      - name: Run nRF52840 test image in Renode
+        run: |
+          set -euo pipefail
+          elf="$GITHUB_WORKSPACE/build/zephyr-renode/zephyr/zephyr.elf"
+          uart_log="$RUNNER_TEMP/microla-renode-uart.log"
+          resc="$RUNNER_TEMP/microla-renode.resc"
+          test -f "$elf"
+          sed \
+            -e "s|RENODE_ELF_PLACEHOLDER|$elf|g" \
+            -e "s|RENODE_LOG_PLACEHOLDER|$uart_log|g" \
+            tests/zephyr/support/nrf52840_headless.resc > "$resc"
+          set +e
+          timeout 180 renode --disable-xwt "$resc" > "$RUNNER_TEMP/microla-renode-console.log" 2>&1
+          renode_status=$?
+          set -e
+          if [[ "$renode_status" -eq 124 ]]; then
+            echo "Renode exceeded the 180-second execution limit" >&2
+            exit 1
+          fi
+          if [[ "$renode_status" -ne 0 && "$renode_status" -ne 1 ]]; then
+            echo "Renode exited with status $renode_status" >&2
+            exit "$renode_status"
+          fi
+          cat "$uart_log"
+          grep -q "PROJECT EXECUTION SUCCESSFUL" "$uart_log"
+
+      - name: Upload Renode logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zephyr-renode-nrf52840-results
+          path: |
+            ${{ runner.temp }}/microla-renode-console.log
+            ${{ runner.temp }}/microla-renode-uart.log
+          if-no-files-found: warn
           retention-days: 30
 
   static-analysis:
@@ -453,7 +585,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++ python3 python3-pip libbenchmark-dev
+          sudo apt-get install -y cmake ninja-build g++ python3 python3-pip
           pip3 install pandas
 
       - name: Build Benchmarks
@@ -464,15 +596,15 @@ jobs:
       - name: Run Benchmarks
         run: |
           cd build/benchmark-ci/benchmarks
-          ./bench_matrix_multiply --benchmark_format=json > bench_matrix_multiply.json || true
-          ./bench_vector_ops --benchmark_format=json > bench_vector_ops.json || true
-          ./bench_simd --benchmark_format=json > bench_simd.json || true
-          ./bench_constexpr --benchmark_format=json > bench_constexpr.json || true
-          ./bench_quaternion --benchmark_format=json > bench_quaternion.json || true
-          ./bench_algorithms --benchmark_format=json > bench_algorithms.json || true
-          ./bench_geometry --benchmark_format=json > bench_geometry.json || true
-          ./bench_large_matrices --benchmark_format=json > bench_large_matrices.json || true
-          ./bench_sensor_fusion --benchmark_format=json > bench_sensor_fusion.json || true
+          ./bench_matrix_multiply --benchmark_format=json > bench_matrix_multiply.json
+          ./bench_vector_ops --benchmark_format=json > bench_vector_ops.json
+          ./bench_simd --benchmark_format=json > bench_simd.json
+          ./bench_constexpr --benchmark_format=json > bench_constexpr.json
+          ./bench_quaternion --benchmark_format=json > bench_quaternion.json
+          ./bench_algorithms --benchmark_format=json > bench_algorithms.json
+          ./bench_geometry --benchmark_format=json > bench_geometry.json
+          ./bench_large_matrices --benchmark_format=json > bench_large_matrices.json
+          ./bench_sensor_fusion --benchmark_format=json > bench_sensor_fusion.json
 
           python3 << 'EOF'
           import json

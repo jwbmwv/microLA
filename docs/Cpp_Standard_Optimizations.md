@@ -386,7 +386,7 @@ constexpr auto transform = Mat<float, 3, 3>::rotation_y(deg_to_rad(37.5f));
 - Smaller code (no trig library calls)
 - Guaranteed compile-time correctness
 
-**Library Support:** MicroLA 0.0.2 is ready - trig-dependent APIs (rotation, norm, and Euler-angle helpers) automatically become `constexpr` when compiled with C++26
+**Library Support:** MicroLA 0.0.3 is ready - trig-dependent APIs (rotation, norm, and Euler-angle helpers) automatically become `constexpr` when compiled with C++26
 
 #### Compile-Time Rotation: Version Comparison
 
@@ -513,4 +513,4 @@ const auto R = Mat<float, 3, 3>::rotation_z(1.234f);
 ---
 
 **Date**: May 31, 2026
-**MicroLA Version**: 0.0.2
+**MicroLA Version**: 0.0.3

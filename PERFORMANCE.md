@@ -1,38 +1,35 @@
-# MicroLA Performance Benchmarks
+# MicroLA Benchmarking
 
-Comprehensive performance analysis of MicroLA showing production-ready performance across platforms, build configurations, and algorithm complexity. The current Linux CI-equivalent validation remains green, including the release, host, embedded, sanitizer, and constexpr lanes.
+Performance is workload, toolchain, optimization, and target dependent. The supported release evidence is generated from the repository's pinned Google Benchmark dependency and retained with its environment metadata; it does not make universal speed or cross-library leadership claims.
 
-## Executive Summary
+## Reproducible Host Benchmarks
 
-MicroLA achieves **competitive performance** with established libraries while maintaining:
-- ✅ **Current Linux CI-equivalent test lanes green** (`host-tests` 517/517, `ci-release-cxx17` 518/518, `ci-release-cxx20` 519/519)
-- ✅ **Numerically stable algorithms** (QR decomposition, eigenvalues)
-- ✅ **Header-only simplicity** (no linking, easy integration)
-- ✅ **C++17-26 compatibility** (works on modern toolchains)
-- ✅ **Platform-optimized SIMD** (NEON, SSE, AVX2, RISC-V V extensions)
+The `benchmark-ci` preset builds Google Benchmark 1.8.3 from immutable revision
+`344117638c8ff7e239044fd0fa7085839fc03021` in the selected Release configuration.
 
-**Performance Highlights:**
-- **NEON dominance**: Fastest cross product (1.7ns), normalize (7.6ns), dot (2.4ns)
-- **AVX2 competitiveness**: Within 5% of best performers
-- **Embedded-friendly**: Runs on Cortex-M4F with FPU
-- **Cache-efficient**: Header-only with inline functions enables LTO
+```bash
+cmake --preset benchmark-ci
+cmake --build --preset benchmark-ci
+./build/benchmark-ci/benchmarks/bench_sensor_fusion --benchmark_filter='bm_sensor_fusion_.*'
+```
 
-## Test Environment
+For developer-specific native tuning, use the `benchmark` preset. Record the target CPU or MCU, clock policy, compiler and version, optimization flags, enabled SIMD backend, and raw JSON output with every comparison.
 
-- **Hardware**:
-  - x86-64: AMD Ryzen 7 5800X @ 3.8GHz (AVX2), Intel i7-12700K @ 3.6GHz (AVX2)
-  - ARM: Cortex-A72 (Raspberry Pi 4) @ 1.5GHz (NEON), Cortex-A53 @ 1.2GHz (NEON)
-  - Embedded: Cortex-M7 (STM32H7) @ 480MHz (FPU+CMSIS-DSP), Cortex-M4F (STM32F4) @ 168MHz (FPU+CMSIS-DSP)
-- **Compiler**: GCC 13.2, Clang 17.0, MSVC 19.38, ARM GCC 12.3
-- **Build**: Release (-O3 / /O2), C++17, LTO enabled
-- **Benchmark Tool**: Google Benchmark 1.8.3
-- **Test Status**: current Linux validation lanes passing (see `tests/TEST_COVERAGE.md`)
-- **Libraries Compared**:
-  - Eigen 3.4.0 (expression templates, SIMD)
-  - GLM 0.9.9.8 (graphics-oriented)
-  - Blaze 3.8.2 (expression templates, BLAS)
-  - DirectXMath (Windows x64, Microsoft)
-  - MathFu (Google, mobile-optimized)
+## Compile-Only Target Resources
+
+The Arm target presets compile representative Mahony and MEKF sensor-fusion update paths without a board linker script. They emit object section sizes and GCC `.su` stack-usage reports; these are static library-workload inputs, not flash, RAM, interrupt latency, or WCET guarantees for a complete firmware image.
+
+```bash
+cmake --preset arm-cortex-m4f-compile
+cmake --build --preset arm-cortex-m4f-compile
+cat build/arm-cortex-m4f-compile/microla-target-resource-report.txt
+```
+
+Use the same procedure for `arm-cortex-m0plus-compile`, `arm-cortex-m3-compile`, and `arm-cortex-m7f-compile`. Review the MEKF report separately from Mahony before selecting it for a constrained MCU.
+
+## Historical Snapshots
+
+The numeric comparison tables below are historical material, not current release claims. They must be reproduced with the controlled benchmark workflow before being used for target selection, marketing, or regression thresholds.
 
 ## Matrix Multiplication Performance
 
@@ -224,16 +221,21 @@ Custom:      1.1s  ████░░░░░░░░░░░░░░░░�
 
 ### IMU Sensor Fusion (100 Hz update)
 
-| Implementation | CPU Time/Frame | Memory | Code Size |
-|----------------|----------------|---------|-----------|
-| **MicroLA + Complementary** | **18 μs** | **128 bytes** | **2.1 KB** |
-| Eigen + Extended Kalman | 45 μs | 512 bytes | 4.8 KB |
-| Blaze + Complementary | 22 μs | 156 bytes | 2.8 KB |
-| Custom + Madgwick | 22 μs | 96 bytes | 1.5 KB |
+The reproducible harness for IMU update and relative-angle pipeline timing is
+`benchmarks/bench_sensor_fusion.cpp`. It measures Mahony updates with default and
+non-trivial runtime calibration, MEKF updates, relative-angle extraction, and
+skew-aligned relative computation.
 
-**Winner**: MicroLA (2.5× faster than Eigen)
+```bash
+cmake --preset benchmark
+cmake --build --preset benchmark --target bench_sensor_fusion
+./build/benchmark-native/benchmarks/bench_sensor_fusion --benchmark_filter='bm_sensor_fusion_.*'
+```
 
-The current reproducible harness for IMU update and relative-angle pipeline timing lives in `benchmarks/bench_sensor_fusion.cpp`.
+Record the target MCU or CPU, clock policy, compiler and version, optimization
+flags, enabled SIMD backend, and raw benchmark output with every comparison.
+Cross-library timing, memory, and code-size comparisons are only meaningful when
+all implementations use the same sensor model, update rate, compiler, and target.
 
 ### Robot Kinematics (6-DOF manipulator)
 
@@ -415,16 +417,12 @@ The current reproducible harness for IMU update and relative-angle pipeline timi
 
 #### IMU Sensor Fusion (Mahony filter, 1 kHz)
 
-| Operation | Scalar | CMSIS-DSP | % of Budget |
-|-----------|--------|-----------|-------------|
-| Quat normalize | 240 ns | **135 ns** | 13.5% |
-| Quat multiply (3×) | 1260 ns | 1260 ns | 126% |
-| Vec3 cross (2×) | 230 ns | **164 ns** | 16.4% |
-| Vec3 normalize (2×) | 370 ns | **210 ns** | 21.0% |
-| Integration step | 180 ns | **125 ns** | 12.5% |
-| **Total** | **2.28 μs** | **1.89 μs** | **189 μs** |
-
-**Winner**: CMSIS-DSP saves 390 ns per cycle (17% faster), enabling 1 kHz update rate
+A $1$ kHz loop has a $1000\,\mu s$ budget. A measured $2.28\,\mu s$ update
+therefore consumes $0.228\%$ of that period, while a $1.89\,\mu s$ update
+consumes $0.189\%$. Do not extrapolate those values across MCUs: floating-point
+ABI, libm implementation, cache state, and enabled SIMD instructions dominate
+the result. Use `bench_sensor_fusion` on the deployment target to establish the
+worst-case execution-time budget.
 
 #### 6-DOF Robot Arm Kinematics (200 Hz)
 
@@ -661,7 +659,7 @@ MicroLA delivers **production-ready performance** across all platforms and use c
 - **Graphics**: Competitive with DirectXMath, better than GLM
 - **Robotics**: Faster than Eigen for kinematics
 - **Embedded**: Smallest memory footprint with FPU
-- **Sensor Fusion**: 2.5× faster than Eigen-based EKF
+- **Sensor Fusion**: Measure Mahony and MEKF update cost with `bench_sensor_fusion` on the deployment target
 
 ### 📊 Performance Summary
 
@@ -684,7 +682,7 @@ MicroLA delivers **production-ready performance** across all platforms and use c
 **Status**: Suitable for production deployment with verified correctness and competitive performance.
 
 **Date**: May 31, 2026
-**MicroLA Version**: 0.0.2 (current Linux CI-equivalent lanes passing)
+**MicroLA Version**: 0.0.3 (current Linux CI-equivalent lanes passing)
 **Compared Libraries**: Eigen 3.4.0, GLM 0.9.9.8, Blaze 3.8.2, DirectXMath (latest), MathFu (latest)
 
 ### Reproducing Benchmarks
@@ -722,4 +720,4 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=arm-none-eabi.cmake \
 ---
 
 **Date**: May 31, 2026
-**Benchmark Version**: MicroLA 0.0.2
+**Benchmark Version**: MicroLA 0.0.3
