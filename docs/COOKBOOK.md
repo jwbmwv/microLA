@@ -627,4 +627,4 @@ If you add a new cookbook entry, keep it tied to the current public API:
 ---
 
 **Date**: March 6, 2026
-**MicroLA Version**: 0.0.3
+**MicroLA Version**: 0.0.4

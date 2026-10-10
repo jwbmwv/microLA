@@ -6,7 +6,7 @@
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "MicroLA"
-PROJECT_NUMBER         = 1.0.0
+PROJECT_NUMBER         = 0.0.4
 PROJECT_BRIEF          = "Header-only C++20 linear algebra library for embedded systems"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = docs/doxygen

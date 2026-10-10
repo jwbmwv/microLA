@@ -745,4 +745,4 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 
 ## Version
 
-Current Version: 0.0.3
+Current Version: 0.0.4

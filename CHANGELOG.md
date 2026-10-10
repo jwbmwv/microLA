@@ -2,7 +2,7 @@
 
 All notable changes are summarized here.
 
-## [Unreleased]
+## [0.0.4] - 2026-10-10
 
 - **Ray-triangle scaling**: Include the ray direction norm in both triangle intersection parallelism checks so rescaling the direction preserves hits and near-parallel rejection.
 - **Fusion policies and relative angles**: Honor disabled bias estimation and disabled acceleration correction during recovery; keep observable tilt valid independently of heading drift; time-align both entities when capturing a neutral reference.
@@ -49,4 +49,4 @@ Initial release: header-only C++ linear algebra library for embedded and real-ti
 - Safety utilities (safe math, saturating arithmetic)
 - Basic benchmarks and tests included
 
-Current Version: **0.0.3**
+Current Version: **0.0.4**

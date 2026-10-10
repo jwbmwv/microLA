@@ -14,7 +14,7 @@
 #define MICROLA_VERSION_MINOR 0
 
 /// @brief MicroLA patch version number
-#define MICROLA_VERSION_PATCH 3
+#define MICROLA_VERSION_PATCH 4
 
 // Expand a version component before converting it to a string literal.
 #define MICROLA_VERSION_STRINGIFY_IMPL(value) #value

@@ -812,7 +812,7 @@ The version API allows runtime version checking and compatibility verification.
 using namespace microla;
 
 // Get version string
-std::string version = get_version_string();  // "0.0.3"
+std::string version = get_version_string();  // "0.0.4"
 
 // Get numeric version
 uint32_t version_num = get_version_number(); // 3
@@ -831,8 +831,8 @@ if (version_at_least(0, 0, 3)) {
 // Compile-time version macros
 MICROLA_VERSION_MAJOR  // 0
 MICROLA_VERSION_MINOR  // 0
-MICROLA_VERSION_PATCH  // 3
-MICROLA_VERSION_STRING // "0.0.3"
+MICROLA_VERSION_PATCH  // 4
+MICROLA_VERSION_STRING // "0.0.4"
 MICROLA_VERSION_NUMBER // 3
 
 ```
@@ -842,7 +842,7 @@ MICROLA_VERSION_NUMBER // 3
 ```cpp
 
 namespace microla {
-    const char* version = Version::string();  // "0.0.3"
+    const char* version = Version::string();  // "0.0.4"
     int version_number = Version::number();   // 3
     int major = Version::get_major();          // 0
     int minor = Version::get_minor();          // 0
@@ -1206,7 +1206,7 @@ For toolchain integration and current qualification limits, see [Quickstart](../
 
 ## Version
 
-Current Version: **0.0.3**
+Current Version: **0.0.4**
 Check runtime version: `microla::get_version_string()`
 
 ## License

@@ -6,7 +6,7 @@
 microla/
 ├── README.md              # Main documentation
 ├── LICENSE                # Apache License 2.0 with SPDX identifier
-├── VERSION                # Version number (0.0.3)
+├── VERSION                # Version number (0.0.4)
 ├── CMakeLists.txt         # Main CMake configuration
 ├── .gitignore             # Git ignore rules
 ├── .ai-generation-prompt.md  # AI regeneration prompt
@@ -329,7 +329,7 @@ int main() {
 
 ## Version
 
-Current version: 0.0.3 (see [VERSION](VERSION))
+Current version: 0.0.4 (see [VERSION](VERSION))
 
 ## License
 

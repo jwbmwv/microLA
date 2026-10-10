@@ -1,6 +1,6 @@
 # MicroLA Release Contract
 
-This document defines the support boundary for MicroLA `0.0.3`. The canonical version is the repository `VERSION` file; CMake, Conan, and vcpkg package metadata must match it.
+This document defines the support boundary for MicroLA `0.0.4`. The canonical version is the repository `VERSION` file; CMake, Conan, and vcpkg package metadata must match it.
 
 ## Language and Configuration
 
