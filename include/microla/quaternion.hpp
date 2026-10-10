@@ -9,6 +9,7 @@
 #pragma once
 
 #include "vector.hpp"
+#include "matrix.hpp"
 #include <type_traits>
 #include "simd_helpers.hpp"
 
@@ -87,9 +88,9 @@ public:
         if (trace > T(0))
         {
             T s = std::sqrt(trace + T(1)) * T(2);
-            data[X] = (mat[1][2] - mat[2][1]) / s;
-            data[Y] = (mat[2][0] - mat[0][2]) / s;
-            data[Z] = (mat[0][1] - mat[1][0]) / s;
+            data[X] = (mat[2][1] - mat[1][2]) / s;
+            data[Y] = (mat[0][2] - mat[2][0]) / s;
+            data[Z] = (mat[1][0] - mat[0][1]) / s;
             data[W] = s * T(0.25);
         }
         else if (mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2])
@@ -98,7 +99,7 @@ public:
             data[X] = s * T(0.25);
             data[Y] = (mat[0][1] + mat[1][0]) / s;
             data[Z] = (mat[2][0] + mat[0][2]) / s;
-            data[W] = (mat[1][2] - mat[2][1]) / s;
+            data[W] = (mat[2][1] - mat[1][2]) / s;
         }
         else if (mat[1][1] > mat[2][2])
         {
@@ -106,7 +107,7 @@ public:
             data[X] = (mat[0][1] + mat[1][0]) / s;
             data[Y] = s * T(0.25);
             data[Z] = (mat[1][2] + mat[2][1]) / s;
-            data[W] = (mat[2][0] - mat[0][2]) / s;
+            data[W] = (mat[0][2] - mat[2][0]) / s;
         }
         else
         {
@@ -114,7 +115,7 @@ public:
             data[X] = (mat[2][0] + mat[0][2]) / s;
             data[Y] = (mat[1][2] + mat[2][1]) / s;
             data[Z] = s * T(0.25);
-            data[W] = (mat[0][1] - mat[1][0]) / s;
+            data[W] = (mat[1][0] - mat[0][1]) / s;
         }
     }
 
@@ -123,12 +124,17 @@ public:
     constexpr Quaternion(const Quaternion& other) noexcept = default;
 
     /// \brief Move constructor (default for fixed-size arrays).
+    /// @param other Quaternion whose fixed-size component storage is moved.
     constexpr Quaternion(Quaternion&& other) noexcept = default;
 
     /// \brief Copy assignment operator.
+    /// @param other Quaternion whose components replace this quaternion.
+    /// @return Reference to this quaternion.
     constexpr auto operator=(const Quaternion& other) noexcept -> Quaternion& = default;
 
     /// \brief Move assignment operator (default for fixed-size arrays).
+    /// @param other Quaternion whose fixed-size component storage replaces this quaternion.
+    /// @return Reference to this quaternion.
     constexpr auto operator=(Quaternion&& other) noexcept -> Quaternion& = default;
 
     /// \brief Destructor (defaulted to satisfy rule-of-five checkers).
@@ -434,9 +440,11 @@ public:
 #ifdef CONFIG_MICROLA_CMSIS
         if constexpr (std::is_same_v<T, float>)
         {
-            Quaternion result;
-            arm_quaternion_product_f32(data, other.data, result.data);
-            return result;
+            const float left[4] = {data[W], data[X], data[Y], data[Z]};
+            const float right[4] = {other.data[W], other.data[X], other.data[Y], other.data[Z]};
+            float product[4];
+            arm_quaternion_product_single_f32(left, right, product);
+            return Quaternion(product[0], product[1], product[2], product[3]);
         }
 #endif
         // Optimized scalar path using SIMD helpers for float
@@ -486,6 +494,8 @@ public:
     }
 
     /// \brief Equality operator.
+    /// @retval true All components pass absolute machine-epsilon comparison, or exact comparison for integral T.
+    /// @retval false At least one component comparison fails; quaternion sign is not ignored.
     /// \param other The quaternion to compare.
     /// \return True if equal (uses epsilon comparison for floating-point types).
     /// \note Uses `std::numeric_limits<T>::epsilon()` as an **absolute** tolerance.
@@ -519,6 +529,8 @@ public:
     }
 
     /// \brief Inequality operator.
+    /// @retval true The component-wise equality comparison fails.
+    /// @retval false The component-wise equality comparison succeeds.
     /// \param other The quaternion to compare.
     /// \return True if not equal.
     auto operator!=(const Quaternion& other) const noexcept -> bool { return !(*this == other); }
@@ -563,87 +575,47 @@ public:
     /// \details In C++26+, this function is constexpr when the quaternion is known at compile-time.
     MICROLA_CONSTEXPR_TRIG [[nodiscard]] auto norm() const noexcept -> T
     {
-#ifdef CONFIG_MICROLA_NEON
-        if constexpr (std::is_same_v<T, float>)
+        T squared = T(0);
+        for (const T value : data)
         {
-            float32x4_t a = vld1q_f32(data);
-            float32x4_t mul = vmulq_f32(a, a);
-            float32x2_t sum = vadd_f32(vget_low_f32(mul), vget_high_f32(mul));
-            sum = vpadd_f32(sum, sum);
-            return std::sqrt(static_cast<T>(vget_lane_f32(sum, 0)));
+            squared += value * value;
         }
-#endif
-#ifdef CONFIG_MICROLA_CMSIS
-        if constexpr (std::is_same_v<T, float>)
+        if constexpr (std::is_floating_point_v<T>)
         {
-            float result;
-            arm_dot_prod_f32(data, data, 4, &result);
-            return std::sqrt(static_cast<T>(result));
+            if (!std::isfinite(squared) || squared < std::numeric_limits<T>::min())
+            {
+                return std::hypot(std::hypot(data[X], data[Y]), std::hypot(data[Z], data[W]));
+            }
         }
-#endif
-        if constexpr (std::is_same_v<T, float>)
-        {
-            const auto* src = data;
-            float acc4[4] = {0.0F, 0.0F, 0.0F, 0.0F};
-            float tmp[4];
-            microla::simd::load_padded4(src, 4, tmp, 0.0F);
-            microla::simd::fma4_accumulate(acc4, tmp, tmp);
-            const float sum = acc4[0] + acc4[1] + acc4[2] + acc4[3];
-            return std::sqrt(static_cast<T>(sum));
-        }
-
-        // Use Vec<T,3> dot product for imaginary part + w^2
-        const Vec<T, 3> imag = vec();
-        return std::sqrt(imag.dot(imag) + (*this)[W] * (*this)[W]);
+        return std::sqrt(squared);
     }
 
     /// \brief Normalized quaternion.
     /// \return The unit quaternion.
     [[nodiscard]] auto normalized() const noexcept -> Quaternion
     {
-#ifdef CONFIG_MICROLA_NEON
-        if constexpr (std::is_same_v<T, float>)
+        if constexpr (std::is_floating_point_v<T>)
         {
-            // Compute norm squared
-            float32x4_t a = vld1q_f32(data);
-            float32x4_t mul = vmulq_f32(a, a);
-            float32x2_t sum = vadd_f32(vget_low_f32(mul), vget_high_f32(mul));
-            sum = vpadd_f32(sum, sum);
-            float norm_sq = vget_lane_f32(sum, 0);
-
-            if (norm_sq != 0.0f)
+            T scale = T(0);
+            for (const T value : data)
             {
-                // Fast inverse square root with Newton-Raphson refinement
-                float32x2_t norm_sq_v = vdup_n_f32(norm_sq);
-                float32x2_t rsqrt = vrsqrte_f32(norm_sq_v);
-                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(norm_sq_v, rsqrt), rsqrt));
-                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(norm_sq_v, rsqrt), rsqrt));
-
-                float inv_norm = vget_lane_f32(rsqrt, 0);
-                return *this * static_cast<T>(inv_norm);
+                if (!std::isfinite(value))
+                {
+                    return *this;
+                }
+                scale = std::max(scale, std::abs(value));
             }
-            return *this;
-        }
-#endif
-#ifdef CONFIG_MICROLA_CMSIS
-        if constexpr (std::is_same_v<T, float>)
-        {
-            float norm_sq;
-            arm_dot_prod_f32(data, data, 4, &norm_sq);
-
-            if (norm_sq != 0.0f)
+            if (scale == T(0))
             {
-                float n;
-                arm_sqrt_f32(norm_sq, &n);
-
-                const float inv_norm = 1.0f / n;
-                Quaternion result;
-                arm_scale_f32(data, inv_norm, result.data, 4);
-                return result;
+                return *this;
             }
-            return *this;
+            Quaternion scaled;
+            for (std::size_t index = 0; index < 4; ++index)
+            {
+                scaled.data[index] = data[index] / scale;
+            }
+            return scaled * (T(1) / std::sqrt(scaled.norm_squared()));
         }
-#endif
         const T n = norm();
         if (n != T(0))
         {
@@ -690,32 +662,21 @@ public:
     }
 
     /// \brief Normalize this quaternion in-place.
-    void normalize() noexcept
-    {
-        const T n = norm();
-        if (n != T(0))
-        {
-            *this = *this / n;
-        }
-    }
+    void normalize() noexcept { *this = normalized(); }
 
-    /// \brief Angle between two quaternions.
+    /// \brief Shortest rotation angle between two finite, nonzero quaternions.
     /// \param other The other quaternion.
     /// \return The angle in radians.
     [[nodiscard]] auto angle_to(const Quaternion& other) const noexcept -> T
     {
-        const T d = dot(other);
-        // Clamp to handle numerical errors
-        T clamped = d;
-        if (clamped < T(-1))
+        const Quaternion left = normalized();
+        const Quaternion right = other.normalized();
+        if (left.norm_squared() == T(0) || right.norm_squared() == T(0))
         {
-            clamped = T(-1);
+            return std::numeric_limits<T>::quiet_NaN();
         }
-        else if (clamped > T(1))
-        {
-            clamped = T(1);
-        }
-        return std::acos(clamped) * T(2);
+        const Quaternion relative = left.conjugate() * right;
+        return T(2) * std::atan2(std::hypot(relative[X], relative[Y], relative[Z]), std::abs(relative[W]));
     }
 
     /// \brief Create quaternion from two vectors.
@@ -889,14 +850,29 @@ public:
         return v - cross1 * (T(2) * (*this)[W]) + cross2 * T(2);
     }
 
-    /// \brief Component accessors.
+    /// @brief Access the real component.
+    /// @return Mutable reference to w, stored at index 3.
     auto w() noexcept -> T& { return data[W]; }
+    /// @brief Read the real component.
+    /// @return Const reference to w, stored at index 3.
     [[nodiscard]] auto w() const noexcept -> const T& { return data[W]; }
+    /// @brief Access the first imaginary component.
+    /// @return Mutable reference to x, stored at index 0.
     auto x() noexcept -> T& { return data[X]; }
+    /// @brief Read the first imaginary component.
+    /// @return Const reference to x, stored at index 0.
     [[nodiscard]] auto x() const noexcept -> const T& { return data[X]; }
+    /// @brief Access the second imaginary component.
+    /// @return Mutable reference to y, stored at index 1.
     auto y() noexcept -> T& { return data[Y]; }
+    /// @brief Read the second imaginary component.
+    /// @return Const reference to y, stored at index 1.
     [[nodiscard]] auto y() const noexcept -> const T& { return data[Y]; }
+    /// @brief Access the third imaginary component.
+    /// @return Mutable reference to z, stored at index 2.
     auto z() noexcept -> T& { return data[Z]; }
+    /// @brief Read the third imaginary component.
+    /// @return Const reference to z, stored at index 2.
     [[nodiscard]] auto z() const noexcept -> const T& { return data[Z]; }
 
     /// \brief Get copy of imaginary part as Vec<T,3>.
@@ -1047,6 +1023,8 @@ public:
     }
 
     /// \brief Approximate equality comparison.
+    /// @retval true Every component difference is within the supplied absolute tolerance.
+    /// @retval false At least one comparison fails, including NaN differences; sign is not ignored.
     /// \param other The quaternion to compare.
     /// \param epsilon The tolerance (defaults to machine epsilon for type T).
     /// \return True if approximately equal.
@@ -1058,6 +1036,8 @@ public:
     }
 
     /// \brief Check whether the quaternion is approximately the identity rotation.
+    /// @retval true Components match (x,y,z,w) = (0,0,0,1) within epsilon, or exactly for integral T.
+    /// @retval false At least one identity-component comparison fails; negative identity is not accepted.
     /// \param epsilon Tolerance for floating-point comparisons.
     /// \return True if the quaternion is within epsilon of (0, 0, 0, 1).
     [[nodiscard]] auto is_identity(T epsilon = std::numeric_limits<T>::epsilon() *
@@ -1090,18 +1070,17 @@ public:
     {
         T cos_theta = dot(other);
 
-        // If quaternions are close, use linear interpolation
-        if (std::abs(cos_theta) >= T(0.9995))
-        {
-            return lerp(other, t).normalized();
-        }
-
         // Handle negative dot product (choose shorter path)
         Quaternion q2 = other;
         if (cos_theta < T(0))
         {
             q2 = -other;
             cos_theta = -cos_theta;
+        }
+
+        if (cos_theta >= T(0.9995))
+        {
+            return lerp(q2, t).normalized();
         }
 
         // Clamp to avoid numerical issues

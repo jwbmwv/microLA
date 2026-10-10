@@ -9,6 +9,110 @@
 
 using namespace microla;
 
+TEST(MatrixRegressionTest, CheckedInverseHandlesNormOverflowAndAliasing)
+{
+    const Mat<double, 2, 2> matrix{1e308, 1e308, 1e308, -1e308};
+    Mat<double, 2, 2> inverse;
+    ASSERT_TRUE(matrix.inverse_checked(inverse));
+    EXPECT_TRUE(inverse.is_finite());
+    auto aliased = matrix;
+    ASSERT_TRUE(aliased.inverse_checked(aliased));
+    EXPECT_EQ(aliased, inverse);
+    const auto product = matrix * inverse;
+    EXPECT_NEAR(product(0, 0), 1.0, 1e-12);
+    EXPECT_NEAR(product(0, 1), 0.0, 1e-12);
+}
+
+TEST(MatrixRegressionTest, IntegralDeterminantsUseExactFractionFreeElimination)
+{
+    auto matrix = Mat<int, 4, 4>::identity();
+    matrix(0, 0) = matrix(1, 1) = 2;
+    matrix(0, 1) = matrix(1, 0) = 1;
+    EXPECT_EQ(matrix.determinant(), 3);
+    for (std::size_t col = 0; col < 4; ++col)
+    {
+        std::swap(matrix(0, col), matrix(1, col));
+    }
+    EXPECT_EQ(matrix.determinant(), -3);
+    for (std::size_t col = 0; col < 4; ++col)
+    {
+        matrix(2, col) = matrix(3, col);
+    }
+    EXPECT_EQ(matrix.determinant(), 0);
+}
+
+template<std::size_t Rows, std::size_t Inner, std::size_t Columns>
+void expect_row_streaming_product_matches_reference()
+{
+    Mat<float, Rows, Inner> left;
+    Mat<float, Inner, Columns> right;
+    for (std::size_t index = 0; index < Rows * Inner; ++index)
+    {
+        left.data[index] = std::sin(static_cast<float>(index + 1)) * 0.1F;
+    }
+    for (std::size_t index = 0; index < Inner * Columns; ++index)
+    {
+        right.data[index] = std::cos(static_cast<float>(index + 1)) * 0.1F;
+    }
+    const auto actual = left * right;
+    for (std::size_t row = 0; row < Rows; ++row)
+    {
+        for (std::size_t col = 0; col < Columns; ++col)
+        {
+            double expected = 0;
+            for (std::size_t inner = 0; inner < Inner; ++inner)
+            {
+                expected += static_cast<double>(left(row, inner)) * right(inner, col);
+            }
+            EXPECT_NEAR(actual(row, col), expected, 1e-6);
+        }
+    }
+}
+
+TEST(MatrixRegressionTest, RowStreamingMultiplicationHandlesRectangularShapesAndTails)
+{
+    expect_row_streaming_product_matches_reference<2, 3, 5>();
+    expect_row_streaming_product_matches_reference<3, 7, 4>();
+    expect_row_streaming_product_matches_reference<6, 6, 6>();
+    expect_row_streaming_product_matches_reference<33, 31, 35>();
+}
+
+#ifndef MICROLA_EMBEDDED
+TEST(MatrixRegressionTest, CholeskyRejectsNonfiniteAndAsymmetricInputs)
+{
+    auto matrix = Mat<double, 2, 2>::identity();
+    matrix(0, 0) = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_FALSE(matrix.cholesky());
+    matrix = Mat<double, 2, 2>::identity();
+    matrix(0, 1) = 0.25;
+    EXPECT_FALSE(matrix.cholesky());
+    matrix(1, 0) = 0.25;
+    ASSERT_TRUE(matrix.cholesky());
+}
+
+TEST(MatrixRegressionTest, RankAndQrAreStableAcrossUniformScaling)
+{
+    for (const double scale : {1e-200, 1e200})
+    {
+        const Mat<double, 2, 2> matrix{scale, scale, scale, -scale};
+        EXPECT_EQ(matrix.rank(), 2U);
+        const auto [orthogonal, upper] = matrix.qr();
+        EXPECT_TRUE(orthogonal.is_finite());
+        EXPECT_TRUE(upper.is_finite());
+        const auto product = orthogonal * upper;
+        const auto gram = orthogonal.transpose() * orthogonal;
+        for (std::size_t row = 0; row < 2; ++row)
+        {
+            for (std::size_t col = 0; col < 2; ++col)
+            {
+                EXPECT_NEAR((product(row, col) - matrix(row, col)) / scale, 0.0, 1e-12);
+                EXPECT_NEAR(gram(row, col), row == col ? 1.0 : 0.0, 1e-12);
+            }
+        }
+    }
+}
+#endif
+
 class MatrixTest : public ::testing::Test
 {
 protected:
@@ -399,6 +503,49 @@ TEST_F(MatrixTest, QRDecomposition)
     }
 }
 
+TEST_F(MatrixTest, LatePivotLUAndScaleIndependentInverse)
+{
+    Mat3f matrix{{4, 1, 1}, {2, 1, 0}, {1, 9, 1}};
+    auto [lower, upper, permutation] = matrix.lu();
+    EXPECT_LT((permutation * matrix - lower * upper).norm_inf(), 1e-5F);
+    for (float scale : {1e-20F, 1e-4F, 1e20F})
+    {
+        auto scaled = Mat2f::identity() * scale;
+        auto checked = scaled.inverse_checked();
+        ASSERT_TRUE(std::holds_alternative<Mat2f>(checked));
+        EXPECT_TRUE((scaled * std::get<Mat2f>(checked)).is_identity(1e-5F));
+    }
+    Mat3f separate;
+    ASSERT_TRUE(matrix.inverse(separate));
+    ASSERT_TRUE(matrix.inverse(matrix));
+    EXPECT_LT((matrix - separate).norm_inf(), 1e-5F);
+}
+
+TEST_F(MatrixTest, InvalidInverseAndComparison)
+{
+    auto invalid = Mat2f::identity();
+    invalid(0, 0) = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_FALSE(invalid == Mat2f::identity());
+    EXPECT_FALSE(invalid == invalid);
+    EXPECT_FALSE(invalid.is_identity());
+    Mat2f result;
+    EXPECT_FALSE(invalid.inverse(result));
+    Mat2f overflowing{{1, 0}, {0, 1e-40F}};
+    EXPECT_FALSE(overflowing.inverse(result));
+}
+
+TEST_F(MatrixTest, EigenvaluesInspectEntireLowerTriangle)
+{
+    Mat3f matrix{{1, 0, 1}, {0, 2, 0}, {1, 0, 3}};
+    float values[3];
+    ASSERT_TRUE(matrix.eigenvalues_qr(values, 3));
+    std::sort(std::begin(values), std::end(values));
+    EXPECT_NEAR(values[0], 2.0F - std::sqrt(2.0F), 1e-5F);
+    EXPECT_NEAR(values[1], 2.0F, 1e-5F);
+    EXPECT_NEAR(values[2], 2.0F + std::sqrt(2.0F), 1e-5F);
+    EXPECT_FALSE(matrix.eigenvalues_qr(values, 3, 0));
+}
+
 TEST_F(MatrixTest, CholeskyDecomposition)
 {
     // clang-format off
@@ -448,6 +595,27 @@ TEST_F(MatrixTest, SVDDecomposition)
 
 // ===== Eigenvalues =====
 
+TEST_F(MatrixTest, RectangularAndRankDeficientSVD)
+{
+    auto verify = [](const auto& matrix)
+    {
+        bool converged = false;
+        auto [left, singular, right] = matrix.svd(100, 1e-7F, &converged);
+        EXPECT_TRUE(converged);
+        EXPECT_LT((left * singular * right.transpose() - matrix).norm_inf(), 1e-4F);
+        EXPECT_TRUE((left.transpose() * left).is_identity(1e-4F));
+        EXPECT_TRUE((right.transpose() * right).is_identity(1e-4F));
+    };
+    Mat<float, 3, 2> tall{{1, 2}, {3, 4}, {5, 6}};
+    verify(tall);
+    verify(tall.transpose());
+    verify(Mat3f{{1, 2, 3}, {2, 4, 6}, {0, 0, 0}});
+    verify(Mat3f::zero());
+    bool converged = true;
+    (void)tall.svd(0, 1e-7F, &converged);
+    EXPECT_FALSE(converged);
+}
+
 TEST_F(MatrixTest, EigenvaluesBufferOverload)
 {
     Mat<float, 3, 3> m = Mat<float, 3, 3>::identity();
@@ -488,6 +656,8 @@ TEST_F(MatrixTest, FrobeniusNorm)
     // clang-format on
     float norm = m.frobenius_norm();
     EXPECT_NEAR(norm, std::sqrt(30.0F), epsilon);
+    Mat<double, 2, 2> precise{{1, 2}, {3, 4}};
+    EXPECT_NEAR(precise.frobenius_norm(), std::sqrt(30.0), 1e-12);
 }
 
 TEST_F(MatrixTest, InfinityNorm)

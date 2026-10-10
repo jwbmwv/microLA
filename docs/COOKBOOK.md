@@ -22,7 +22,7 @@ This cookbook intentionally focuses on patterns backed by the shipped headers an
 For allocation-sensitive or embedded builds, prefer these patterns:
 
 - Use fixed-size `Vec`, `Mat`, and `Quaternion` types with dimensions known at compile time.
-- Prefer non-throwing APIs such as `try_inverse()` and `inverse_checked()`.
+- Prefer caller-owned `inverse(out)` and `inverse_checked(out)`; optional/variant convenience overloads are hosted-only.
 - Prefer caller-provided buffers for algorithms that offer them, such as `eigenvalues_qr(buffer, size)`.
 - Precompute constant transforms once and reuse them instead of rebuilding them in hot loops.
 - Keep application-level estimators and control logic outside the library unless they are generic enough to become maintained examples.
@@ -208,71 +208,54 @@ using Mat5 = Mat<float, 5, 5>;
 using Mat2x5 = Mat<float, 2, 5>;
 
 // Nonlinear state transition: x_k = f(x_k-1, dt)
-auto ctrv_state_transition(const State5& x, float dt) -> State5
+auto ctrv_integrals(float omega, float dt) -> Vec<float, 4>
 {
-    float px = x[0], py = x[1], vx = x[2], vy = x[3], omega = x[4];
-    
-    State5 x_pred;
-    // Position update with turn rate
-    if (std::abs(omega) > 1e-4f)
+    const float angle = omega * dt;
+    const float squared = angle * angle;
+    float sinc, cosc, sinc_derivative, cosc_derivative;
+    if (std::abs(angle) < 1e-3F)
     {
-        float v = std::sqrt(vx * vx + vy * vy);
-        float yaw = std::atan2(vy, vx);
-        x_pred[0] = px + (v / omega) * (std::sin(yaw + omega * dt) - std::sin(yaw));
-        x_pred[1] = py + (v / omega) * (-std::cos(yaw + omega * dt) + std::cos(yaw));
+        sinc = 1.0F - squared / 6.0F + squared * squared / 120.0F;
+        cosc = angle * (0.5F - squared / 24.0F + squared * squared / 720.0F);
+        sinc_derivative = angle * (-1.0F / 3.0F + squared / 30.0F);
+        cosc_derivative = 0.5F - squared / 8.0F + squared * squared / 144.0F;
     }
     else
     {
-        // Straight-line motion
-        x_pred[0] = px + vx * dt;
-        x_pred[1] = py + vy * dt;
+        sinc = std::sin(angle) / angle;
+        cosc = 2.0F * std::sin(angle / 2.0F) * std::sin(angle / 2.0F) / angle;
+        sinc_derivative = (std::cos(angle) - sinc) / angle;
+        cosc_derivative = (std::sin(angle) - cosc) / angle;
     }
-    
-    // Velocity stays constant (constant velocity model)
-    x_pred[2] = vx;
-    x_pred[3] = vy;
-    x_pred[4] = omega;
-    
-    return x_pred;
+    return {dt * sinc, dt * cosc, dt * dt * sinc_derivative, dt * dt * cosc_derivative};
 }
 
-// Jacobian of state transition: F = ∂f/∂x
+auto ctrv_state_transition(const State5& x, float dt) -> State5
+{
+    const auto integrals = ctrv_integrals(x[4], dt);
+    const float cosine = std::cos(x[4] * dt), sine = std::sin(x[4] * dt);
+    return {x[0] + integrals[0] * x[2] - integrals[1] * x[3],
+            x[1] + integrals[1] * x[2] + integrals[0] * x[3],
+            cosine * x[2] - sine * x[3], sine * x[2] + cosine * x[3], x[4]};
+}
+
 auto ctrv_state_jacobian(const State5& x, float dt) -> Mat5
 {
-    Mat5 F = Mat5::identity();
-    
-    float vx = x[2], vy = x[3], omega = x[4];
-    float v = std::sqrt(vx * vx + vy * vy);
-    float yaw = std::atan2(vy, vx);
-    
-    if (std::abs(omega) > 1e-4f)
-    {
-        // Partial derivatives for turn rate motion
-        float sin_yaw = std::sin(yaw);
-        float cos_yaw = std::cos(yaw);
-        float sin_yaw_dt = std::sin(yaw + omega * dt);
-        float cos_yaw_dt = std::cos(yaw + omega * dt);
-        
-        // ∂px/∂vx, ∂px/∂vy, ∂px/∂omega
-        F(0, 2) = (vx / (v * omega)) * (sin_yaw_dt - sin_yaw);
-        F(0, 3) = (vy / (v * omega)) * (sin_yaw_dt - sin_yaw);
-        F(0, 4) = -(v / (omega * omega)) * (sin_yaw_dt - sin_yaw) 
-                  + (v / omega) * cos_yaw_dt * dt;
-        
-        // ∂py/∂vx, ∂py/∂vy, ∂py/∂omega
-        F(1, 2) = (vx / (v * omega)) * (-cos_yaw_dt + cos_yaw);
-        F(1, 3) = (vy / (v * omega)) * (-cos_yaw_dt + cos_yaw);
-        F(1, 4) = -(v / (omega * omega)) * (-cos_yaw_dt + cos_yaw) 
-                  + (v / omega) * sin_yaw_dt * dt;
-    }
-    else
-    {
-        // Straight-line Jacobian
-        F(0, 2) = dt;
-        F(1, 3) = dt;
-    }
-    
-    return F;
+    const auto integrals = ctrv_integrals(x[4], dt);
+    const float cosine = std::cos(x[4] * dt), sine = std::sin(x[4] * dt);
+    Mat5 result = Mat5::identity();
+    result(0, 2) = integrals[0];
+    result(0, 3) = -integrals[1];
+    result(1, 2) = integrals[1];
+    result(1, 3) = integrals[0];
+    result(0, 4) = integrals[2] * x[2] - integrals[3] * x[3];
+    result(1, 4) = integrals[3] * x[2] + integrals[2] * x[3];
+    result(2, 2) = result(3, 3) = cosine;
+    result(2, 3) = -sine;
+    result(3, 2) = sine;
+    result(2, 4) = dt * (-sine * x[2] - cosine * x[3]);
+    result(3, 4) = dt * (cosine * x[2] - sine * x[3]);
+    return result;
 }
 
 // Measurement model: measure only position [x, y]
@@ -339,6 +322,7 @@ Track an object using nonlinear polar measurements (range and bearing angle).
 ```cpp
 #include <microla/extended_kalman.hpp>
 #include <cmath>
+#include <limits>
 
 using namespace microla;
 
@@ -372,7 +356,7 @@ auto radar_state_jacobian(const State4& x, float dt) -> Mat4
 auto radar_measurement(const State4& x) -> Meas2
 {
     float px = x[0], py = x[1];
-    float range = std::sqrt(px * px + py * py);
+    float range = std::hypot(px, py);
     float bearing = std::atan2(py, px);
     return Meas2{range, bearing};
 }
@@ -381,10 +365,14 @@ auto radar_measurement(const State4& x) -> Meas2
 auto radar_measurement_jacobian(const State4& x) -> Mat2x4
 {
     float px = x[0], py = x[1];
-    float range = std::sqrt(px * px + py * py);
-    float range_sq = px * px + py * py;
+    float range = std::hypot(px, py);
     
     Mat2x4 H;
+    if (!(range > 1e-6F))
+    {
+        H(0, 0) = std::numeric_limits<float>::quiet_NaN();
+        return H;
+    }
     // ∂range/∂x, ∂range/∂y
     H(0, 0) = px / range;
     H(0, 1) = py / range;
@@ -392,12 +380,18 @@ auto radar_measurement_jacobian(const State4& x) -> Mat2x4
     H(0, 3) = 0.0f;
     
     // ∂bearing/∂x, ∂bearing/∂y
-    H(1, 0) = -py / range_sq;
-    H(1, 1) = px / range_sq;
+    H(1, 0) = -(py / range) / range;
+    H(1, 1) = (px / range) / range;
     H(1, 2) = 0.0f;
     H(1, 3) = 0.0f;
     
     return H;
+}
+
+auto radar_residual(const Meas2& measured, const Meas2& predicted) -> Meas2
+{
+    return {measured[0] - predicted[0],
+            std::remainder(measured[1] - predicted[1], constants::two_pi<float>())};
 }
 
 void run_radar_tracking()
@@ -406,6 +400,7 @@ void run_radar_tracking()
     
     ekf.set_state_transition(radar_state_transition, radar_state_jacobian);
     ekf.set_measurement_model(radar_measurement, radar_measurement_jacobian);
+    ekf.set_residual_function(radar_residual);
     
     // Radar noise characteristics
     Mat4 Q = Mat4::identity() * 0.01f;  // Low process noise (nearly constant velocity)
@@ -446,122 +441,33 @@ void run_radar_tracking()
 
 Track 3D orientation using gyroscope integration and accelerometer/magnetometer updates.
 
+Use the multiplicative backend rather than an additive seven-state quaternion EKF.
+It keeps attitude on the rotation manifold and applies the attitude-error reset
+Jacobian to the covariance after each accepted correction.
+
 ```cpp
-#include <microla/extended_kalman.hpp>
-#include <microla/quaternion.hpp>
-#include <cmath>
+#include <microla/sensor_fusion.hpp>
 
 using namespace microla;
+using namespace microla::fusion;
 
-// State: [qw, qx, qy, qz, wx, wy, wz] - quaternion + angular velocity
-using State7 = Vec<float, 7>;
-using Meas6 = Vec<float, 6>;  // Accelerometer (3) + Magnetometer (3)
-using Mat7 = Mat<float, 7, 7>;
-using Mat6x7 = Mat<float, 6, 7>;
+OrientationEstimator<float, DefaultImu9EkfConfig<float>> estimator;
+Imu9Sample<float> sample{
+    0.0F,
+    Vec<float, 3>(0.0F, 0.0F, 0.0F),
+    Vec<float, 3>(0.0F, 0.0F, -constants::gravity<float>()),
+    Vec<float, 3>(50.0F, 0.0F, 0.0F)};
+estimator.update(sample);
+sample.timestamp_s = 0.01F;
+estimator.update(sample);
 
-// Quaternion integration from gyroscope
-auto attitude_state_transition(const State7& x, float dt) -> State7
-{
-    Quaternion<float> q(x[0], x[1], x[2], x[3]);
-    Vec<float, 3> omega{x[4], x[5], x[6]};
-    
-    // Integrate quaternion with angular velocity
-    float omega_mag = omega.length();
-    if (omega_mag > 1e-6f)
-    {
-        float half_angle = 0.5f * omega_mag * dt;
-        Vec<float, 3> axis = omega.normalized();
-        Quaternion<float> delta(
-            std::cos(half_angle),
-            axis[0] * std::sin(half_angle),
-            axis[1] * std::sin(half_angle),
-            axis[2] * std::sin(half_angle)
-        );
-        q = q * delta;
-        q = q.normalized();
-    }
-    
-    State7 x_pred;
-    x_pred[0] = q.w();
-    x_pred[1] = q.x();
-    x_pred[2] = q.y();
-    x_pred[3] = q.z();
-    x_pred[4] = x[4];  // Angular velocity assumed constant
-    x_pred[5] = x[5];
-    x_pred[6] = x[6];
-    
-    return x_pred;
-}
-
-// Simplified attitude Jacobian
-auto attitude_state_jacobian(const State7& x, float dt) -> Mat7
-{
-    Mat7 F = Mat7::identity();
-    
-    // Quaternion linearization around current state
-    float wx = x[4], wy = x[5], wz = x[6];
-    float dt2 = 0.5f * dt;
-    
-    // ∂q/∂ω (simplified)
-    F(0, 4) = -dt2 * x[1];  // ∂qw/∂wx
-    F(0, 5) = -dt2 * x[2];  // ∂qw/∂wy
-    F(0, 6) = -dt2 * x[3];  // ∂qw/∂wz
-    
-    F(1, 4) = dt2 * x[0];   // ∂qx/∂wx
-    F(2, 5) = dt2 * x[0];   // ∂qy/∂wy
-    F(3, 6) = dt2 * x[0];   // ∂qz/∂wz
-    
-    return F;
-}
-
-// Measurement prediction: rotate reference vectors by quaternion
-auto attitude_measurement(const State7& x) -> Meas6
-{
-    Quaternion<float> q(x[0], x[1], x[2], x[3]);
-    
-    // Expected accelerometer reading (gravity in body frame)
-    Vec<float, 3> gravity_world{0.0f, 0.0f, 9.81f};
-    Vec<float, 3> accel_pred = q.inverse().rotate(gravity_world);
-    
-    // Expected magnetometer reading (north in body frame)
-    Vec<float, 3> mag_world{1.0f, 0.0f, 0.0f};
-    Vec<float, 3> mag_pred = q.inverse().rotate(mag_world);
-    
-    Meas6 h;
-    h[0] = accel_pred[0];
-    h[1] = accel_pred[1];
-    h[2] = accel_pred[2];
-    h[3] = mag_pred[0];
-    h[4] = mag_pred[1];
-    h[5] = mag_pred[2];
-    
-    return h;
-}
-
-// Measurement Jacobian (numerical approximation or analytical)
-auto attitude_measurement_jacobian(const State7& x) -> Mat6x7
-{
-    // For quaternions, numerical Jacobian is often more practical
-    Mat6x7 H;
-    float eps = 1e-5f;
-    
-    Meas6 h0 = attitude_measurement(x);
-    
-    for (std::size_t j = 0; j < 7; ++j)
-    {
-        State7 x_pert = x;
-        x_pert[j] += eps;
-        Meas6 h_pert = attitude_measurement(x_pert);
-        
-        for (std::size_t i = 0; i < 6; ++i)
-        {
-            H(i, j) = (h_pert[i] - h0[i]) / eps;
-        }
-    }
-    
-    return H;
-}
+const auto& estimate = estimator.estimate();
+const auto& covariance = estimator.error_covariance();
 ```
+
+The covariance orders body-frame attitude error first, then gyro bias. Use
+`DefaultImu6EkfConfig<T>` when no magnetic heading reference is available. Check
+validity, observability, confidence, and rejection flags before publishing an angle.
 
 ### EKF Best Practices
 
@@ -671,12 +577,10 @@ Vec3f linear = p1.lerp(p2, 0.5F);
 
 ## Allocation-Sensitive Matrix Diagnostics
 
-The library exposes convenience wrappers that return `std::optional`, `std::variant`, or `std::vector`, but embedded code can stay on the caller-owned side of the API.
+Use caller-owned inverse and eigenvalue storage in embedded builds. The optional/variant inverse conveniences are not exposed by `MICROLA_EMBEDDED`; the vector-returning eigenvalue wrapper also requires dynamic allocation.
 
 ```cpp
 #include <microla/matrix.hpp>
-
-#include <variant>
 
 using namespace microla;
 
@@ -688,11 +592,8 @@ Mat3f A{
     0.0F, 0.0F, 2.0F
 };
 
-auto inv = A.inverse_checked();
-if (std::holds_alternative<Mat3f>(inv))
-{
-    Mat3f inv_a = std::get<Mat3f>(inv);
-}
+Mat3f inverse;
+bool inverse_accepted = A.inverse_checked(inverse);
 
 float eigenvalues[3] = {};
 bool converged = A.eigenvalues_qr(eigenvalues, 3);
@@ -703,11 +604,6 @@ if (converged)
     float lambda2 = eigenvalues[2];
 }
 
-auto maybe_inverse = A.try_inverse();
-if (maybe_inverse.has_value())
-{
-    Mat3f inv_a = *maybe_inverse;
-}
 ```
 
 ---

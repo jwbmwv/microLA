@@ -10,6 +10,37 @@
 
 using namespace microla;
 
+template<typename T>
+void expect_scale_safe_quaternion_normalization()
+{
+    for (const T scale :
+         {std::numeric_limits<T>::max() / T(4), std::numeric_limits<T>::min(), std::numeric_limits<T>::denorm_min()})
+    {
+        auto axis = Quaternion<T>(scale, 0, 0, 0);
+        EXPECT_EQ(axis.norm(), scale);
+        axis.normalize();
+        EXPECT_EQ(axis.norm(), T(1));
+        auto diagonal = Quaternion<T>(scale, scale, scale, scale).normalized();
+        EXPECT_NEAR(diagonal.norm(), T(1), T(16) * std::numeric_limits<T>::epsilon());
+    }
+}
+
+TEST(QuaternionRegressionTest, NormalizationHandlesExtremeAndSubnormalScales)
+{
+    expect_scale_safe_quaternion_normalization<float>();
+    expect_scale_safe_quaternion_normalization<double>();
+}
+
+TEST(QuaternionRegressionTest, RotationDistanceIsScaleAndSignInvariant)
+{
+    const auto rotation = Quaternion<double>::from_euler(0.4, 0.2, -0.3);
+    EXPECT_NEAR(rotation.angle_to(-rotation), 0.0, 1e-12);
+    EXPECT_NEAR(rotation.angle_to(rotation * 1e200), 0.0, 1e-12);
+    EXPECT_NEAR(Quaternion<double>::identity().angle_to(Quaternion<double>::from_euler(0, 0, 4.0)),
+                2 * constants::pi<double>() - 4.0, 1e-12);
+    EXPECT_TRUE(std::isnan(Quaternion<double>(0, 0, 0, 0).angle_to(rotation)));
+}
+
 class QuaternionTest : public ::testing::Test
 {
 protected:
@@ -322,6 +353,32 @@ TEST_F(QuaternionTest, SlerpBoundaries)
 
     EXPECT_NEAR(q0.w(), q1.w(), epsilon);
     EXPECT_NEAR(q1_end.w(), q2.w(), epsilon);
+}
+
+TEST_F(QuaternionTest, MatrixConversionPreservesRotation)
+{
+    for (const auto& axis : {axis_x, axis_y, axis_z})
+    {
+        for (float angle : {0.5F, 2.8F})
+        {
+            Quaternion<float> original(axis, angle);
+            Quaternion<float> converted(original.to_matrix());
+            auto expected = original.rotate(Vec3f{0.3F, 0.4F, 0.5F});
+            auto actual = converted.rotate(Vec3f{0.3F, 0.4F, 0.5F});
+            EXPECT_TRUE(actual.approx_equal(expected, epsilon));
+        }
+    }
+}
+
+TEST_F(QuaternionTest, SlerpAntipodalRepresentations)
+{
+    Quaternion<float> original(axis_z, 0.7F);
+    for (float fraction : {0.0F, 0.5F, 1.0F})
+    {
+        auto interpolated = original.slerp(-original, fraction);
+        EXPECT_NEAR(interpolated.norm(), 1.0F, epsilon);
+        EXPECT_TRUE(interpolated.rotate(axis_x).approx_equal(original.rotate(axis_x), epsilon));
+    }
 }
 
 // ===== Angle Between =====

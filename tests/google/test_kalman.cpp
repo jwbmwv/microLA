@@ -10,6 +10,47 @@
 
 using namespace microla;
 
+TEST(KalmanFilterTest, FailedPredictionPreservesBothStateAndCovariance)
+{
+    KalmanFilter<double, 1, 1> filter;
+    filter.set_state(Vec<double, 1>(std::numeric_limits<double>::max()));
+    filter.set_state_transition(Mat<double, 1, 1>{2});
+    const auto covariance = filter.get_covariance();
+    filter.predict();
+    EXPECT_DOUBLE_EQ(filter.get_state()[0], std::numeric_limits<double>::max());
+    EXPECT_EQ(filter.get_covariance(), covariance);
+    filter.set_state(Vec<double, 1>(1));
+    filter.predict(Vec<double, 1>(std::numeric_limits<double>::infinity()), Mat<double, 1, 1>{1});
+    EXPECT_DOUBLE_EQ(filter.get_state()[0], 1.0);
+    EXPECT_EQ(filter.get_covariance(), covariance);
+    filter.set_state_transition(Mat<double, 1, 1>{std::numeric_limits<double>::max()});
+    filter.predict();
+    EXPECT_DOUBLE_EQ(filter.get_state()[0], 1.0);
+    EXPECT_EQ(filter.get_covariance(), covariance);
+}
+
+TEST(ExtendedKalmanFilterTest, FailedPredictionPreservesBothStateAndCovariance)
+{
+    using State = Vec<double, 1>;
+    using Matrix = Mat<double, 1, 1>;
+    ExtendedKalmanFilter<double, 1, 1> filter;
+    const auto covariance = filter.get_covariance();
+    filter.set_state_transition(
+        +[](const State&, double) -> State { return {std::numeric_limits<double>::quiet_NaN()}; },
+        +[](const State&, double) { return Matrix::identity(); });
+    filter.predict(0.1);
+    EXPECT_DOUBLE_EQ(filter.get_state()[0], 0.0);
+    EXPECT_EQ(filter.get_covariance(), covariance);
+    filter.set_state_transition(
+        +[](const State& state, double) { return state + State(1); },
+        +[](const State&, double) { return Matrix{std::numeric_limits<double>::max()}; });
+    filter.predict(0.1);
+    EXPECT_DOUBLE_EQ(filter.get_state()[0], 0.0);
+    EXPECT_EQ(filter.get_covariance(), covariance);
+    filter.predict(std::numeric_limits<double>::infinity());
+    EXPECT_DOUBLE_EQ(filter.get_state()[0], 0.0);
+}
+
 // ==================== Standard Kalman Filter Tests ====================
 
 TEST(KalmanFilterTest, DefaultConstruction)
@@ -236,6 +277,49 @@ TEST(KalmanFilterTest, SingularInnovationCovariance)
 }
 
 // ==================== Extended Kalman Filter Tests ====================
+
+TEST(KalmanFilterTest, InvalidMeasurementPreservesStateAndCovariance)
+{
+    KalmanFilter<float, 1, 1> filter;
+    filter.set_measurement_matrix(Mat<float, 1, 1>{1});
+    const auto state = filter.get_state();
+    const auto covariance = filter.get_covariance();
+    Vec<float, 1> invalid{std::numeric_limits<float>::quiet_NaN()};
+    EXPECT_FALSE(filter.update(invalid));
+    EXPECT_FALSE(filter.update_simple(invalid));
+    EXPECT_EQ(filter.get_state(), state);
+    EXPECT_EQ(filter.get_covariance(), covariance);
+    EXPECT_TRUE(std::isinf(filter.compute_nis(invalid)));
+    filter.set_covariance(Mat<float, 1, 1>::zero());
+    filter.set_measurement_noise(Mat<float, 1, 1>::zero());
+    EXPECT_TRUE(std::isinf(filter.compute_nis(Vec<float, 1>{0})));
+}
+
+TEST(ExtendedKalmanFilterTest, ScaleAwareUpdatesAndWrappedResidual)
+{
+    using Filter = ExtendedKalmanFilter<float, 1, 1>;
+    Filter filter;
+    filter.set_measurement_model(
+        +[](const Filter::StateVec& state) { return state; },
+        +[](const Filter::StateVec&) { return Filter::MeasToStateMat{1}; });
+    filter.set_covariance(Filter::StateMat{1e-10F});
+    filter.set_measurement_noise(Filter::MeasMat{1e-10F});
+    EXPECT_TRUE(filter.update(Filter::MeasVec{1}));
+    const auto state = filter.get_state();
+    const auto covariance = filter.get_covariance();
+    Filter::MeasVec invalid{std::numeric_limits<float>::infinity()};
+    EXPECT_FALSE(filter.update(invalid));
+    EXPECT_FALSE(filter.update_joseph(invalid));
+    EXPECT_EQ(filter.get_state(), state);
+    EXPECT_EQ(filter.get_covariance(), covariance);
+    filter.set_residual_function(+[](const Filter::MeasVec& measured, const Filter::MeasVec& predicted) {
+        return Filter::MeasVec{std::remainder(measured[0] - predicted[0], constants::two_pi<float>())};
+    });
+    filter.set_state(Filter::StateVec{constants::pi<float>() - 0.01F});
+    EXPECT_NEAR(filter.compute_innovation(Filter::MeasVec{-constants::pi<float>() + 0.01F})[0], 0.02F, 1e-5F);
+    Filter unset;
+    EXPECT_TRUE(std::isinf(unset.compute_nis(Filter::MeasVec{0})));
+}
 
 // Simple nonlinear state transition for testing
 auto ekf_state_func(const Vec<float, 2>& x, float dt) -> Vec<float, 2>

@@ -53,7 +53,9 @@ constexpr float SMOOTHSTEP_COEFF = 3.0F;
 // ==================== Fast Approximation Functions ====================
 
 /// @brief Fast sine approximation using Bhaskara I's approximation
-/// @details Accurate to ~0.0016 radians (0.09 degrees) maximum error
+/// @tparam T Floating-point type of the angle and result.
+/// @details Maximum absolute approximation error below 0.002 on [-pi, pi].
+///          Other inputs use std::sin for full-range argument reduction.
 /// @param x Angle in radians
 /// @return Approximate sine value
 template<typename T = float>
@@ -61,10 +63,11 @@ inline auto sin(T x) noexcept -> T
 {
     static_assert(std::is_floating_point_v<T>, "fast::sin requires floating-point type");
 
-    // Normalize to [-pi, pi]
     const T pi = constants::pi<T>();
-    const T two_pi = constants::two_pi<T>();
-    x = x - std::floor((x + pi) / two_pi) * two_pi;
+    if (!std::isfinite(x) || std::abs(x) > pi)
+    {
+        return std::sin(x);
+    }
 
     // Bhaskara I's sine approximation: sin(x) ≈ 16x(π - x) / (5π² - 4x(π - x))
     if (x < T(0))
@@ -81,16 +84,22 @@ inline auto sin(T x) noexcept -> T
 }
 
 /// @brief Fast cosine approximation
-/// @details Uses identity cos(x) = sin(x + π/2)
+/// @tparam T Floating-point type of the angle and result.
+/// @details Uses the sine approximation on [-pi/2, pi/2]; other inputs use std::cos.
 /// @param x Angle in radians
 /// @return Approximate cosine value
 template<typename T = float>
 inline auto cos(T x) noexcept -> T
 {
+    if (!std::isfinite(x) || std::abs(x) > constants::half_pi<T>())
+    {
+        return std::cos(x);
+    }
     return sin(x + constants::half_pi<T>());
 }
 
 /// @brief Fast tangent approximation
+/// @tparam T Floating-point type of the angle and result.
 /// @details Uses tan(x) = sin(x) / cos(x). Returns infinity when cos(x) is
 ///          below the float epsilon guard — consistent with IEEE 754 division
 ///          behaviour at the ±π/2 singularity.
@@ -159,6 +168,7 @@ MICROLA_CONSTEXPR20 auto sqrt(float x) noexcept -> float
 }
 
 /// @brief Fast arc-tangent approximation (atan2)
+/// @tparam T Floating-point type of the coordinates and result.
 /// @details Accurate to ~0.005 radians maximum error
 /// @param y Y coordinate
 /// @param x X coordinate
@@ -219,6 +229,7 @@ inline auto atan2(T y, T x) noexcept -> T
 }
 
 /// @brief Fast exponential approximation e^x
+/// @tparam T Floating-point type of the exponent and result.
 /// @details Uses Padé approximation - accurate to ~1% error for |x| < 2
 /// @param x Exponent
 /// @return Approximate e^x
@@ -227,26 +238,24 @@ inline auto exp(T x) noexcept -> T
 {
     static_assert(std::is_floating_point_v<T>, "fast::exp requires floating-point type");
 
-    // For large |x|, use scaling: e^x = (e^(x/2^k))^(2^k)
-    // Implement iteratively to avoid recursion (embedded-friendly).
-    int squares = 0;
-    while (x > T(2) || x < T(-2))
+    if (std::isnan(x))
     {
-        x = x / T(2);
-        ++squares;
+        return x;
     }
-
-    // Padé approximation [2/2]: e^x ≈ (2 + x) / (2 - x)
-    // More accurate: e^x ≈ (12 + 6x + x²) / (12 - 6x + x²)
+    if (x >= T(std::numeric_limits<T>::max_exponent) * constants::ln2<T>())
+    {
+        return std::numeric_limits<T>::infinity();
+    }
+    if (x < T(std::numeric_limits<T>::min_exponent - std::numeric_limits<T>::digits - 1) * constants::ln2<T>())
+    {
+        return T(0);
+    }
+    const int exponent = static_cast<int>(std::round(x / constants::ln2<T>()));
+    x -= T(exponent) * constants::ln2<T>();
     const T x2 = x * x;
     const T numerator = T(12) + T(6) * x + x2;
     const T denominator = T(12) - T(6) * x + x2;
-    T result = numerator / denominator;
-    for (int i = 0; i < squares; ++i)
-    {
-        result = result * result;
-    }
-    return result;
+    return std::ldexp(numerator / denominator, exponent);
 }
 
 /// @brief Fast natural logarithm approximation ln(x)
@@ -255,18 +264,24 @@ inline auto exp(T x) noexcept -> T
 /// @return Approximate ln(x)
 inline auto ln(float x) noexcept -> float
 {
-    // Extract exponent from IEEE 754 representation
-    auto bits = MICROLA_BIT_CAST(std::uint32_t, x);
-    const int exponent = static_cast<int>(((bits >> 23) & 0xFFU)) - 127;
-    bits = (bits & 0x007FFFFFU) | 0x3F800000U;  // mantissa in [1, 2)
-    const auto m = MICROLA_BIT_CAST(float, bits);
-
-    // Polynomial approximation for ln(m) where m in [1, 2)
-    // ln(m) ≈ (m - 1) * (a + b*(m-1) + c*(m-1)²)
-    const float m1 = m - 1.0F;
-    const float log_m = m1 * (2.0F - 0.666666F * m1 + 0.4F * m1 * m1);
-
-    // ln(x) = ln(2^exp * m) = exp * ln(2) + ln(m)
+    if (std::isnan(x) || x == std::numeric_limits<float>::infinity())
+    {
+        return x;
+    }
+    if (x <= 0.0F)
+    {
+        return x == 0.0F ? -std::numeric_limits<float>::infinity() : std::numeric_limits<float>::quiet_NaN();
+    }
+    int exponent = 0;
+    const float mantissa = std::frexp(x, &exponent) * 2.0F;
+    --exponent;
+    const float transformed = (mantissa - 1.0F) / (mantissa + 1.0F);
+    const float squared = transformed * transformed;
+    const float log_m =
+        2.0F * transformed *
+        (1.0F +
+         squared * (1.0F / 3.0F +
+                    squared * (1.0F / 5.0F + squared * (1.0F / 7.0F + squared * (1.0F / 9.0F + squared / 11.0F)))));
     return static_cast<float>(exponent) * constants::ln2<float>() + log_m;
 }
 
@@ -292,6 +307,7 @@ MICROLA_CONSTEXPR20 auto abs(float x) noexcept -> float
 }
 
 /// @brief Fast sign function
+/// @tparam T Ordered arithmetic type of the input and result.
 /// @details Returns -1, 0, or 1
 /// @param x Input value
 /// @return sign(x)
@@ -302,6 +318,7 @@ constexpr auto sign(T x) noexcept -> T
 }
 
 /// @brief Linear interpolation (lerp) - inlined for speed
+/// @tparam T Arithmetic type of the endpoints, factor, and result.
 /// @param a Start value
 /// @param b End value
 /// @param t Interpolation factor [0, 1]
@@ -313,6 +330,7 @@ constexpr auto lerp(T a, T b, T t) noexcept -> T
 }
 
 /// @brief Smoothstep interpolation (cubic Hermite)
+/// @tparam T Floating-point type of the edges, input, and result.
 /// @details Smooth acceleration and deceleration
 /// @param edge0 Lower edge
 /// @param edge1 Upper edge

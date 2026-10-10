@@ -24,6 +24,8 @@ namespace safe
 /// @tparam T Floating-point type
 /// @param value Value to check
 /// @return true if finite, false otherwise
+/// @retval true The input is neither infinity nor NaN.
+/// @retval false The input is infinity or NaN.
 template<typename T = float>
 inline auto is_finite(T value) noexcept -> bool
 {
@@ -51,6 +53,8 @@ inline auto is_finite(T value) noexcept -> bool
 /// @tparam T Floating-point type
 /// @param value Value to check
 /// @return true if NaN, false otherwise
+/// @retval true The input has a NaN representation.
+/// @retval false The input is finite or infinite.
 template<typename T = float>
 inline auto is_nan(T value) noexcept -> bool
 {
@@ -104,6 +108,13 @@ constexpr auto safe_divide(T numerator, T denominator, T default_value = T(0)) n
         if (denominator == T(0)) [[unlikely]]
         {
             return default_value;
+        }
+        if constexpr (std::is_signed_v<T>)
+        {
+            if (numerator == std::numeric_limits<T>::min() && denominator == T(-1))
+            {
+                return default_value;
+            }
         }
     }
     return numerator / denominator;
@@ -189,6 +200,8 @@ inline auto safe_asin(T value) noexcept -> T
 /// @param index Index to check
 /// @param size Array size
 /// @return true if valid, false otherwise
+/// @retval true The index is strictly less than the size.
+/// @retval false The index is outside the array bounds.
 inline bool check_bounds(std::size_t index, std::size_t size) noexcept
 {
     return index < size;
@@ -213,6 +226,8 @@ inline T assert_finite(T value) noexcept
 /// @param condition_number Condition number of matrix
 /// @param threshold Maximum acceptable condition number (default: 1e6)
 /// @return true if matrix is well-conditioned
+/// @retval true The condition number is finite and below the threshold.
+/// @retval false The condition number is non-finite or reaches the threshold.
 template<typename T>
 bool is_well_conditioned(T condition_number, T threshold = T(1e6)) noexcept
 {
@@ -222,17 +237,30 @@ bool is_well_conditioned(T condition_number, T threshold = T(1e6)) noexcept
 #else
 
 // No-op implementations when not in safe mode
+/// @brief Skip bounds validation when safe mode is disabled.
+/// @return Always true; the unnamed arguments are ignored.
+/// @retval true Validation is disabled.
+/// @retval false Never returned by this configuration.
 constexpr auto check_bounds(std::size_t /*unused*/, std::size_t /*unused*/) noexcept -> bool
 {
     return true;
 }
 
+/// @brief Preserve the input unchanged when safe mode is disabled.
+/// @tparam T Type of the input value.
+/// @param value Input, including non-finite values.
+/// @return The original value without validation.
 template<typename T>
 constexpr auto assert_finite(T value) noexcept -> T
 {
     return value;
 }
 
+/// @brief Skip condition-number validation when safe mode is disabled.
+/// @tparam T Type of the ignored condition number and threshold.
+/// @return Always true; the unnamed arguments are ignored.
+/// @retval true Validation is disabled.
+/// @retval false Never returned by this configuration.
 template<typename T>
 constexpr auto is_well_conditioned(T /*unused*/, T /*unused*/ = T(1e6)) noexcept -> bool
 {

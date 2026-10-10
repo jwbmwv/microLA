@@ -16,7 +16,8 @@ package "C++20 (Baseline - Required)" <<Rectangle>> #E6FFE6 {
         • consteval (MICROLA_CONSTEVAL)
 
         **MicroLA Usage:**
-        Type-safe templates
+        Concepts defined in umbrella;
+        not constraints on every core template
         Branch optimization
         Safe type punning
         Compile-time validation
@@ -30,12 +31,12 @@ package "C++23 Enhancements" <<Rectangle>> #FFE6F3 {
         • if consteval (MICROLA_IF_CONSTEVAL)
 
         **MicroLA Usage:**
-        Dual compile/runtime paths
-        Optimized constexpr detection
+        Feature-test guarded if consteval
+        Fallback is if(false)
     end note
 }
 
-package "C++26 (Latest)" <<Rectangle>> #F0E6FF {
+package "C++26 (Conditional Library Support)" <<Rectangle>> #F0E6FF {
     component "MICROLA_CONSTEXPR_TRIG" as cpp26
     note right of cpp26
         • constexpr math functions:
@@ -43,15 +44,13 @@ package "C++26 (Latest)" <<Rectangle>> #F0E6FF {
           - std::sqrt, std::atan2
 
         **MicroLA Usage:**
-        Compile-time rotations
-        Compile-time vector/quaternion norms
-        Compile-time Euler extraction
-        Arbitrary angle matrices
-        Full constexpr transformation
+        Selected trig methods become constexpr
+        only with an implementing standard library.
+        C++20/23 fixed rotations use explicit coefficients.
 
         **Example:**
         constexpr auto rot =
-          Mat<float,2,2>::rotation(45°);
+          Mat<float,2,2>::rotation(0.785398f);
     end note
 }
 
@@ -68,8 +67,10 @@ note as FeatureDetection
         __cpp_if_consteval
         __cpp_lib_bit_cast
 
-    C++26 constexpr math remains
-    guarded by active toolchain/library support.
+    MICROLA_CONSTEXPR_TRIG currently checks
+    __cplusplus >= 202600L.
+    Actual math constant evaluation also requires
+    standard-library support; compile the expression.
 end note
 
 @enduml

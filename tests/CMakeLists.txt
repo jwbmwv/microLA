@@ -91,6 +91,15 @@ target_link_libraries(microla_embedded_contract_gtests
 target_compile_features(microla_embedded_contract_gtests PRIVATE cxx_std_20)
 target_compile_definitions(microla_embedded_contract_gtests PRIVATE MICROLA_EMBEDDED)
 
+file(GLOB PUBLIC_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/../include/microla/*.hpp")
+foreach(PUBLIC_HEADER IN LISTS PUBLIC_HEADERS)
+    get_filename_component(HEADER_NAME "${PUBLIC_HEADER}" NAME)
+    set(HEADER_CHECK "${CMAKE_CURRENT_BINARY_DIR}/header_checks/${HEADER_NAME}.cpp")
+    file(GENERATE OUTPUT "${HEADER_CHECK}" CONTENT "#include <microla/${HEADER_NAME}>\n")
+    target_sources(microla_gtests PRIVATE "${HEADER_CHECK}")
+    target_sources(microla_embedded_contract_gtests PRIVATE "${HEADER_CHECK}")
+endforeach()
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(microla_embedded_contract_gtests PRIVATE -fno-fast-math)
 endif()

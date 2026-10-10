@@ -16,8 +16,8 @@ namespace microla
 
 /// @brief Standard Kalman filter for linear systems
 /// @tparam T Numeric type (typically float or double)
-/// @tparam STATE_DIM Number of state variables
-/// @tparam MEAS_DIM Number of measurements
+/// @tparam StateDim Number of state variables.
+/// @tparam MeasDim Number of measurements.
 /// @details Implements the optimal recursive estimator for linear Gaussian systems.
 ///          Uses Joseph form covariance update for numerical stability.
 ///          All dimensions known at compile time for zero-overhead abstractions.
@@ -62,30 +62,45 @@ public:
     ///          Pₖ|ₖ₋₁ = F * Pₖ₋₁|ₖ₋₁ * F^T + Q
     void predict() noexcept
     {
-        // Predict state: x = F * x
-        x = F * x;
-
-        // Predict covariance: P = F * P * F^T + Q
-        P = F * P * F.transpose() + Q;
+        if (!x.is_finite() || !P.is_finite() || !F.is_finite() || !Q.is_finite())
+        {
+            return;
+        }
+        const StateVec predicted_state = F * x;
+        const StateMat predicted_covariance = F * P * F.transpose() + Q;
+        if (predicted_state.is_finite() && predicted_covariance.is_finite())
+        {
+            x = predicted_state;
+            P = predicted_covariance;
+        }
     }
 
     /// @brief Prediction step with control input
+    /// @tparam CtrlDim Number of control inputs.
     /// @param u Control input vector
     /// @param B Control matrix (maps control to state)
     /// @details Extended prediction: x̂ₖ|ₖ₋₁ = F * x̂ₖ₋₁|ₖ₋₁ + B * u
     template<std::size_t CtrlDim>
     void predict(const Vec<T, CtrlDim>& u, const Mat<T, StateDim, CtrlDim>& B) noexcept
     {
-        // Predict state with control: x = F * x + B * u
-        x = F * x + B * u;
-
-        // Predict covariance: P = F * P * F^T + Q
-        P = F * P * F.transpose() + Q;
+        if (!x.is_finite() || !P.is_finite() || !F.is_finite() || !Q.is_finite() || !u.is_finite() || !B.is_finite())
+        {
+            return;
+        }
+        const StateVec predicted_state = F * x + B * u;
+        const StateMat predicted_covariance = F * P * F.transpose() + Q;
+        if (predicted_state.is_finite() && predicted_covariance.is_finite())
+        {
+            x = predicted_state;
+            P = predicted_covariance;
+        }
     }
 
     /// @brief Update step (measurement update) with innovation validation
     /// @param z Measurement vector
     /// @return True if update was applied, false if measurement rejected
+    /// @retval true Finite corrected state and Joseph covariance were committed.
+    /// @retval false Invalid data, failed inversion, or non-finite results; state and covariance are unchanged.
     /// @details Incorporates measurement to refine state estimate:
     ///          yₖ = z - H * x̂ₖ|ₖ₋₁ (innovation)
     ///          Sₖ = H * Pₖ|ₖ₋₁ * H^T + R (innovation covariance)
@@ -94,6 +109,10 @@ public:
     ///          Pₖ|ₖ = (I - Kₖ * H) * Pₖ|ₖ₋₁ * (I - Kₖ * H)^T + Kₖ * R * Kₖ^T (Joseph form)
     auto update(const MeasVec& z) noexcept -> bool
     {
+        if (!z.is_finite() || !x.is_finite() || !P.is_finite() || !H.is_finite() || !R.is_finite())
+        {
+            return false;
+        }
         // Innovation (measurement residual): y = z - H * x
         MeasVec y = z - H * x;
 
@@ -104,67 +123,67 @@ public:
         // Use condition-number-aware inversion: rejects ill-conditioned S regardless
         // of the absolute scale of measurement units (absolute det < epsilon is insufficient).
         MeasMat s_inv;
-#if !defined(MICROLA_EMBEDDED)
-        auto s_result = s.inverse_checked();
-        if (std::holds_alternative<typename MeasMat::InverseError>(s_result))
+        if (!s.inverse_checked(s_inv))
         {
-            return false;  // Singular or ill-conditioned innovation covariance
+            return false;
         }
-        s_inv = std::get<MeasMat>(s_result);
-#else
-        // Embedded: std::variant not available; use lightweight bool form.
-        if (!s.inverse(s_inv))
-        {
-            return false;  // Singular innovation covariance
-        }
-#endif
         StateToMeasMat k = P * H.transpose() * s_inv;
 
         // Update state estimate: x = x + K * y
-        x = x + k * y;
+        const StateVec next_state = x + k * y;
 
         // Update covariance using Joseph form for numerical stability
         // P = (I - K*H) * P * (I - K*H)^T + K * R * K^T
         StateMat i = StateMat::identity();
         StateMat ikh = i - k * H;
-        P = ikh * P * ikh.transpose() + k * R * k.transpose();
+        StateMat next_covariance = ikh * P * ikh.transpose() + k * R * k.transpose();
 
-        // Enforce covariance symmetry and positive definiteness
+        // Enforce covariance symmetry
         // Symmetrize: P = (P + P^T) / 2
-        P = (P + P.transpose()) * static_cast<T>(0.5);
+        next_covariance = (next_covariance + next_covariance.transpose()) * static_cast<T>(0.5);
+        if (!next_state.is_finite() || !next_covariance.is_finite())
+        {
+            return false;
+        }
+        x = next_state;
+        P = next_covariance;
 
         return true;
     }
 
     /// @brief Simplified update without Joseph form (faster but less stable)
     /// @param z Measurement vector
+    /// @return Whether the corrected state and covariance were committed.
+    /// @retval true The update produced finite state and covariance.
+    /// @retval false Invalid data, failed inversion, or non-finite results; state and covariance are unchanged.
     /// @details Uses simplified covariance update: P = (I - K*H) * P
     ///          Faster but may lose positive definiteness in extreme cases
     auto update_simple(const MeasVec& z) noexcept -> bool
     {
+        if (!z.is_finite() || !x.is_finite() || !P.is_finite() || !H.is_finite() || !R.is_finite())
+        {
+            return false;
+        }
         MeasVec y = z - H * x;
         MeasMat s = H * P * H.transpose() + R;
 
         MeasMat s_inv;
-#if !defined(MICROLA_EMBEDDED)
-        auto s_result = s.inverse_checked();
-        if (std::holds_alternative<typename MeasMat::InverseError>(s_result))
-        {
-            return false;  // Singular or ill-conditioned innovation covariance
-        }
-        s_inv = std::get<MeasMat>(s_result);
-#else
-        if (!s.inverse(s_inv))
+        if (!s.inverse_checked(s_inv))
         {
             return false;
         }
-#endif
         StateToMeasMat k = P * H.transpose() * s_inv;
-        x = x + k * y;
+        const StateVec next_state = x + k * y;
 
         // Simplified covariance update
         StateMat i = StateMat::identity();
-        P = (i - k * H) * P;
+        const StateMat next_covariance = (i - k * H) * P;
+        if (!next_state.is_finite() || !next_covariance.is_finite())
+        {
+            return false;
+        }
+        x = next_state;
+        P = next_covariance;
 
         return true;
     }
@@ -172,12 +191,16 @@ public:
     // ==================== Accessors ====================
 
     /// @brief Get current state estimate
+    /// @return Const reference to the stored state estimate.
     [[nodiscard]] auto get_state() const noexcept -> const StateVec& { return x; }
 
     /// @brief Get current covariance estimate
+    /// @return Const reference to the stored state covariance.
     [[nodiscard]] auto get_covariance() const noexcept -> const StateMat& { return P; }
 
     /// @brief Get specific state variable
+    /// @param index State component index, less than StateDim.
+    /// @return Value of the selected state component.
     [[nodiscard]] auto get_state(std::size_t index) const noexcept -> T
     {
 #ifdef MICROLA_DEBUG
@@ -187,6 +210,8 @@ public:
     }
 
     /// @brief Get state variance for specific variable
+    /// @param index State component index, less than StateDim.
+    /// @return Corresponding covariance diagonal entry.
     [[nodiscard]] auto get_variance(std::size_t index) const noexcept -> T
     {
 #ifdef MICROLA_DEBUG
@@ -196,6 +221,8 @@ public:
     }
 
     /// @brief Get state standard deviation
+    /// @param index State component index, less than StateDim.
+    /// @return Square root of the selected variance; negative variance produces NaN.
     [[nodiscard]] auto get_std_dev(std::size_t index) const noexcept -> T
     {
 #ifdef MICROLA_DEBUG
@@ -207,35 +234,45 @@ public:
     // ==================== Setters ====================
 
     /// @brief Set state estimate
+    /// @param state State vector to store without validation.
     void set_state(const StateVec& state) noexcept { x = state; }
 
     /// @brief Set covariance matrix
+    /// @param covariance State covariance to store without validation.
     void set_covariance(const StateMat& covariance) noexcept { P = covariance; }
 
     /// @brief Set state transition matrix
+    /// @param F_in Linear state-transition matrix.
     void set_state_transition(const StateMat& F_in) noexcept { F = F_in; }
 
     /// @brief Set measurement matrix
+    /// @param H_in Matrix mapping state components to measurements.
     void set_measurement_matrix(const MeasToStateMat& H_in) noexcept { H = H_in; }
 
     /// @brief Set process noise covariance
+    /// @param Q_in Additive process-noise covariance per prediction.
     void set_process_noise(const StateMat& Q_in) noexcept { Q = Q_in; }
 
     /// @brief Set measurement noise covariance
+    /// @param R_in Measurement-noise covariance.
     void set_measurement_noise(const MeasMat& R_in) noexcept { R = R_in; }
 
     // ==================== Matrix Accessors (for advanced users) ====================
 
     /// @brief Get state transition matrix
+    /// @return Const reference to the stored transition matrix F.
     [[nodiscard]] auto get_f() const noexcept -> const StateMat& { return F; }
 
     /// @brief Get measurement matrix
+    /// @return Const reference to the stored measurement matrix H.
     [[nodiscard]] auto get_h() const noexcept -> const MeasToStateMat& { return H; }
 
     /// @brief Get process noise covariance
+    /// @return Const reference to the stored process-noise covariance Q.
     [[nodiscard]] auto get_q() const noexcept -> const StateMat& { return Q; }
 
     /// @brief Get measurement noise covariance
+    /// @return Const reference to the stored measurement-noise covariance R.
     [[nodiscard]] auto get_r() const noexcept -> const MeasMat& { return R; }
 
     // ==================== Utility Methods ====================
@@ -248,6 +285,8 @@ public:
     }
 
     /// @brief Reset with specific initial state and covariance
+    /// @param x0 Initial state estimate.
+    /// @param P0 Initial state covariance; model and noise settings are retained.
     void reset(const StateVec& x0, const StateMat& P0) noexcept
     {
         x = x0;
@@ -255,22 +294,31 @@ public:
     }
 
     /// @brief Compute innovation (measurement residual)
+    /// @param z Measurement vector.
+    /// @return Residual z - H * x, without changing the filter.
     [[nodiscard]] auto compute_innovation(const MeasVec& z) const noexcept -> MeasVec { return z - H * x; }
 
     /// @brief Compute innovation covariance
+    /// @return H * P * H.transpose() + R, without changing the filter.
     [[nodiscard]] auto compute_innovation_covariance() const noexcept -> MeasMat { return H * P * H.transpose() + R; }
 
     /// @brief Compute normalized innovation squared (NIS) for measurement validation
+    /// @param z Measurement vector to evaluate.
+    /// @return Nonnegative NIS, or infinity for invalid data, failed inversion, or invalid results.
     /// @details NIS follows chi-squared distribution with MEAS_DIM degrees of freedom.
     ///          Use for outlier detection: if NIS > threshold, reject measurement.
     [[nodiscard]] auto compute_nis(const MeasVec& z) const noexcept -> T
     {
+        if (!z.is_finite() || !x.is_finite() || !P.is_finite() || !H.is_finite() || !R.is_finite())
+        {
+            return std::numeric_limits<T>::infinity();
+        }
         MeasVec y = compute_innovation(z);
         MeasMat s = compute_innovation_covariance();
         MeasMat s_inv;
-        if (!s.inverse(s_inv))
+        if (!s.inverse_checked(s_inv))
         {
-            return T(0);
+            return std::numeric_limits<T>::infinity();
         }
 
         // NIS = y^T * S^(-1) * y
@@ -282,25 +330,29 @@ public:
                 nis += y[i] * s_inv(i, j) * y[j];
             }
         }
-        return nis;
+        return std::isfinite(nis) && nis >= T(0) ? nis : std::numeric_limits<T>::infinity();
     }
 };
 
 // ==================== Type Aliases for Common Use Cases ====================
 
 /// @brief 1D position tracking (position only)
+/// @tparam T Floating-point type for state and covariance calculations.
 template<typename T = float>
 using KalmanFilter1D = KalmanFilter<T, 1, 1>;
 
 /// @brief 2D position + velocity tracking (constant velocity model)
+/// @tparam T Floating-point type for state and covariance calculations.
 template<typename T = float>
 using KalmanFilter2D = KalmanFilter<T, 2, 1>;
 
 /// @brief 4D position + velocity in 2D space
+/// @tparam T Floating-point type for state and covariance calculations.
 template<typename T = float>
 using KalmanFilter4D = KalmanFilter<T, 4, 2>;
 
 /// @brief 6D position + velocity in 3D space
+/// @tparam T Floating-point type for state and covariance calculations.
 template<typename T = float>
 using KalmanFilter6D = KalmanFilter<T, 6, 3>;
 

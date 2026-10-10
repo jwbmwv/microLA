@@ -78,6 +78,8 @@ inline int get_version_number()
 /// @param minor Required minor version
 /// @param patch Required patch version
 /// @return true if library version >= required version
+/// @retval true The encoded library version is at least major * 10000 + minor * 100 + patch.
+/// @retval false The encoded requested version is greater than the library version.
 inline bool version_at_least(int major, int minor, int patch)
 {
     return MICROLA_VERSION_NUMBER >= ((major * 10000) + (minor * 100) + patch);

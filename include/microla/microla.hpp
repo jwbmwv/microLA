@@ -68,16 +68,23 @@ namespace microla
 {
 
 // C++20 concepts for better type safety and error messages
+/// @brief Accept built-in arithmetic types.
+/// @tparam T Type tested for arithmetic classification.
 template<typename T>
 concept Arithmetic = std::is_arithmetic_v<T>;
 
+/// @brief Accept built-in floating-point types.
+/// @tparam T Type tested for floating-point classification.
 template<typename T>
 concept FloatingPoint = std::is_floating_point_v<T>;
 
+/// @brief Accept built-in integral types.
+/// @tparam T Type tested for integral classification.
 template<typename T>
 concept Integral = std::is_integral_v<T>;
 
 /// \brief Convert degrees to radians
+/// @tparam T Numeric type of the angle and result.
 /// \param degrees Angle in degrees
 /// \return Angle in radians
 template<typename T>
@@ -87,6 +94,7 @@ template<typename T>
 }
 
 /// \brief Convert radians to degrees
+/// @tparam T Numeric type of the angle and result.
 /// \param radians Angle in radians
 /// \return Angle in degrees
 template<typename T>
@@ -95,18 +103,59 @@ template<typename T>
     return radians * constants::rad_to_deg<T>();
 }
 
+namespace detail
+{
+/// @brief Reduce an angle modulo one revolution without an integral quotient cast.
+/// @tparam T Numeric type of the angle and result.
+/// @param angle Angle in radians.
+/// @return Signed remainder modulo two pi; non-finite floating-point inputs produce NaN.
+template<typename T>
+constexpr auto angle_remainder(T angle) noexcept -> T
+{
+    if constexpr (std::is_integral_v<T>)
+    {
+        return angle % constants::two_pi<T>();
+    }
+    if (!(angle <= std::numeric_limits<T>::max() && angle >= -std::numeric_limits<T>::max()))
+    {
+        return std::numeric_limits<T>::quiet_NaN();
+    }
+    if (!std::is_constant_evaluated())
+    {
+        return std::fmod(angle, constants::two_pi<T>());
+    }
+    const bool negative = angle < T(0);
+    T remainder = negative ? -angle : angle;
+    T divisor = constants::two_pi<T>();
+    for (int step = 0; step < std::numeric_limits<T>::max_exponent && divisor <= remainder / T(2); ++step)
+    {
+        divisor *= T(2);
+    }
+    for (int step = 0; step <= std::numeric_limits<T>::max_exponent && divisor >= constants::two_pi<T>(); ++step)
+    {
+        if (remainder >= divisor)
+        {
+            remainder -= divisor;
+        }
+        divisor /= T(2);
+    }
+    return negative ? -remainder : remainder;
+}
+}  // namespace detail
+
 /// \brief Wrap angle to range [-pi, pi]
+/// @tparam T Numeric type of the angle and result.
 /// \param angle Angle in radians
 /// \return Angle wrapped to [-pi, pi]
 template<typename T>
 [[nodiscard]] constexpr auto wrap_pi(T angle) noexcept -> T
 {
-    // Normalize to [-pi, pi]
-    while (angle > constants::pi<T>())
+    angle = detail::angle_remainder(angle);
+    if (angle > constants::pi<T>())
     {
         angle -= constants::two_pi<T>();
     }
-    while (angle < -constants::pi<T>())
+    if (angle < -constants::pi<T>())
     {
         angle += constants::two_pi<T>();
     }
@@ -114,24 +163,26 @@ template<typename T>
 }
 
 /// \brief Wrap angle to range [0, 2*pi]
+/// @tparam T Numeric type of the angle and result.
 /// \param angle Angle in radians
 /// \return Angle wrapped to [0, 2*pi]
 template<typename T>
 [[nodiscard]] constexpr auto wrap_two_pi(T angle) noexcept -> T
 {
-    // Normalize to [0, 2*pi]
-    while (angle < T(0))
+    angle = detail::angle_remainder(angle);
+    if (angle < T(0))
     {
         angle += constants::two_pi<T>();
     }
-    while (angle >= constants::two_pi<T>())
+    if (angle >= constants::two_pi<T>())
     {
-        angle -= constants::two_pi<T>();
+        return T(0);
     }
     return angle;
 }
 
 /// \brief Calculate shortest angular distance between two angles
+/// @tparam T Numeric type of the angles and result.
 /// \param from Starting angle in radians
 /// \param to Ending angle in radians
 /// \return Shortest angular distance in range [-pi, pi]
@@ -143,6 +194,7 @@ template<typename T>
 }
 
 /// \brief Clamp value to range [min, max]
+/// @tparam T Ordered numeric type of the value and bounds.
 /// \param value Value to clamp
 /// \param min_value Minimum value
 /// \param max_value Maximum value
@@ -154,6 +206,7 @@ template<typename T>
 }
 
 /// \brief Saturate value to range [0, 1]
+/// @tparam T Numeric type of the value and result.
 /// \param value Value to saturate
 /// \return Value clamped to [0, 1]
 template<typename T>
@@ -204,6 +257,8 @@ template<typename T>
 /// @tparam R Number of rows
 /// @tparam C Number of columns
 /// @return True if matrix size exceeds MICROLA_STACK_SIZE_LIMIT
+/// @retval true The complete matrix object exceeds the configured limit.
+/// @retval false The complete matrix object fits within the configured limit.
 template<typename T, std::size_t R, std::size_t C>
 [[nodiscard]] constexpr auto matrix_exceeds_stack_limit() noexcept -> bool
 {
@@ -227,6 +282,9 @@ template<typename T, std::size_t R, std::size_t C>
 /// @tparam C Number of columns
 /// @details Use this in static_assert to ensure matrices fit within stack limits.
 ///          Example: static_assert(validate_matrix_stack_size<float, 4, 4>(), "Matrix too large");
+/// @return Whether the complete matrix object fits within the configured limit.
+/// @retval true The object size does not exceed MICROLA_STACK_SIZE_LIMIT.
+/// @retval false The object size exceeds MICROLA_STACK_SIZE_LIMIT.
 template<typename T, std::size_t R, std::size_t C>
 [[nodiscard]] constexpr auto validate_matrix_stack_size() noexcept -> bool
 {

@@ -11,6 +11,31 @@
 using namespace microla;
 using namespace microla::geometry;
 
+TEST(GeometryRegressionTest, SphereRayIntervalExcludesBehindOriginAndClampsInsideEntry)
+{
+    const Sphere<double> sphere(Vec<double, 3>(), 1.0);
+    EXPECT_FALSE(sphere.intersect(Ray<double>(Vec<double, 3>(0, 0, 5), Vec<double, 3>(0, 0, 1))));
+    const auto inside = sphere.intersect(Ray<double>(Vec<double, 3>(), Vec<double, 3>(0, 0, 1)));
+    ASSERT_TRUE(inside);
+    EXPECT_DOUBLE_EQ(inside->first, 0.0);
+    EXPECT_DOUBLE_EQ(inside->second, 1.0);
+}
+
+TEST(GeometryRegressionTest, TriangleRayIntersectionIsScaleRelative)
+{
+    for (const float scale : {1.0F, 1e-4F, 1e-8F})
+    {
+        const Triangle<float> triangle(Vec<float, 3>(), Vec<float, 3>(scale, 0, 0), Vec<float, 3>(0, scale, 0));
+        const Ray<float> ray(Vec<float, 3>(scale * 0.2F, scale * 0.2F, scale), Vec<float, 3>(0, 0, -1));
+        const auto member = triangle.intersect(ray);
+        const auto free_hit = intersect(ray, triangle);
+        ASSERT_TRUE(member) << scale;
+        ASSERT_TRUE(free_hit) << scale;
+        EXPECT_NEAR(*member / scale, 1.0F, 1e-5F);
+        EXPECT_NEAR(std::get<0>(*free_hit) / scale, 1.0F, 1e-5F);
+    }
+}
+
 // ===== Ray Tests =====
 
 class RayTest : public ::testing::Test
@@ -416,6 +441,17 @@ protected:
 TEST_F(FrustumTest, Construction)
 {
     EXPECT_EQ(frustum.planes.size(), 6);
+}
+
+TEST_F(FrustumTest, TranslatedAndScaledFrustum)
+{
+    auto translated = Mat<float, 4, 4>::identity();
+    translated(0, 3) = -10;
+    auto shifted = Frustum<float>::from_matrix(translated * 2.0F);
+    EXPECT_TRUE(shifted.contains(Vec<float, 3>{10, 0, 0}));
+    EXPECT_FALSE(shifted.contains(Vec<float, 3>{0, 0, 0}));
+    Triangle<float> triangle{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+    EXPECT_EQ(triangle.to_aabb().min, (Vec<float, 3>{1, 2, 3}));
 }
 
 TEST_F(FrustumTest, ContainsPoint)

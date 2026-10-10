@@ -6,6 +6,17 @@
 
 using namespace microla;
 
+TEST(FastMath, FullRangeTrigonometryUsesAccurateReduction)
+{
+    for (const double angle : {1e20, -1e20, std::numeric_limits<double>::max()})
+    {
+        EXPECT_DOUBLE_EQ(fast::sin(angle), std::sin(angle));
+        EXPECT_DOUBLE_EQ(fast::cos(angle), std::cos(angle));
+    }
+    EXPECT_TRUE(std::isnan(fast::sin(std::numeric_limits<double>::infinity())));
+    EXPECT_TRUE(std::isnan(fast::cos(std::numeric_limits<double>::quiet_NaN())));
+}
+
 // Test fast::sin
 TEST(FastMath, FastSinBasicAngles)
 {
@@ -154,7 +165,7 @@ TEST(FastMath, FastExpAccuracy)
         float fast_result = fast::exp(x);
         float std_result = std::exp(x);
         float rel_error = std::abs((fast_result - std_result) / std_result);
-        EXPECT_LT(rel_error, 0.1F) << "At x=" << x;  // Relaxed for fast approximation
+        EXPECT_LT(rel_error, 0.01F) << "At x=" << x;
     }
 }
 
@@ -174,7 +185,7 @@ TEST(FastMath, FastLnAccuracy)
         float fast_result = fast::ln(x);
         float std_result = std::log(x);
         float error = std::abs(fast_result - std_result);
-        EXPECT_LT(error, 1.0F) << "At x=" << x;  // Relaxed for fast approximation
+        EXPECT_LT(error, 1e-5F) << "At x=" << x;
     }
 }
 
@@ -185,7 +196,7 @@ TEST(FastMath, FastPowBasicValues)
     EXPECT_NEAR(fast::pow(2.0F, 1.0F), 2.0F, 0.2F);
     EXPECT_NEAR(fast::pow(2.0F, 2.0F), 4.0F, 0.5F);
     EXPECT_NEAR(fast::pow(2.0F, 3.0F), 8.0F, 1.0F);
-    EXPECT_NEAR(fast::pow(3.0F, 2.0F), 9.0F, 15.0F);  // Very loose approximation
+    EXPECT_NEAR(fast::pow(3.0F, 2.0F), 9.0F, 0.01F);
 }
 
 TEST(FastMath, FastPowAccuracy)
@@ -197,13 +208,27 @@ TEST(FastMath, FastPowAccuracy)
             float fast_result = fast::pow(base, exp);
             float std_result = std::pow(base, exp);
             float rel_error = std::abs((fast_result - std_result) / std_result);
-            // Very loose approximation - fast::pow is not very accurate
-            EXPECT_LT(rel_error, 2.0F) << "At base=" << base << ", exp=" << exp;
+            EXPECT_LT(rel_error, 0.01F) << "At base=" << base << ", exp=" << exp;
         }
     }
 }
 
 // Test sign function
+TEST(FastMath, NonFiniteAndSubnormalInputs)
+{
+    const float infinity = std::numeric_limits<float>::infinity();
+    const float nan = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_EQ(fast::exp(infinity), infinity);
+    EXPECT_EQ(fast::exp(-infinity), 0.0F);
+    EXPECT_TRUE(std::isnan(fast::exp(nan)));
+    EXPECT_EQ(fast::ln(infinity), infinity);
+    EXPECT_EQ(fast::ln(0.0F), -infinity);
+    EXPECT_TRUE(std::isnan(fast::ln(-1.0F)));
+    const float subnormal = std::numeric_limits<float>::denorm_min();
+    EXPECT_NEAR(fast::ln(subnormal), std::log(subnormal), 1e-5F);
+    EXPECT_NEAR(fast::pow(1.5F, 1.0F), 1.5F, 1e-4F);
+}
+
 TEST(FastMath, SignFunction)
 {
     EXPECT_EQ(fast::sign(10.0F), 1.0F);

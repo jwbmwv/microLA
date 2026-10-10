@@ -8,6 +8,12 @@ using namespace microla;
 using namespace microla::safe;
 
 // Test safe_divide
+TEST(SafeMath, SafeDivideSignedOverflow)
+{
+    EXPECT_EQ(safe_divide(std::numeric_limits<int>::min(), -1, 42), 42);
+    EXPECT_EQ(safe_divide(std::numeric_limits<long long>::min(), -1LL, 42LL), 42LL);
+}
+
 TEST(SafeMath, SafeDivideNormalCases)
 {
     float result = safe_divide(10.0F, 2.0F);

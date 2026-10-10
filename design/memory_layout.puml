@@ -17,14 +17,14 @@ package "Vec<T, N> Memory Layout" {
     }
 
     note right of vec3layout
-        **16-byte aligned**
-        12 bytes data + 4 bytes padding
-        SIMD-friendly: loads as float32x4_t
+        **Configurable alignment**
+        At alignment 16: 12 bytes data + 4 padding
+        At alignment 4: 12 bytes total
 
-        **Padding ensures:**
-        • NEON vld1q_f32 compatibility
-        • Cache line alignment
-        • DMA transfer efficiency
+        **Access only data[0..2]:**
+        • Padding is not a fourth float element
+        • Use padding-aware SIMD loads
+        • Cache/DMA constraints are platform-specific
     end note
 }
 
@@ -50,8 +50,9 @@ package "Mat<T, R, C> Memory Layout" {
         • SIMD row operations
         • Compatible with OpenGL (transpose)
 
-        **Size: 36 bytes (9 floats)**
-        Aligned to 16 bytes for SIMD
+        **Payload: 36 bytes (9 floats)**
+        sizeof = 48 at alignment 16
+        sizeof = 36 at alignment 4
     end note
 }
 
@@ -75,10 +76,10 @@ package "Quaternion<T> Memory Layout" {
         • First 3 elements = Vec<T,3>
         • Enables Vec3 SIMD operations
         • Optimal for rotate(vector)
-        • Compatible with most libraries
+        • Adapt external scalar-first conventions explicitly
 
-        **Size: 16 bytes (4 floats)**
-        Perfect SIMD register fit
+        **Payload: 16 bytes (4 floats)**
+        Larger configured alignment can add padding
     end note
 }
 
@@ -86,19 +87,19 @@ package "Alignment Benefits" {
     rectangle "SIMD Performance" as simd #FFFACD {
         usecase "Aligned loads\n(vld1q_f32)" as ld
         usecase "Aligned stores\n(vst1q_f32)" as st
-        usecase "No unaligned\npenalty" as penalty
+        usecase "Target-specific\nload costs" as penalty
     }
 
     rectangle "Cache Efficiency" as cache #FFFACD {
-        usecase "Cache line\nalignment" as cacheline
-        usecase "Reduced\nmisses" as misses
-        usecase "Better\nprefetch" as prefetch
+        usecase "Inspect actual\ncache-line size" as cacheline
+        usecase "Measure\nmisses" as misses
+        usecase "Contiguous\nrow access" as prefetch
     }
 
     rectangle "DMA Compatibility" as dma #FFFACD {
-        usecase "Hardware\ntransfer ready" as hw
-        usecase "No alignment\nfaults" as faults
-        usecase "Embedded\nfriendly" as embedded
+        usecase "Check device\nalignment" as hw
+        usecase "Manage cache\ncoherency" as faults
+        usecase "Verify transfer\nrepresentation" as embedded
     }
 }
 
@@ -110,13 +111,13 @@ note bottom
     **Memory Guarantees:**
     • All types: alignas(MICROLA_DATA_ALIGNMENT) — 4 B (embedded/CMSIS), 16 B (NEON/SSE), 32 B (AVX), 64 B (AVX-512)
     • Standard layout (offsetof compatible)
-    • Contiguous memory (DMA safe)
+    • Contiguous payload; DMA safety is not guaranteed
     • No virtual functions (POD-like)
     • Trivially copyable (memcpy safe)
 
     **Size Validation (host default, MICROLA_DATA_ALIGNMENT=16):**
     static_assert(sizeof(Vec<float,3>) == 16)
-    static_assert(sizeof(Mat<float,3,3>) >= 36)
+    static_assert(sizeof(Mat<float,3,3>) == 48)
     static_assert(sizeof(Quaternion<float>) == 16)
 
     **Embedded target (MICROLA_EMBEDDED, MICROLA_DATA_ALIGNMENT=4):**

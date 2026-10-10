@@ -8,6 +8,53 @@
 
 using namespace microla;
 
+template<std::size_t Dimension, bool Reference>
+static void bm_matrix_row_streaming(benchmark::State& state)
+{
+    Mat<float, Dimension, Dimension> left;
+    Mat<float, Dimension, Dimension> right;
+    for (std::size_t index = 0; index < Dimension * Dimension; ++index)
+    {
+        left.data[index] = std::sin(static_cast<float>(index + 1)) * 0.1F;
+        right.data[index] = std::cos(static_cast<float>(index + 1)) * 0.1F;
+    }
+    for (auto iteration : state)
+    {
+        static_cast<void>(iteration);
+        left.data[0] += 1e-6F;
+        benchmark::DoNotOptimize(left);
+        benchmark::DoNotOptimize(right);
+        Mat<float, Dimension, Dimension> result;
+        if constexpr (Reference)
+        {
+            for (std::size_t row = 0; row < Dimension; ++row)
+            {
+                for (std::size_t inner = 0; inner < Dimension; ++inner)
+                {
+                    for (std::size_t col = 0; col < Dimension; ++col)
+                    {
+                        result(row, col) += left(row, inner) * right(inner, col);
+                    }
+                }
+            }
+        }
+        else
+        {
+            result = left * right;
+        }
+        benchmark::DoNotOptimize(result);
+        benchmark::ClobberMemory();
+    }
+}
+BENCHMARK_TEMPLATE(bm_matrix_row_streaming, 4, false);
+BENCHMARK_TEMPLATE(bm_matrix_row_streaming, 4, true);
+BENCHMARK_TEMPLATE(bm_matrix_row_streaming, 6, false);
+BENCHMARK_TEMPLATE(bm_matrix_row_streaming, 6, true);
+BENCHMARK_TEMPLATE(bm_matrix_row_streaming, 32, false);
+BENCHMARK_TEMPLATE(bm_matrix_row_streaming, 32, true);
+BENCHMARK_TEMPLATE(bm_matrix_row_streaming, 64, false);
+BENCHMARK_TEMPLATE(bm_matrix_row_streaming, 64, true);
+
 // Benchmark 3x3 matrix multiplication (common in graphics)
 static void bm_matrix3x3_multiply_float(benchmark::State& state)
 {

@@ -21,7 +21,6 @@ package "microla namespace" {
         + T length()
         + T length_squared()
         + Vec normalized()
-        + void normalize()
         + Vec lerp(Vec, T)
         --
         **SIMD: AVX/NEON/CMSIS/RISC-V**
@@ -42,13 +41,13 @@ package "microla namespace" {
         + Mat operator*(T)
         + Mat transpose()
         + T trace() {R==C}
-        + T determinant() {R==C, R<=3}
-        + Mat inverse() {R==C, R<=3}
+        + T determinant() {R==C}
+        + bool inverse(Mat& out) {R==C}
+        + bool inverse_checked(Mat& out, T threshold) {R==C}
         + T frobenius_norm()
-        + Mat<T,BR,BC> block(row,col)
         --
         **Row-major storage**
-        **SIMD: AVX/NEON/CMSIS/RISC-V optimized**
+        **Contiguous row-streaming float multiplication**
         **C++20-C++26 adaptive**
     }
 
@@ -56,7 +55,7 @@ package "microla namespace" {
         + T& operator[](std::size_t)
         + const T& operator[](std::size_t) const
         + void set(Vec<T,N>)
-        + Vec<T,N> toVec() const
+        + Vec<T,N> to_vec() const
         + void fill(T)
         + size_t size()
         + size_t stride()
@@ -68,7 +67,7 @@ package "microla namespace" {
     class "SquareMat<T, N>" as SquareMat {
         **Alias of Mat<T,N,N>**
         --
-        + inherits square-matrix helpers from Mat
+        + same type and square-matrix helpers as Mat
         + rotation_x(T)
         + rotation_y(T)
         + rotation_z(T)
@@ -98,7 +97,7 @@ package "microla namespace" {
         + Quaternion lerp(Quaternion, T)
         + Quaternion slerp(Quaternion, T)
         --
-        **SIMD: Full NEON/CMSIS/RISC-V support**
+        **Selected optional backend paths; RVV experimental**
         **Optimized Vec3 integration**
         **Template default: T = float**
     }
@@ -191,15 +190,15 @@ package "microla namespace" {
             + lerp<T>(a, b, t)
             + smoothstep<T>(edge0, edge1, x)
             --
-            **2-10× speedup approximations**
-            **~0.17% typical error**
+            **Operation-specific approximations and domains**
+            **Large-angle sine/cosine use standard math**
         }
 
         class numerical <<functions>> {
             + approx_equal<T>(a, b, rel_tol, abs_tol)
             + kahan_sum<T, Iterator>(begin, end)
             + hypot<T>(a, b), hypot3<T>(a, b, c)
-            + log1p_safe<T>(x), expm1_safe<T>(x)
+            + log1p<T>(x), expm1<T>(x)
             + stable_dot_product<T>(a, b, n)
             + condition_number_2x2<T>(...)
             + precision_loss_bits<T>(...)
@@ -215,14 +214,14 @@ package "microla namespace" {
             + QuaternionSizeInfo<T>
             --
             **Compile-time size/layout checks**
-            **POD verification**
-            **DMA compatibility**
+            **Standard-layout/trivial-copy checks**
+            **DMA requirements remain target-specific**
         }
     }
 }
 
 SquareMat ..> Mat : alias of
-Vec ..> Mat : used in cross product
+Mat ..> Vec : matrix-vector products
 Vec ..> KF : state vector
 Vec ..> EKF : state vector
 Mat ..> KF : covariance matrices
@@ -243,9 +242,9 @@ end note
 note right of Mat
   **Features:**
   • Row-major storage
-  • Block operations
-  • Determinant/inverse (≤3×3)
-  • SIMD matrix multiply (AVX/NEON/CMSIS/RISC-V)
+    • Submatrices use non-owning MatrixView
+    • Square determinant/caller-owned inverse
+    • Optional NEON 4x4 and CMSIS products
   • constexpr compatible
     • C++20-C++26 optimizations
 end note
@@ -255,8 +254,8 @@ note right of Quat
   • [x,y,z,w] memory layout
   • Vec<T,3> integration
   • SLERP interpolation
-  • Full NEON/CMSIS/RISC-V support
-  • 3.5× faster multiply (NEON)
+    • Selected NEON/CMSIS paths; measure on target
+    • Sign/scale-invariant shortest angle_to
   • constexpr compatible
 end note
 
