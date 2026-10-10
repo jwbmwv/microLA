@@ -662,7 +662,8 @@ struct Triangle
 
     /// @brief Ray-triangle intersection.
     /// @param ray Ray to test.
-    /// @return Distance along ray to intersection point, or std::nullopt if no intersection.
+    /// @return Parameter t for ray.at(t), or std::nullopt if no intersection.
+    ///         The parameter is a distance only when the direction is normalized.
     [[nodiscard]] auto intersect(const Ray<T>& ray) const -> std::optional<T>
     {
         constexpr T epsilon = std::numeric_limits<T>::epsilon();
@@ -674,7 +675,7 @@ struct Triangle
         T a = edge1.dot(h);
 
         // Ray parallel to triangle
-        if (!std::isfinite(a) || std::abs(a) <= epsilon * edge1.length() * edge2.length())
+        if (!std::isfinite(a) || std::abs(a) <= epsilon * edge1.length() * edge2.length() * ray.direction.length())
         {
             return std::nullopt;
         }
@@ -709,8 +710,9 @@ using Triangled = Triangle<double>;
 /// @tparam T Scalar type for coordinates.
 /// @param ray Ray to test.
 /// @param tri Triangle to test.
-/// @return Tuple (t, u, v) where t is distance along ray and (u, v) are barycentric
-///         coordinates, or std::nullopt if no intersection.
+/// @return Tuple (t, u, v) where t is the parameter for ray.at(t) and (u, v) are
+///         barycentric coordinates, or std::nullopt if no intersection.
+///         The parameter is a distance only when the direction is normalized.
 template<typename T>
 auto intersect(const Ray<T>& ray, const Triangle<T>& tri) -> std::optional<std::tuple<T, T, T>>
 {
@@ -723,7 +725,7 @@ auto intersect(const Ray<T>& ray, const Triangle<T>& tri) -> std::optional<std::
     T a = edge1.dot(h);
 
     // Ray parallel to triangle
-    if (!std::isfinite(a) || std::abs(a) <= epsilon * edge1.length() * edge2.length())
+    if (!std::isfinite(a) || std::abs(a) <= epsilon * edge1.length() * edge2.length() * ray.direction.length())
     {
         return std::nullopt;
     }

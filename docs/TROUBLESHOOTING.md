@@ -144,6 +144,7 @@ Mat4f m = Mat4f::identity();
 
 ```cpp
 // header.hpp
+#include <cstddef>
 namespace microla { template<typename T, std::size_t N> class Vec; }
 class MyClass {
     microla::Vec<float, 3>* velocity;  // Pointer avoids full definition

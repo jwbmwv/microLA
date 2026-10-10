@@ -4,6 +4,7 @@ All notable changes are summarized here.
 
 ## [Unreleased]
 
+- **Ray-triangle scaling**: Include the ray direction norm in both triangle intersection parallelism checks so rescaling the direction preserves hits and near-parallel rejection.
 - **Fusion policies and relative angles**: Honor disabled bias estimation and disabled acceleration correction during recovery; keep observable tilt valid independently of heading drift; time-align both entities when capturing a neutral reference.
 - **Numerical edge cases**: Make KF/EKF prediction transactional; correct IEEE ULP distances and non-finite comparisons; scale public vector/quaternion normalization, rank, QR, and checked-inverse diagnostics; reject invalid Cholesky input; use fraction-free integral determinants; make quaternion distance sign/scale invariant; correct sphere-ray intervals and scale-relative triangle intersections; delegate large-angle fast trigonometry to standard math.
 - **Multiplication performance**: Replace strided float gather/reduction products with contiguous row accumulation, including the NEON 4x4 kernel. Add paired library/reference benchmarks at dimensions 4, 6, 32, and 64.
