@@ -1,0 +1,5 @@
+<map id="microla::fusion::HighDynamicsImu6MahonyConfig&lt; T &gt;" name="microla::fusion::HighDynamicsImu6MahonyConfig&lt; T &gt;">
+<area shape="rect" id="Node000001" title="6&#45;axis IMU Mahony configuration tuned for high&#45;dynamics activities." alt="" coords="5,93,228,133"/>
+<area shape="rect" id="Node000002" href="$structmicrola_1_1fusion_1_1OrientationConfigBase.html" title="Shared compile&#45;time policy knobs for one entity orientation estimator." alt="" coords="17,5,217,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,59,119,93,114,93,114,59"/>
+</map>

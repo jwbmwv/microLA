@@ -1,0 +1,28 @@
+<map id="microla/matrix.hpp" name="microla/matrix.hpp">
+<area shape="rect" id="Node000001" title="Generic matrix class Mat&lt;T,R,C&gt; with full operator support." alt="" coords="326,5,473,31"/>
+<area shape="rect" id="Node000002" href="$extended__kalman_8hpp.html" title="Extended Kalman filter for nonlinear systems." alt="" coords="809,152,1027,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="487,29,595,48,711,76,815,114,895,149,893,154,813,119,709,81,594,53,486,34"/>
+<area shape="rect" id="Node000003" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="262,225,414,251"/>
+<area shape="poly" id="edge9_Node000001_Node000003" title=" " alt="" coords="312,25,239,30,163,41,98,57,75,68,59,80,49,94,45,107,45,119,50,131,69,153,101,172,141,189,185,203,271,223,269,228,183,208,139,194,98,177,66,157,45,134,40,120,40,107,45,92,55,77,72,63,96,52,162,35,238,25,312,19"/>
+<area shape="rect" id="Node000004" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="5,299,169,324"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="312,24,234,29,153,39,84,56,58,67,41,80,26,107,21,136,23,167,31,199,56,256,81,297,77,300,52,259,26,200,18,168,15,136,21,105,37,77,56,62,82,51,152,34,234,24,312,19"/>
+<area shape="rect" id="Node000005" href="$kalman_8hpp.html" title="Standard Kalman filter implementation for embedded systems." alt="" coords="69,79,220,104"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="346,37,187,81,185,76,344,32"/>
+<area shape="rect" id="Node000006" href="$matrix__view_8hpp.html" title="Non&#45;owning matrix views for submatrix operations." alt="" coords="244,79,427,104"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="382,43,348,80,344,77,378,39"/>
+<area shape="rect" id="Node000007" href="$quaternion_8hpp.html" title="Quaternion class for 3D rotations with SIMD optimizations." alt="" coords="502,79,675,104"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="443,33,559,76,557,81,442,38"/>
+<area shape="rect" id="Node000008" href="$resource__checks_8hpp.html" title="Compile&#45;time resource usage validation for embedded systems." alt="" coords="305,152,515,177"/>
+<area shape="poly" id="edge16_Node000001_Node000008" title=" " alt="" coords="421,40,433,58,442,78,444,99,439,120,421,153,416,151,434,118,438,99,437,79,428,60,417,43"/>
+<area shape="rect" id="Node000009" href="$sensor__fusion_8hpp.html" title="Relative sensor&#45;fusion utilities for angle estimation between two entities." alt="" coords="591,152,784,177"/>
+<area shape="poly" id="edge17_Node000001_Node000009" title=" " alt="" coords="487,23,547,30,606,41,657,56,676,66,689,77,699,96,701,117,694,152,689,152,695,116,693,97,685,80,673,70,655,61,605,46,546,35,486,28"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="812,182,415,230,414,225,811,176"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="285,257,129,301,127,296,284,252"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="173,111,324,223,321,227,170,115"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="316,116,297,145,293,161,295,177,309,203,327,223,323,227,305,206,290,178,288,160,292,143,311,113"/>
+<area shape="poly" id="edge11_Node000007_Node000003" title=" " alt="" coords="579,118,559,150,529,179,501,196,471,210,411,228,410,223,469,205,499,192,526,175,554,146,575,115"/>
+<area shape="poly" id="edge12_Node000007_Node000008" title=" " alt="" coords="548,111,440,154,438,149,547,106"/>
+<area shape="poly" id="edge14_Node000007_Node000009" title=" " alt="" coords="617,110,673,150,670,154,614,114"/>
+<area shape="poly" id="edge13_Node000008_Node000003" title=" " alt="" coords="390,189,352,227,348,223,386,185"/>
+<area shape="poly" id="edge15_Node000009_Node000003" title=" " alt="" coords="618,183,395,228,394,223,617,177"/>
+</map>

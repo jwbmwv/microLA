@@ -1,0 +1,26 @@
+var simd__helpers_8hpp =
+[
+    [ "add4", "simd__helpers_8hpp.html#a32b3fe488aeeee4a0670d020cf8075c7", null ],
+    [ "copy4_float", "simd__helpers_8hpp.html#acb747b8cf705f2dba7068baba1996ac8", null ],
+    [ "copy_n", "simd__helpers_8hpp.html#aec41bc5b18a2bdc182350af2240bac79", null ],
+    [ "copy_n_double", "simd__helpers_8hpp.html#a7e6d495def3f886c34f3be40a9af80da", null ],
+    [ "copy_n_float", "simd__helpers_8hpp.html#a36a267c1e1e57ef538a5a7b85e142dd3", null ],
+    [ "fill", "simd__helpers_8hpp.html#a1c5961d1f2154df1c7a3a5930ecbae54", null ],
+    [ "fill_double", "simd__helpers_8hpp.html#a95fb8f9a9f64d7503928f53999f784b8", null ],
+    [ "fill_float", "simd__helpers_8hpp.html#ad317ea6a178a92368470b84dcd080cb3", null ],
+    [ "fma4_accumulate", "simd__helpers_8hpp.html#aae4dce0eb66884058d7ba670a38bbe94", null ],
+    [ "gather4_float", "simd__helpers_8hpp.html#aad25e04da29ec67a45a0c79c4bb2d9f5", null ],
+    [ "gather_n_float", "simd__helpers_8hpp.html#abbdb86c51d728977bd68a29f4e3079fd", null ],
+    [ "gather_n_optimized", "simd__helpers_8hpp.html#a59718448543ccc216b791583f0e188d3", null ],
+    [ "gather_strided_float", "simd__helpers_8hpp.html#a940ddb8c0918bc28384b4f7bcff76091", null ],
+    [ "load_padded4", "simd__helpers_8hpp.html#afea0a87e53d926f9ef3c51b455cca5aa", null ],
+    [ "mul4", "simd__helpers_8hpp.html#af5343989ec6b47dc712d93de7b40edc5", null ],
+    [ "scatter4_float", "simd__helpers_8hpp.html#ab839d4948d1c86193c8ff2e7516bb96c", null ],
+    [ "scatter_n_float", "simd__helpers_8hpp.html#a81e5473690e43c0b9e6a16cf6ffaa31f", null ],
+    [ "scatter_n_optimized", "simd__helpers_8hpp.html#a8f4efb6dbeeaf86709b4ea2df9890ec6", null ],
+    [ "scatter_strided_float", "simd__helpers_8hpp.html#a425d6b554b4c729c0ae21dd2cda616f0", null ],
+    [ "store_extract4", "simd__helpers_8hpp.html#aa2a2a602f9e68c26eb4ea46faa44a581", null ],
+    [ "strided_copy", "simd__helpers_8hpp.html#a5bfe5140b24ddda636947a88c476ff47", null ],
+    [ "strided_copy_float", "simd__helpers_8hpp.html#a98a0fccf9871102db1c2d0add94ac36c", null ],
+    [ "sub4", "simd__helpers_8hpp.html#a1c1b6d0d7c5beac9d9a33d2d09efd8f4", null ]
+];

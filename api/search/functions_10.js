@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['rad_5fto_5fdeg_0',['rad_to_deg',['../namespacemicrola.html#a5fe5775df26fe69fe7b158b5cd33a797',1,'microla']]],
+  ['rad_5fto_5fdeg_5fvalue_1',['rad_to_deg_value',['../namespacemicrola_1_1constants_1_1detail.html#a3718b3090b55769bf0323688ebb65746',1,'microla::constants::detail']]],
+  ['rank_2',['rank',['../classmicrola_1_1Mat.html#ab90b4a87436189108b74852d5b46a5ec',1,'microla::Mat']]],
+  ['ray_3',['ray',['../structmicrola_1_1geometry_1_1Ray.html#a6c4dc4555c08c19a2c35e0025a17b2ac',1,'microla::geometry::Ray::Ray()'],['../structmicrola_1_1geometry_1_1Ray.html#aa37365887489aab6e9aeca51730cd019',1,'microla::geometry::Ray::Ray(const Vec&lt; T, 3 &gt; &amp;o, const Vec&lt; T, 3 &gt; &amp;d)']]],
+  ['rebase_5fleft_5ftimestamp_4',['rebase_left_timestamp',['../classmicrola_1_1fusion_1_1RelativeAngleEstimator.html#a2bf7f20fc4b616419b09d3bc5d53dc96',1,'microla::fusion::RelativeAngleEstimator']]],
+  ['rebase_5fright_5ftimestamp_5',['rebase_right_timestamp',['../classmicrola_1_1fusion_1_1RelativeAngleEstimator.html#acd225fe1e656495050f09888b1279fad',1,'microla::fusion::RelativeAngleEstimator']]],
+  ['rebase_5ftimestamp_6',['rebase_timestamp',['../classmicrola_1_1fusion_1_1OrientationEstimator.html#add3750f03a8bbdd907fcbf7b5a3d602c',1,'microla::fusion::OrientationEstimator']]],
+  ['reject_7',['reject',['../classmicrola_1_1Vec.html#a2933236ccf41bff716834ec9330f4ade',1,'microla::Vec']]],
+  ['relative_5ferror_8',['relative_error',['../namespacemicrola_1_1numerical.html#a87d0f30510dc6bd1db0374b5f72b6b83',1,'microla::numerical']]],
+  ['relativeangleestimator_9',['RelativeAngleEstimator',['../classmicrola_1_1fusion_1_1RelativeAngleEstimator.html#a4e903dc544fbb1119cbc6b1ed20f9690',1,'microla::fusion::RelativeAngleEstimator']]],
+  ['reset_10',['reset',['../classmicrola_1_1ExtendedKalmanFilter.html#aed0b9a29d96e3281c2831fb64a3a15c4',1,'microla::ExtendedKalmanFilter::reset() noexcept'],['../classmicrola_1_1ExtendedKalmanFilter.html#a386356c6218040f2b0ffe8bf04eb3d4c',1,'microla::ExtendedKalmanFilter::reset(const StateVec &amp;x0, const StateMat &amp;P0) noexcept'],['../classmicrola_1_1KalmanFilter.html#a32326f66adce2524a6f3ff8e4af69704',1,'microla::KalmanFilter::reset() noexcept'],['../classmicrola_1_1KalmanFilter.html#aaf69e0ff1da5ec1c7f7c81303c100950',1,'microla::KalmanFilter::reset(const StateVec &amp;x0, const StateMat &amp;P0) noexcept'],['../classmicrola_1_1fusion_1_1OrientationEstimator.html#aebc97cb1d46a0c6297a6621555e4d9bb',1,'microla::fusion::OrientationEstimator::reset()'],['../classmicrola_1_1fusion_1_1RelativeAngleEstimator.html#a6fce0ba9e3c4946d5a1380e8ad5c15e6',1,'microla::fusion::RelativeAngleEstimator::reset() noexcept']]],
+  ['right_5festimator_11',['right_estimator',['../classmicrola_1_1fusion_1_1RelativeAngleEstimator.html#a9064f554117ff41f663c5a8dcae77f87',1,'microla::fusion::RelativeAngleEstimator']]],
+  ['roll_12',['roll',['../classmicrola_1_1Quaternion.html#a252a5d4f9d834a11e73b8c4a6456cb27',1,'microla::Quaternion']]],
+  ['rotate_13',['rotate',['../classmicrola_1_1Vec.html#a65f0e1875970711a9dffb076baba4ec7',1,'microla::Vec::rotate()'],['../classmicrola_1_1Quaternion.html#a5067349f9e87e6a4eba33f9ba4e136ab',1,'microla::Quaternion::rotate(const Vec&lt; T, 3 &gt; &amp;v) const noexcept -&gt; Vec&lt; T, 3 &gt;']]],
+  ['rotate_5finverse_14',['rotate_inverse',['../classmicrola_1_1Quaternion.html#a5c19683512f3d9607c8c7248f461fc7e',1,'microla::Quaternion']]],
+  ['rotation_15',['rotation',['../classmicrola_1_1Mat.html#a9afebb49ca3b9c8c472204130c18b9e6',1,'microla::Mat']]],
+  ['rotation_5faxis_5fangle_16',['rotation_axis_angle',['../classmicrola_1_1Mat.html#aa76d37a012c96bac2c345a408cbf6011',1,'microla::Mat']]],
+  ['rotation_5ffrom_5fto_17',['rotation_from_to',['../classmicrola_1_1Mat.html#aa68dcdf852598fef6468e1cb1d516800',1,'microla::Mat']]],
+  ['rotation_5fx_18',['rotation_x',['../classmicrola_1_1Mat.html#a2b9de1ba87d4ed07f4c49674a92b26d2',1,'microla::Mat']]],
+  ['rotation_5fy_19',['rotation_y',['../classmicrola_1_1Mat.html#a1121388e696df8d6dd4c87061441c82c',1,'microla::Mat']]],
+  ['rotation_5fz_20',['rotation_z',['../classmicrola_1_1Mat.html#a93aab342b8bb0834e17792dd0c9ebb2f',1,'microla::Mat']]],
+  ['row_21',['row',['../classmicrola_1_1Mat.html#ae7472d3d642439412e7cd3f8c0f16d3b',1,'microla::Mat']]],
+  ['rows_22',['rows',['../classmicrola_1_1Mat.html#ad8f58b6e1fb022e6ec594b7c2ed800e6',1,'microla::Mat::rows()'],['../classmicrola_1_1MatrixView.html#a051325c1d79c87572d7e210f24087f93',1,'microla::MatrixView::rows()'],['../classmicrola_1_1ConstMatrixView.html#a2f540305246926857b946605ceec17d1',1,'microla::ConstMatrixView::rows()'],['../structmicrola_1_1resource__checks_1_1MatSizeInfo.html#aaf2849de506a9fc5e63b66a2c1a3100c',1,'microla::resource_checks::MatSizeInfo::rows()']]],
+  ['rsqrt_23',['rsqrt',['../namespacemicrola_1_1fast.html#a599fc1c0baf0465bc49fad84eb72f49e',1,'microla::fast']]]
+];

@@ -1,0 +1,13 @@
+<map id="microla/quaternion.hpp" name="microla/quaternion.hpp">
+<area shape="rect" id="Node000001" title="Quaternion class for 3D rotations with SIMD optimizations." alt="" coords="41,5,215,31"/>
+<area shape="rect" id="Node000002" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="52,152,204,177"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="68,38,37,55,13,80,8,92,10,102,26,121,54,137,86,149,84,154,52,142,22,126,5,104,3,91,8,77,34,51,66,33"/>
+<area shape="rect" id="Node000004" href="$resource__checks_8hpp.html" title="Compile&#45;time resource usage validation for embedded systems." alt="" coords="23,79,233,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="131,44,131,79,125,79,125,44"/>
+<area shape="rect" id="Node000005" href="$sensor__fusion_8hpp.html" title="Relative sensor&#45;fusion utilities for angle estimation between two entities." alt="" coords="258,79,451,104"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="178,32,319,76,317,81,177,37"/>
+<area shape="rect" id="Node000003" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="46,225,210,251"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="131,191,131,225,125,225,125,191"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="131,118,131,152,125,152,125,118"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="306,111,165,154,164,149,304,106"/>
+</map>

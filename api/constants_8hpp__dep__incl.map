@@ -1,0 +1,48 @@
+<map id="microla/constants.hpp" name="microla/constants.hpp">
+<area shape="rect" id="Node000001" title="Mathematical constants with C++20&#45;C++26 optimizations." alt="" coords="1020,5,1187,31"/>
+<area shape="rect" id="Node000002" href="$fast__math_8hpp.html" title="Fast approximations for common math functions." alt="" coords="1141,79,1311,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1136,35,1207,76,1205,81,1133,40"/>
+<area shape="rect" id="Node000003" href="$microla_8hpp.html" title="Main header for MicroLA &#45; header&#45;only linear algebra library." alt="" coords="685,372,837,397"/>
+<area shape="poly" id="edge21_Node000001_Node000003" title=" " alt="" coords="1201,23,1266,40,1297,56,1324,77,1340,96,1349,116,1351,163,1351,240,1347,259,1335,277,1317,293,1292,307,1229,330,1153,349,1069,363,984,372,837,383,837,378,984,367,1068,357,1152,343,1228,325,1290,302,1314,288,1331,273,1342,257,1346,239,1346,163,1343,117,1336,99,1320,81,1294,60,1264,45,1200,28"/>
+<area shape="rect" id="Node000005" href="$matrix_8hpp.html" title="Generic matrix class Mat&lt;T,R,C&gt; with full operator support." alt="" coords="298,152,445,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="1007,28,824,46,719,61,616,81,554,98,494,118,399,154,397,149,492,113,553,93,615,76,718,56,823,40,1006,22"/>
+<area shape="rect" id="Node000011" href="$sensor__fusion_8hpp.html" title="Relative sensor&#45;fusion utilities for angle estimation between two entities." alt="" coords="827,299,1020,324"/>
+<area shape="poly" id="edge22_Node000001_Node000011" title=" " alt="" coords="1097,45,1071,106,1035,179,1009,217,980,252,937,300,933,297,976,249,1005,214,1030,176,1067,104,1092,43"/>
+<area shape="rect" id="Node000012" href="$vector_8hpp.html" title="Generic vector class Vec&lt;T,N&gt; with full operator support." alt="" coords="628,79,771,104"/>
+<area shape="poly" id="edge23_Node000001_Node000012" title=" " alt="" coords="1026,36,765,81,764,76,1025,30"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1221,118,1204,163,1176,220,1136,278,1112,304,1085,326,1041,345,977,360,837,379,836,374,976,354,1039,340,1082,322,1108,300,1132,275,1171,218,1199,161,1216,116"/>
+<area shape="rect" id="Node000004" href="$geometry_8hpp.html" title="Geometric primitives and utilities for collision detection and ray tracing." alt="" coords="5,445,169,471"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="671,398,170,451,169,445,670,393"/>
+<area shape="poly" id="edge12_Node000005_Node000003" title=" " alt="" coords="286,181,243,199,223,211,207,227,189,252,179,275,179,299,193,322,217,334,262,345,395,361,550,372,685,378,684,384,550,378,395,367,261,350,215,339,190,326,174,300,174,275,184,249,203,224,220,207,240,194,284,176"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="285,179,231,197,206,210,184,227,161,253,142,282,114,346,98,404,91,446,86,445,93,403,109,344,137,280,156,250,180,223,203,206,229,192,284,174"/>
+<area shape="rect" id="Node000006" href="$extended__kalman_8hpp.html" title="Extended Kalman filter for nonlinear systems." alt="" coords="226,225,445,251"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="362,191,344,226,339,224,357,188"/>
+<area shape="rect" id="Node000007" href="$kalman_8hpp.html" title="Standard Kalman filter implementation for embedded systems." alt="" coords="571,225,721,251"/>
+<area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="429,178,602,223,601,228,428,183"/>
+<area shape="rect" id="Node000008" href="$matrix__view_8hpp.html" title="Non&#45;owning matrix views for submatrix operations." alt="" coords="204,299,387,324"/>
+<area shape="poly" id="edge10_Node000005_Node000008" title=" " alt="" coords="286,181,247,199,230,211,216,227,212,237,212,246,225,265,246,282,271,296,268,301,243,287,221,269,207,248,207,236,212,224,226,207,244,194,284,176"/>
+<area shape="rect" id="Node000009" href="$quaternion_8hpp.html" title="Quaternion class for 3D rotations with SIMD optimizations." alt="" coords="746,225,919,251"/>
+<area shape="poly" id="edge13_Node000005_Node000009" title=" " alt="" coords="459,177,759,223,758,228,458,182"/>
+<area shape="rect" id="Node000010" href="$resource__checks_8hpp.html" title="Compile&#45;time resource usage validation for embedded systems." alt="" coords="482,299,693,324"/>
+<area shape="poly" id="edge19_Node000005_Node000010" title=" " alt="" coords="401,183,571,296,568,301,398,187"/>
+<area shape="poly" id="edge20_Node000005_Node000011" title=" " alt="" coords="459,166,591,173,740,184,866,200,909,211,933,223,942,242,943,263,932,299,927,298,938,262,937,243,929,227,907,216,865,205,739,189,591,178,458,172"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="362,257,411,290,471,322,525,340,581,355,685,373,684,378,580,360,524,345,469,326,408,295,359,261"/>
+<area shape="poly" id="edge9_Node000007_Node000003" title=" " alt="" coords="671,259,707,297,735,337,756,370,752,373,731,340,703,300,667,262"/>
+<area shape="poly" id="edge11_Node000008_Node000003" title=" " alt="" coords="384,323,686,369,685,375,383,329"/>
+<area shape="poly" id="edge14_Node000009_Node000003" title=" " alt="" coords="823,265,769,373,764,371,818,262"/>
+<area shape="poly" id="edge15_Node000009_Node000010" title=" " alt="" coords="781,257,628,301,626,296,780,252"/>
+<area shape="poly" id="edge17_Node000009_Node000011" title=" " alt="" coords="860,257,910,296,907,301,857,261"/>
+<area shape="poly" id="edge16_Node000010_Node000003" title=" " alt="" coords="629,327,733,369,731,374,627,332"/>
+<area shape="poly" id="edge18_Node000011_Node000003" title=" " alt="" coords="886,332,788,374,786,369,884,327"/>
+<area shape="poly" id="edge28_Node000012_Node000003" title=" " alt="" coords="785,95,855,102,928,112,992,128,1017,138,1034,150,1048,167,1052,184,1054,225,1062,253,1071,278,1072,301,1060,326,1045,338,1024,348,967,364,901,375,837,381,837,376,900,370,966,359,1022,343,1042,333,1056,322,1067,300,1065,279,1057,255,1049,226,1046,185,1043,170,1031,154,1014,143,990,133,927,118,854,107,784,100"/>
+<area shape="poly" id="edge25_Node000012_Node000004" title=" " alt="" coords="614,96,449,104,353,112,259,125,173,144,103,168,76,183,56,199,44,217,39,237,39,313,44,351,56,389,83,444,78,446,51,390,39,353,34,313,34,236,39,215,52,195,73,178,101,163,172,139,258,120,353,107,448,98,614,91"/>
+<area shape="poly" id="edge27_Node000012_Node000005" title=" " alt="" coords="634,109,425,154,424,149,633,104"/>
+<area shape="poly" id="edge24_Node000012_Node000006" title=" " alt="" coords="646,110,515,154,360,227,358,223,513,150,644,105"/>
+<area shape="poly" id="edge26_Node000012_Node000007" title=" " alt="" coords="693,118,653,226,648,224,688,116"/>
+<area shape="poly" id="edge29_Node000012_Node000009" title=" " alt="" coords="721,112,824,223,820,227,717,116"/>
+<area shape="poly" id="edge30_Node000012_Node000010" title=" " alt="" coords="669,114,640,134,610,159,582,191,561,226,557,245,562,264,580,297,575,300,557,266,552,245,555,224,577,187,606,156,637,129,666,109"/>
+<area shape="poly" id="edge31_Node000012_Node000011" title=" " alt="" coords="728,109,828,175,866,187,899,190,929,198,944,208,958,224,964,244,959,265,937,300,932,297,954,263,958,244,953,227,940,212,927,203,898,196,865,192,826,180,725,114"/>
+<area shape="rect" id="Node000013" href="$vector__view_8hpp.html" title="Non&#45;owning vector views for subvector operations." alt="" coords="839,152,1021,177"/>
+<area shape="poly" id="edge32_Node000012_Node000013" title=" " alt="" coords="750,106,893,149,892,154,749,111"/>
+<area shape="poly" id="edge33_Node000013_Node000003" title=" " alt="" coords="977,181,1005,199,1028,224,1043,251,1050,276,1048,300,1033,326,1020,337,1002,346,952,362,894,372,837,380,836,374,893,367,951,356,1000,341,1018,332,1029,322,1043,299,1045,276,1038,253,1024,227,1002,203,974,185"/>
+</map>

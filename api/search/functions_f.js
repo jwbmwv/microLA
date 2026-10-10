@@ -1,0 +1,7 @@
+var searchData=
+[
+  ['quality_5ffrom_5fconfidence_0',['quality_from_confidence',['../namespacemicrola_1_1fusion_1_1detail.html#a9ddb2edb6df6334bec4a846f18da7d2f',1,'microla::fusion::detail']]],
+  ['quarter_5fpi_5fvalue_1',['quarter_pi_value',['../namespacemicrola_1_1constants_1_1detail.html#a5b1307bd09ba70478c9215a1646729b7',1,'microla::constants::detail']]],
+  ['quaternion_2',['quaternion',['../classmicrola_1_1Quaternion.html#a62990b49d2821806a9484a666d877e32',1,'microla::Quaternion::Quaternion() noexcept=default'],['../classmicrola_1_1Quaternion.html#a2805d2bbac54966831fa05530fec0032',1,'microla::Quaternion::Quaternion(T w, T x, T y, T z)'],['../classmicrola_1_1Quaternion.html#af7473fe25de4af58d3717a2620f01fc8',1,'microla::Quaternion::Quaternion(const T *arr)'],['../classmicrola_1_1Quaternion.html#a797e8807c2ead78aa592bab6c08d5ecc',1,'microla::Quaternion::Quaternion(const Vec&lt; T, 3 &gt; &amp;axis, T angle)'],['../classmicrola_1_1Quaternion.html#a5d6f6e26a31b588f5f4b7e15f53970b9',1,'microla::Quaternion::Quaternion(const Mat&lt; T, 3, 3 &gt; &amp;mat)'],['../classmicrola_1_1Quaternion.html#acec3a0e19d9a2e530ebe005e4d1ac007',1,'microla::Quaternion::Quaternion(const Quaternion &amp;other) noexcept=default'],['../classmicrola_1_1Quaternion.html#a61abe2c640194e56b4c5e673e5beaff9',1,'microla::Quaternion::Quaternion(Quaternion &amp;&amp;other) noexcept=default']]],
+  ['quaternion_5fsize_5fbytes_3',['quaternion_size_bytes',['../namespacemicrola_1_1memory__info.html#abd53b033d5c09d89b683a1de590a83c8',1,'microla::memory_info']]]
+];
