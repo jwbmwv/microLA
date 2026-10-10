@@ -7,6 +7,29 @@
 using namespace microla;
 using namespace microla::numerical;
 
+TEST(Numerical, NonfiniteComparisonsAndDiagnosticsHaveDefinedResults)
+{
+    const double infinity = std::numeric_limits<double>::infinity();
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_FALSE(approx_equal(1.0, infinity));
+    EXPECT_FALSE(approx_equal(-infinity, infinity));
+    EXPECT_FALSE(approx_equal(nan, nan));
+    EXPECT_TRUE(approx_equal(infinity, infinity));
+    EXPECT_EQ(precision_loss_bits(infinity), std::numeric_limits<int>::max());
+    EXPECT_EQ(ulp_distance(nan, 0.0), std::numeric_limits<std::int64_t>::max());
+    EXPECT_EQ(ulp_distance(-infinity, infinity), std::numeric_limits<std::int64_t>::max());
+}
+
+TEST(Numerical, UlpDistanceCountsRepresentableStepsAcrossSignsAndBinades)
+{
+    EXPECT_EQ(ulp_distance(1.0, std::nextafter(1.0, 0.0)), 1);
+    EXPECT_EQ(ulp_distance(1.0F, std::nextafter(1.0F, 2.0F)), 1);
+    EXPECT_EQ(ulp_distance(0.0F, std::numeric_limits<float>::denorm_min()), 1);
+    EXPECT_EQ(ulp_distance(-std::numeric_limits<float>::denorm_min(), std::numeric_limits<float>::denorm_min()), 2);
+    EXPECT_EQ(ulp_distance(-0.0, 0.0), 0);
+    EXPECT_EQ(ulp_distance(-1.0, std::nextafter(-1.0, -2.0)), 1);
+}
+
 // Test approx_equal
 TEST(Numerical, ApproxEqualBasic)
 {
@@ -150,9 +173,9 @@ TEST(Numerical, Hypot3DLargeValues)
 {
     float large = 1e20F;
     float result = hypot3(large, large, large);
-    // Phase 3: Returns infinity for overflow protection at extreme values
-    EXPECT_TRUE(std::isinf(result));
-    EXPECT_GT(result, 0.0F);  // Positive infinity
+    EXPECT_TRUE(std::isfinite(result));
+    EXPECT_NEAR(result / large, std::sqrt(3.0F), 1e-6F);
+    EXPECT_FLOAT_EQ(hypot3(large, 0.0F, 0.0F), large);
 }
 
 // NOTE: safe_normalize tests removed - function not in numerical_stability.hpp
@@ -170,6 +193,8 @@ TEST(Numerical, ConditionNumberDiagonal)
     // Diagonal matrix [2,0; 0,1] has condition number 2
     float cond = condition_number_2x2(2.0F, 0.0F, 0.0F, 1.0F);
     EXPECT_NEAR(cond, 2.0F, 0.5F);  // Allow for different algorithms
+    EXPECT_NEAR(condition_number_2x2(1.0F, 0.0F, 0.0F, 0.1F), 10.0F, 1e-5F);
+    EXPECT_TRUE(std::isinf(condition_number_2x2(0.0F, 0.0F, 0.0F, 0.0F)));
 }
 
 TEST(Numerical, ConditionNumberIllConditioned)

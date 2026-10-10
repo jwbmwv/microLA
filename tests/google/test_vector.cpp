@@ -10,6 +10,29 @@
 
 using namespace microla;
 
+template<typename T>
+void expect_scale_safe_vector_normalization()
+{
+    for (const T scale :
+         {std::numeric_limits<T>::max() / T(4), std::numeric_limits<T>::min(), std::numeric_limits<T>::denorm_min()})
+    {
+        const Vec<T, 3> axis(scale, 0, 0);
+        EXPECT_EQ(axis.length(), scale);
+        EXPECT_EQ(axis.normalized()[0], T(1));
+        const Vec<T, 3> diagonal(scale, -scale, scale);
+        const auto normalized = diagonal.normalized();
+        EXPECT_TRUE(normalized.is_finite());
+        EXPECT_NEAR(normalized.length(), T(1), T(16) * std::numeric_limits<T>::epsilon());
+    }
+    EXPECT_TRUE((Vec<T, 3>().normalized().is_zero()));
+}
+
+TEST(VectorRegressionTest, NormalizationHandlesExtremeAndSubnormalScales)
+{
+    expect_scale_safe_vector_normalization<float>();
+    expect_scale_safe_vector_normalization<double>();
+}
+
 // Test fixture for vector tests
 class VectorTest : public ::testing::Test
 {
@@ -128,6 +151,14 @@ TEST_F(VectorTest, ScalarMultiplicationCommutative)
     EXPECT_FLOAT_EQ(result[0], 2.0F);
     EXPECT_FLOAT_EQ(result[1], 4.0F);
     EXPECT_FLOAT_EQ(result[2], 6.0F);
+}
+
+TEST_F(VectorTest, IntegralScalarDivision)
+{
+    Vec<int, 3> values{4, 6, 8};
+    EXPECT_EQ((values / 2), (Vec<int, 3>{2, 3, 4}));
+    values /= 2;
+    EXPECT_EQ(values, (Vec<int, 3>{2, 3, 4}));
 }
 
 TEST_F(VectorTest, ScalarDivision)

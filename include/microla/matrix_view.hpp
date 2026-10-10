@@ -149,7 +149,6 @@
 namespace microla
 {
 
-/// \class MatrixView<T, R, C>
 /// \brief Non-owning view into a matrix or submatrix.
 /// \tparam T The element type.
 /// \tparam R Number of rows in the view.
@@ -179,6 +178,9 @@ public:
     }
 
     /// \brief Access element at (row, col).
+    /// @param row Row index in the view, less than R.
+    /// @param col Column index in the view, less than C.
+    /// @return Mutable reference to the selected parent-storage element.
     auto operator()(std::size_t row, std::size_t col) noexcept -> T&
     {
 #ifdef MICROLA_DEBUG
@@ -188,6 +190,10 @@ public:
         return m_data[((m_offset_row + row) * m_stride) + (m_offset_col + col)];
     }
 
+    /// @brief Read an element through the view.
+    /// @param row Row index in the view, less than R.
+    /// @param col Column index in the view, less than C.
+    /// @return Const reference to the selected parent-storage element.
     auto operator()(std::size_t row, std::size_t col) const noexcept -> const T&
     {
 #ifdef MICROLA_DEBUG
@@ -277,9 +283,11 @@ public:
     }
 
     /// \brief Get number of rows in view.
+    /// @return Compile-time row count R.
     [[nodiscard]] constexpr auto rows() const noexcept -> std::size_t { return R; }
 
     /// \brief Get number of columns in view.
+    /// @return Compile-time column count C.
     [[nodiscard]] constexpr auto cols() const noexcept -> std::size_t { return C; }
 
 private:
@@ -289,19 +297,28 @@ private:
     std::size_t m_offset_col;  ///< Column offset in parent matrix
 };
 
-/// \class ConstMatrixView<T, R, C>
 /// \brief Const non-owning view into a matrix.
+/// @tparam T Parent-storage element type.
+/// @tparam R Number of rows in the view.
+/// @tparam C Number of columns in the view.
 template<typename T, std::size_t R, std::size_t C>
 class ConstMatrixView
 {
 public:
     /// \brief Construct const view from existing data.
+    /// @param data Pointer to parent storage, which must outlive the view.
+    /// @param parent_cols Parent row width in elements, used as the row stride.
+    /// @param start_row First parent row included in the view.
+    /// @param start_col First parent column included in the view.
     ConstMatrixView(const T* data, std::size_t parent_cols, std::size_t start_row, std::size_t start_col) noexcept
         : m_data(data), m_stride(parent_cols), m_offset_row(start_row), m_offset_col(start_col)
     {
     }
 
     /// \brief Access element at (row, col) [const].
+    /// @param row Row index in the view, less than R.
+    /// @param col Column index in the view, less than C.
+    /// @return Const reference to the selected parent-storage element.
     auto operator()(std::size_t row, std::size_t col) const noexcept -> const T&
     {
 #ifdef MICROLA_DEBUG
@@ -311,7 +328,8 @@ public:
         return m_data[((m_offset_row + row) * m_stride) + (m_offset_col + col)];
     }
 
-    /// \brief Extract view data into a new matrix.
+    /// @brief Extract view data into a new matrix.
+    /// @return Owning matrix containing a copy of all view elements.
     [[nodiscard]] auto to_matrix() const noexcept -> Mat<T, R, C>
     {
         Mat<T, R, C> result;
@@ -337,10 +355,12 @@ public:
         return result;
     }
 
-    /// \brief Get number of rows in view.
+    /// @brief Get number of rows in view.
+    /// @return Compile-time row count R.
     [[nodiscard]] constexpr auto rows() const noexcept -> std::size_t { return R; }
 
-    /// \brief Get number of columns in view.
+    /// @brief Get number of columns in view.
+    /// @return Compile-time column count C.
     [[nodiscard]] constexpr auto cols() const noexcept -> std::size_t { return C; }
 
 private:

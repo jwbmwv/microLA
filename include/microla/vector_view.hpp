@@ -17,6 +17,9 @@
 namespace microla
 {
 
+/// @brief Mutable non-owning view of strided parent vector storage.
+/// @tparam T Parent-storage element type.
+/// @tparam N Number of elements in the view.
 template<typename T, std::size_t N>
 class VectorView
 {
@@ -144,11 +147,13 @@ public:
 
     /**
      * @brief Number of elements in the view (compile-time constant `N`).
+     * @return Compile-time element count N.
      */
     [[nodiscard]] constexpr auto size() const noexcept -> std::size_t { return N; }
 
     /**
      * @brief Stride (in parent elements) between successive elements in the view.
+     * @return Stored stride measured in parent-storage elements.
      */
     [[nodiscard]] auto stride() const noexcept -> std::size_t { return m_stride; }
 
@@ -159,6 +164,9 @@ private:
     std::size_t m_stride;      /**< Stride between elements in the view. */
 };
 
+/// @brief Read-only non-owning view of strided parent vector storage.
+/// @tparam T Parent-storage element type.
+/// @tparam N Number of elements in the view.
 template<typename T, std::size_t N>
 class ConstVectorView
 {
@@ -212,11 +220,13 @@ public:
 
     /**
      * @brief Number of elements in the view (compile-time constant `N`).
+     * @return Compile-time element count N.
      */
     [[nodiscard]] constexpr auto size() const noexcept -> std::size_t { return N; }
 
     /**
      * @brief Stride (in parent elements) between successive elements in the view.
+     * @return Stored stride measured in parent-storage elements.
      */
     [[nodiscard]] auto stride() const noexcept -> std::size_t { return m_stride; }
 

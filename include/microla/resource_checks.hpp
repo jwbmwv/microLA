@@ -25,6 +25,8 @@ namespace resource_checks
 
 /// @brief Validate Vec<T,N> memory layout for DMA compatibility
 /// @details Ensures Vec is standard layout and properly aligned
+/// @tparam T Vector element type.
+/// @tparam N Number of vector components.
 template<typename T, std::size_t N>
 struct VecLayoutCheck
 {
@@ -47,6 +49,9 @@ struct VecLayoutCheck
 
 /// @brief Validate Mat<T,R,C> memory layout for DMA compatibility
 /// @details Ensures Mat is standard layout and properly aligned
+/// @tparam T Matrix element type.
+/// @tparam R Number of matrix rows.
+/// @tparam C Number of matrix columns.
 template<typename T, std::size_t R, std::size_t C>
 struct MatLayoutCheck
 {
@@ -68,6 +73,7 @@ struct MatLayoutCheck
 
 /// @brief Validate Quaternion<T> memory layout for DMA compatibility
 /// @details Ensures Quaternion is standard layout and properly aligned
+/// @tparam T Floating-point quaternion component type.
 template<typename T>
 struct QuaternionLayoutCheck
 {
@@ -107,38 +113,80 @@ using QuatfCheck = QuaternionLayoutCheck<float>;
 // ==================== Size Reporting (can be used at compile-time) ====================
 
 /// @brief Report Vec size at compile time
+/// @tparam T Vector element type.
+/// @tparam N Number of vector components.
 template<typename T, std::size_t N>
 struct VecSizeInfo
 {
+    /// @brief Query the size of one component.
+    /// @return sizeof(T), in bytes.
     static constexpr auto element_size() -> std::size_t { return sizeof(T); }
+    /// @brief Query the vector dimension.
+    /// @return The number of vector components N.
     static constexpr auto dimension() -> std::size_t { return N; }
+    /// @brief Query the payload size without object padding.
+    /// @return N times sizeof(T), in bytes.
     static constexpr auto theoretical_size() -> std::size_t { return sizeof(T) * N; }
+    /// @brief Query the complete owning object size.
+    /// @return sizeof(Vec<T,N>), including alignment padding, in bytes.
     static constexpr auto actual_size() -> std::size_t { return sizeof(Vec<T, N>); }
+    /// @brief Query the owning type's alignment requirement.
+    /// @return alignof(Vec<T,N>), in bytes.
     static constexpr auto alignment() -> std::size_t { return alignof(Vec<T, N>); }
+    /// @brief Query the storage overhead beyond the component payload.
+    /// @return The difference between complete object and payload sizes, in bytes.
     static constexpr auto padding() -> std::size_t { return actual_size() - theoretical_size(); }
 };
 
 /// @brief Report Mat size at compile time
+/// @tparam T Matrix element type.
+/// @tparam R Number of matrix rows.
+/// @tparam C Number of matrix columns.
 template<typename T, std::size_t R, std::size_t C>
 struct MatSizeInfo
 {
+    /// @brief Query the size of one matrix entry.
+    /// @return sizeof(T), in bytes.
     static constexpr auto element_size() -> std::size_t { return sizeof(T); }
+    /// @brief Query the row count.
+    /// @return The number of matrix rows R.
     static constexpr auto rows() -> std::size_t { return R; }
+    /// @brief Query the column count.
+    /// @return The number of matrix columns C.
     static constexpr auto cols() -> std::size_t { return C; }
+    /// @brief Query the row-major payload size without object padding.
+    /// @return R times C times sizeof(T), in bytes.
     static constexpr auto theoretical_size() -> std::size_t { return sizeof(T) * R * C; }
+    /// @brief Query the complete owning matrix size.
+    /// @return sizeof(Mat<T,R,C>), including alignment padding, in bytes.
     static constexpr auto actual_size() -> std::size_t { return sizeof(Mat<T, R, C>); }
+    /// @brief Query the owning matrix's alignment requirement.
+    /// @return alignof(Mat<T,R,C>), in bytes.
     static constexpr auto alignment() -> std::size_t { return alignof(Mat<T, R, C>); }
+    /// @brief Query the storage overhead beyond the entry payload.
+    /// @return The difference between complete object and payload sizes, in bytes.
     static constexpr auto padding() -> std::size_t { return actual_size() - theoretical_size(); }
 };
 
 /// @brief Report Quaternion size at compile time
+/// @tparam T Floating-point quaternion component type.
 template<typename T>
 struct QuaternionSizeInfo
 {
+    /// @brief Query the size of one quaternion component.
+    /// @return sizeof(T), in bytes.
     static constexpr auto element_size() -> std::size_t { return sizeof(T); }
+    /// @brief Query the four-component payload size.
+    /// @return Four times sizeof(T), in bytes.
     static constexpr auto theoretical_size() -> std::size_t { return sizeof(T) * 4; }
+    /// @brief Query the complete quaternion object size.
+    /// @return sizeof(Quaternion<T>), including alignment padding, in bytes.
     static constexpr auto actual_size() -> std::size_t { return sizeof(Quaternion<T>); }
+    /// @brief Query the quaternion's alignment requirement.
+    /// @return alignof(Quaternion<T>), in bytes.
     static constexpr auto alignment() -> std::size_t { return alignof(Quaternion<T>); }
+    /// @brief Query the storage overhead beyond the four components.
+    /// @return The difference between complete object and payload sizes, in bytes.
     static constexpr auto padding() -> std::size_t { return actual_size() - theoretical_size(); }
 };
 
@@ -146,6 +194,8 @@ struct QuaternionSizeInfo
 
 /// @brief Validate that Vec data is properly aligned for DMA
 /// @details Cannot use offsetof with templates, but we can check alignment
+/// @tparam T Vector element type.
+/// @tparam N Number of vector components.
 template<typename T, std::size_t N>
 struct VecDMACheck
 {
@@ -156,6 +206,11 @@ struct VecDMACheck
     static_assert(alignof(Vec<T, N>) >= alignof(T), "Vec alignment must be at least as strict as element type");
 };
 
+/// @brief Check trivial copyability and element-compatible matrix alignment.
+/// @tparam T Matrix element type.
+/// @tparam R Number of matrix rows.
+/// @tparam C Number of matrix columns.
+/// @note Device-specific DMA alignment and coherency requirements remain the caller's responsibility.
 template<typename T, std::size_t R, std::size_t C>
 struct MatDMACheck
 {
@@ -166,6 +221,9 @@ struct MatDMACheck
     static_assert(alignof(Mat<T, R, C>) >= alignof(T), "Mat alignment must be at least as strict as element type");
 };
 
+/// @brief Check trivial copyability and element-compatible quaternion alignment.
+/// @tparam T Floating-point quaternion component type.
+/// @note These checks do not certify device-specific DMA behavior.
 template<typename T>
 struct QuaternionDMACheck
 {

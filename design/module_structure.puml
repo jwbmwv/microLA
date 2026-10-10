@@ -52,7 +52,7 @@ package "Core Headers (include/microla/)" {
         • R×C matrices (row-major)
         • Arithmetic operators
         • transpose, trace, determinant
-        • inverse, block operations
+        • caller-owned inverse; hosted decompositions
         • Rotation matrices
         • SIMD: NEON/CMSIS/RISC-V/AVX optimized
 
@@ -69,7 +69,7 @@ package "Core Headers (include/microla/)" {
         • SLERP interpolation
         • Matrix conversion
         • Euler angles
-        • Full NEON/CMSIS/RISC-V support
+        • Selected backend paths; RVV experimental
 
         Depends: compiler_features.hpp
                 constants.hpp
@@ -84,7 +84,7 @@ package "Core Headers (include/microla/)" {
         • AABB<T>, Sphere<T>
         • Triangle<T>, Frustum<T>
         • Intersection tests
-        • Uses std::optional (C++17)
+        • Uses inline std::optional results; C++20 baseline
 
         Depends: vector.hpp, matrix.hpp
     end note
@@ -128,9 +128,9 @@ package "Core Headers (include/microla/)" {
     [fast_math.hpp] as fast_math #D0FFFF
     note right of fast_math
         **Fast Approximations (fast::):**
-        • sin/cos (Bhaskara I, ~0.17% error)
-        • rsqrt (Quake III, 2-3× faster)
-        • exp/ln/pow (polynomial, 2-5× faster)
+        • bounded sin/cos approximation; large angles use std
+        • rsqrt approximation with domain checks
+        • operation-specific exp/ln/pow contracts
         • lerp, smoothstep
         • All default to float
 
@@ -143,7 +143,7 @@ package "Core Headers (include/microla/)" {
         • kahan_sum<T, Iterator>(begin, end)
         • hypot/hypot3 (stable magnitude)
         • approx_equal (relative + absolute tolerance)
-        • log1p_safe, expm1_safe
+        • log1p, expm1
         • stable_dot_product (Kahan-compensated)
         • condition_number_2x2, precision_loss_bits
         • ulp_distance, horner_eval
@@ -159,7 +159,7 @@ package "Core Headers (include/microla/)" {
         • MatSizeInfo<T, R, C>
         • QuaternionSizeInfo<T>
         • POD/contiguity verification
-        • DMA compatibility
+        • Hardware transfer constraints are target-specific
 
         Depends: vector.hpp, matrix.hpp,
                 quaternion.hpp
@@ -191,11 +191,12 @@ package "Core Headers (include/microla/)" {
         **Sensor Fusion:**
         • OrientationEstimator (Mahony/MEKF)
         • RelativeAngleEstimator
-        • 9-DOF/6-DOF fusion
-        • SI-unit agnostic calibration
+        • accel-only/6-DOF/9-DOF policies
+        • aligned reference capture; separate tilt confidence
+        • configured sensor units and magnetic scale learning
 
         Depends: vector.hpp, matrix.hpp,
-                quaternion.hpp, extended_kalman.hpp
+                quaternion.hpp, safe_math.hpp
     end note
 
     [vector_view.hpp] as vector_view #FFE6E6
@@ -232,11 +233,12 @@ package "Core Headers (include/microla/)" {
     [microla.hpp] as main #D0D0FF
     note right of main
         **Main Include Header:**
-        • Includes all components
+        • Includes core math, views, filters, fusion, utilities
+        • geometry.hpp and version.hpp are separate includes
         • Utility functions
         • Angle wrapping
         • memory_info namespace
-        • C++20 concepts (optional)
+        • C++20 concepts (not applied to all core templates)
 
         **Single-include convenience**
     end note
@@ -256,7 +258,7 @@ constants -down-> vector : used by
 constants -down-> matrix : used by
 constants -down-> quaternion : used by
 
-vector -down-> matrix : cross product
+vector -down-> matrix : matrix-vector products
 vector -down-> quaternion : rotate vector
 vector -down-> geometry : used by
 vector -down-> kalman : used by
@@ -310,7 +312,7 @@ package "Optional SIMD Support" {
 
         **Provides:**
         <arm_neon.h> intrinsics
-        2-4× performance boost
+        Selected float operations; target measurements required
     end note
 
     note bottom of cmsis
@@ -328,7 +330,7 @@ package "Optional SIMD Support" {
 
         **Provides:**
         <riscv_vector.h> intrinsics
-        1.3-2× performance boost
+        Experimental; intrinsic/toolchain compatibility required
         Variable-length vectors
     end note
 

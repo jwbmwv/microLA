@@ -11,6 +11,51 @@
 using namespace microla;
 using namespace microla::geometry;
 
+TEST(GeometryRegressionTest, SphereRayIntervalExcludesBehindOriginAndClampsInsideEntry)
+{
+    const Sphere<double> sphere(Vec<double, 3>(), 1.0);
+    EXPECT_FALSE(sphere.intersect(Ray<double>(Vec<double, 3>(0, 0, 5), Vec<double, 3>(0, 0, 1))));
+    const auto inside = sphere.intersect(Ray<double>(Vec<double, 3>(), Vec<double, 3>(0, 0, 1)));
+    ASSERT_TRUE(inside);
+    EXPECT_DOUBLE_EQ(inside->first, 0.0);
+    EXPECT_DOUBLE_EQ(inside->second, 1.0);
+}
+
+TEST(GeometryRegressionTest, TriangleRayIntersectionIsScaleRelative)
+{
+    for (const float scale : {1.0F, 1e-4F, 1e-8F})
+    {
+        const Triangle<float> triangle(Vec<float, 3>(), Vec<float, 3>(scale, 0, 0), Vec<float, 3>(0, scale, 0));
+        for (const float direction_scale : {1e-8F, 1.0F, 1e8F})
+        {
+            const Ray<float> ray(Vec<float, 3>(scale * 0.2F, scale * 0.2F, scale),
+                                 Vec<float, 3>(0, 0, -direction_scale));
+            const auto member = triangle.intersect(ray);
+            const auto free_hit = intersect(ray, triangle);
+            ASSERT_TRUE(member) << scale << ", " << direction_scale;
+            ASSERT_TRUE(free_hit) << scale << ", " << direction_scale;
+            EXPECT_NEAR(*member * direction_scale / scale, 1.0F, 1e-5F);
+            EXPECT_NEAR(std::get<0>(*free_hit) * direction_scale / scale, 1.0F, 1e-5F);
+            EXPECT_NEAR(std::get<1>(*free_hit), 0.2F, 1e-5F);
+            EXPECT_NEAR(std::get<2>(*free_hit), 0.2F, 1e-5F);
+            EXPECT_NEAR(ray.at(*member)[2] / scale, 0.0F, 1e-5F);
+        }
+    }
+}
+
+TEST(GeometryRegressionTest, TriangleNearParallelRejectionIsDirectionScaleRelative)
+{
+    const Triangle<float> triangle(Vec<float, 3>(), Vec<float, 3>(1, 0, 0), Vec<float, 3>(0, 1, 0));
+    constexpr float tilt = std::numeric_limits<float>::epsilon() * 0.5F;
+    for (const float direction_scale : {1e-8F, 1.0F, 1e8F})
+    {
+        const Ray<float> ray(Vec<float, 3>(-0.25F, 0.25F, -tilt * 0.5F),
+                             Vec<float, 3>(direction_scale, 0, tilt * direction_scale));
+        EXPECT_FALSE(triangle.intersect(ray)) << direction_scale;
+        EXPECT_FALSE(intersect(ray, triangle)) << direction_scale;
+    }
+}
+
 // ===== Ray Tests =====
 
 class RayTest : public ::testing::Test
@@ -416,6 +461,17 @@ protected:
 TEST_F(FrustumTest, Construction)
 {
     EXPECT_EQ(frustum.planes.size(), 6);
+}
+
+TEST_F(FrustumTest, TranslatedAndScaledFrustum)
+{
+    auto translated = Mat<float, 4, 4>::identity();
+    translated(0, 3) = -10;
+    auto shifted = Frustum<float>::from_matrix(translated * 2.0F);
+    EXPECT_TRUE(shifted.contains(Vec<float, 3>{10, 0, 0}));
+    EXPECT_FALSE(shifted.contains(Vec<float, 3>{0, 0, 0}));
+    Triangle<float> triangle{{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+    EXPECT_EQ(triangle.to_aabb().min, (Vec<float, 3>{1, 2, 3}));
 }
 
 TEST_F(FrustumTest, ContainsPoint)

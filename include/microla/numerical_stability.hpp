@@ -8,6 +8,8 @@
 #pragma once
 
 #include "compiler_features.hpp"
+#include <algorithm>
+#include <cstdint>
 #include <cmath>
 #include <type_traits>
 #include <limits>
@@ -31,16 +33,28 @@ constexpr auto epsilon() noexcept -> T
 
 /// @brief Approximately equal comparison with relative and absolute tolerance
 /// @details Uses both relative and absolute epsilon for better handling of values near zero
+/// @tparam T Floating-point type of the values and tolerances.
 /// @param a First value
 /// @param b Second value
 /// @param rel_tol Relative tolerance (default: 100 * epsilon)
 /// @param abs_tol Absolute tolerance (default: epsilon)
 /// @return true if values are approximately equal
+/// @retval false A value is NaN, unequal inputs are non-finite, or the tolerances reject the difference.
+/// @retval true The values are exactly equal or differ by no more than an accepted tolerance.
 template<typename T>
 auto approx_equal(T a, T b, T rel_tol = T(100) * epsilon<T>(), T abs_tol = epsilon<T>()) noexcept -> bool
 {
     static_assert(std::is_floating_point_v<T>, "approx_equal requires floating-point type");
 
+    if (a == b)
+    {
+        return true;
+    }
+    if (!std::isfinite(a) || !std::isfinite(b) || !std::isfinite(rel_tol) || !std::isfinite(abs_tol) ||
+        rel_tol < T(0) || abs_tol < T(0))
+    {
+        return false;
+    }
     const T diff = std::abs(a - b);
 
     // Absolute tolerance check (important for values near zero)
@@ -82,6 +96,7 @@ auto kahan_sum(Iterator begin, Iterator end) noexcept -> T
 
 /// @brief Compute scale factor for avoiding overflow/underflow in norm computation
 /// @details Used to safely compute sqrt(a² + b²) without intermediate overflow
+/// @tparam T Floating-point type of the components and result.
 /// @param a First value
 /// @param b Second value
 /// @return sqrt(a² + b²) computed safely
@@ -90,69 +105,27 @@ auto hypot(T a, T b) noexcept -> T
 {
     static_assert(std::is_floating_point_v<T>, "hypot requires floating-point type");
 
-    T abs_a = std::abs(a);
-    T abs_b = std::abs(b);
-
-    if (abs_a == T(0))
-    {
-        return abs_b;
-    }
-    if (abs_b == T(0))
-    {
-        return abs_a;
-    }
-
-    // Scale to avoid overflow
-    T max_val = std::max(abs_a, abs_b);
-    T min_val = std::min(abs_a, abs_b);
-
-    T ratio = min_val / max_val;
-    return max_val * std::sqrt(T(1) + ratio * ratio);
+    return std::hypot(a, b);
 }
 
 /// @brief Three-value hypot for 3D vectors
+/// @tparam T Floating-point type of the components and result.
 /// @param a First value
 /// @param b Second value
 /// @param c Third value
 /// @return sqrt(a² + b² + c²) computed safely
-/// @details Uses scaling to prevent overflow. For extreme values near sqrt(T_max),
-///          returns infinity to avoid undefined behavior.
+/// @details Uses the standard scaled hypot implementation to avoid intermediate overflow.
 template<typename T>
 auto hypot3(T a, T b, T c) noexcept -> T
 {
     static_assert(std::is_floating_point_v<T>, "hypot3 requires floating-point type");
 
-    // Use absolute values
-    a = std::abs(a);
-    b = std::abs(b);
-    c = std::abs(c);
-
-    // Find the maximum to use for scaling (avoid initializer list for portability)
-    T max_val = std::max(std::max(a, b), c);
-
-    if (max_val == T(0) || !std::isfinite(max_val))
-    {
-        return max_val;
-    }
-
-    // Check for extreme values that would overflow even after scaling
-    // If max_val > sqrt(T_max) / 2, the result would overflow
-    const T overflow_threshold = std::sqrt(std::numeric_limits<T>::max()) / T(2);
-    if (max_val > overflow_threshold)
-    {
-        return std::numeric_limits<T>::infinity();
-    }
-
-    // Scale by max to prevent overflow/underflow
-    a /= max_val;
-    b /= max_val;
-    c /= max_val;
-
-    return max_val * std::sqrt(a * a + b * b + c * c);
+    return std::hypot(a, b, c);
 }
 
 /// @brief Numerically stable computation of log(1 + x) for small x
 /// @details More accurate than log(1 + x) when x is close to zero
+/// @tparam T Floating-point type of the argument and result.
 /// @param x Small value
 /// @return log(1 + x)
 template<typename T>
@@ -164,6 +137,7 @@ auto log1p(T x) noexcept -> T
 
 /// @brief Numerically stable computation of exp(x) - 1 for small x
 /// @details More accurate than exp(x) - 1 when x is close to zero
+/// @tparam T Floating-point type of the argument and result.
 /// @param x Small value
 /// @return exp(x) - 1
 template<typename T>
@@ -174,8 +148,11 @@ auto expm1(T x) noexcept -> T
 }
 
 /// @brief Check if a value is within the representable range
+/// @tparam T Floating-point type whose normal range is inspected.
 /// @param value Value to check
 /// @return true if value is representable (not infinity or subnormal)
+/// @retval true The value is finite and its magnitude is at least the smallest normal value.
+/// @retval false The value is zero, subnormal, infinite, or NaN.
 template<typename T>
 auto is_representable(T value) noexcept -> bool
 {
@@ -184,6 +161,7 @@ auto is_representable(T value) noexcept -> bool
 }
 
 /// @brief Estimate relative error in a floating-point computation
+/// @tparam T Floating-point type of the computed and reference values.
 /// @param computed Computed value
 /// @param exact Exact (reference) value
 /// @return Relative error
@@ -202,6 +180,7 @@ auto relative_error(T computed, T exact) noexcept -> T
 
 /// @brief Compute condition number estimate for a 2x2 matrix
 /// @details Ratio of largest to smallest singular value using SVD approach
+/// @tparam T Floating-point type of the matrix entries and condition estimate.
 /// @param a Matrix element (0,0)
 /// @param b Matrix element (0,1)
 /// @param c Matrix element (1,0)
@@ -210,88 +189,26 @@ auto relative_error(T computed, T exact) noexcept -> T
 template<typename T>
 auto condition_number_2x2(T a, T b, T c, T d) noexcept -> T
 {
-    // Handle trivial case (zero matrix)
     T max_elem = std::max(std::max(std::abs(a), std::abs(b)), std::max(std::abs(c), std::abs(d)));
-    if (max_elem == T(0))
+    if (max_elem == T(0) || !std::isfinite(a) || !std::isfinite(b) || !std::isfinite(c) || !std::isfinite(d))
     {
-        return T(1);  // Zero matrix has condition number 1 by convention
+        return std::numeric_limits<T>::infinity();
     }
-
-    // Preserve originals for robust checks
-    T a0 = a;
-    T b0 = b;
-    T c0 = c;
-    T d0 = d;
-
-    // Quick check using the raw determinant (before scaling) to detect exact/near-singularity
-    // Use a configurable higher-precision intermediate type (`hi_t`) so embedded
-    // builds can avoid pulling in long-double software helpers.
     using high_t = microla::detail::hi_t<T>;
-
-    high_t raw_det_hi =
-        static_cast<high_t>(a0) * static_cast<high_t>(d0) - static_cast<high_t>(b0) * static_cast<high_t>(c0);
-
-    // Conservative tolerance scaled to the magnitude of the matrix. Use a larger
-    // multiplier to be robust under aggressive floating-point optimizations.
-    high_t det_tol_hi = static_cast<high_t>(epsilon<T>()) * static_cast<high_t>(max_elem) *
-                        static_cast<high_t>(max_elem) * static_cast<high_t>(1e6);
-
-    if (std::abs(raw_det_hi) <= det_tol_hi)
+    const high_t left_top = static_cast<high_t>(a) / max_elem;
+    const high_t right_top = static_cast<high_t>(b) / max_elem;
+    const high_t left_bottom = static_cast<high_t>(c) / max_elem;
+    const high_t right_bottom = static_cast<high_t>(d) / max_elem;
+    const high_t determinant = std::abs(left_top * right_bottom - right_top * left_bottom);
+    if (determinant == static_cast<high_t>(0))
     {
         return std::numeric_limits<T>::infinity();
     }
-
-    // Extra cross-product check (a*d ?= b*c) using higher-precision intermediate
-    // to catch near-proportional rows/cols.
-    high_t cross_lhs = static_cast<high_t>(a0) * static_cast<high_t>(d0);
-    high_t cross_rhs = static_cast<high_t>(b0) * static_cast<high_t>(c0);
-    if (std::abs(cross_lhs - cross_rhs) <= det_tol_hi)
-    {
-        return std::numeric_limits<T>::infinity();
-    }
-
-    // Scale matrix to reduce sensitivity to magnitude
-    a /= max_elem;
-    b /= max_elem;
-    c /= max_elem;
-    d /= max_elem;
-
-    // Calculate A^T A for [[a,b],[c,d]]: A^T A = [[a²+c², ab+cd], [ab+cd, b²+d²]]
-    T aa = a * a + c * c;
-    T bb = b * b + d * d;
-    T ab = a * b + c * d;
-
-    // Eigenvalues of A^T A: λ = (trace ± sqrt(trace² - 4*det)) / 2
-    T trace = aa + bb;
-    T det_ata = aa * bb - ab * ab;
-
-    // Robust tolerance scaled to problem size
-    T tol = epsilon<T>() * std::max(trace * trace, T(1));
-    if (det_ata <= tol || det_ata <= T(0))
-    {
-        return std::numeric_limits<T>::infinity();
-    }
-
-    T discriminant = trace * trace - T(4) * det_ata;
-    // Protect against numerical noise making discriminant negative
-    if (discriminant < T(0))
-    {
-        discriminant = T(0);
-    }
-
-    T sqrt_d = std::sqrt(discriminant);
-    T lambda_max = (trace + sqrt_d) / T(2);
-    T lambda_min = (trace - sqrt_d) / T(2);
-
-    // Check if minimum eigenvalue is too small
-    if (lambda_min <= tol || lambda_min <= T(0))
-    {
-        return std::numeric_limits<T>::infinity();
-    }
-
-    // Condition number κ = σ_max / σ_min = sqrt(λ_max / λ_min)
-    T ratio = lambda_max / lambda_min;
-    return std::sqrt(ratio);
+    const high_t aa = left_top * left_top + left_bottom * left_bottom;
+    const high_t bb = right_top * right_top + right_bottom * right_bottom;
+    const high_t ab = left_top * right_top + left_bottom * right_bottom;
+    const high_t largest = (aa + bb + std::hypot(aa - bb, static_cast<high_t>(2) * ab)) / static_cast<high_t>(2);
+    return static_cast<T>(largest / determinant);
 }
 
 /// @brief Numerically stable dot product using Kahan summation
@@ -346,9 +263,12 @@ auto horner_eval(const T* coeffs, std::size_t n, T x) noexcept -> T
 }
 
 /// @brief Check if matrix is likely to be ill-conditioned
+/// @tparam T Floating-point type of the condition estimate and threshold.
 /// @param condition_number Estimated condition number
 /// @param threshold Warning threshold (default: 1e10)
 /// @return true if matrix appears ill-conditioned
+/// @retval true The estimate is non-finite or exceeds the threshold.
+/// @retval false The estimate is finite and does not exceed the threshold.
 template<typename T>
 auto is_ill_conditioned(T condition_number, T threshold = T(1e10)) noexcept -> bool
 {
@@ -356,11 +276,16 @@ auto is_ill_conditioned(T condition_number, T threshold = T(1e10)) noexcept -> b
 }
 
 /// @brief Estimate loss of precision in bits
+/// @tparam T Floating-point type of the condition estimate.
 /// @param condition_number Condition number of problem
-/// @return Approximate number of bits of precision lost
+/// @return Truncated log2 of the estimate, zero for estimates at most one, or INT_MAX for non-finite input.
 template<typename T>
 auto precision_loss_bits(T condition_number) noexcept -> int
 {
+    if (!std::isfinite(condition_number))
+    {
+        return std::numeric_limits<int>::max();
+    }
     if (condition_number <= T(1))
     {
         return 0;
@@ -372,25 +297,36 @@ auto precision_loss_bits(T condition_number) noexcept -> int
 
 /// @brief Compute ULP (Units in Last Place) distance between two floats
 /// @details Measures how many representable floats are between two values
+/// @tparam T IEEE-754 float or double type whose representable steps are counted.
 /// @param a First value
 /// @param b Second value
-/// @return ULP distance
+/// @return ULP distance, saturated at INT64_MAX; NaN also returns INT64_MAX.
 template<typename T>
 auto ulp_distance(T a, T b) noexcept -> std::int64_t
 {
-    static_assert(std::is_floating_point_v<T>, "ulp_distance requires floating-point type");
-
-    // For simplicity, use relative difference scaled by epsilon
+    static_assert((std::is_same_v<T, float> || std::is_same_v<T, double>) && std::numeric_limits<T>::is_iec559,
+                  "ulp_distance requires IEEE float or double");
+    if (std::isnan(a) || std::isnan(b))
+    {
+        return std::numeric_limits<std::int64_t>::max();
+    }
     if (a == b)
     {
         return 0;
     }
 
-    T diff = std::abs(a - b);
-    T eps = epsilon<T>();
-    T scale = std::max(std::abs(a), std::abs(b));
-
-    return static_cast<std::int64_t>(diff / (scale * eps));
+    using Bits = std::conditional_t<std::is_same_v<T, float>, std::uint32_t, std::uint64_t>;
+    constexpr Bits sign = Bits(1) << (std::numeric_limits<Bits>::digits - 1);
+    const auto ordered = [](T value) -> Bits
+    {
+        const Bits bits = MICROLA_BIT_CAST(Bits, value);
+        return (bits & sign) != Bits(0) ? sign - (bits & ~sign) : sign + bits;
+    };
+    const Bits left = ordered(a);
+    const Bits right = ordered(b);
+    const Bits distance = left > right ? left - right : right - left;
+    const auto limit = static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max());
+    return static_cast<std::int64_t>(std::min(static_cast<std::uint64_t>(distance), limit));
 }
 
 #ifndef MICROLA_NUMERICAL_NAMESPACE

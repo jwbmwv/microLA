@@ -31,7 +31,7 @@ The deterministic trace-replay suite exercises stationary and yaw motion, magnet
 
 ## Resource and Backend Selection
 
-Mahony is the default lower-footprint orientation backend. MEKF is opt-in and carries covariance, matrix, and stack costs that must be reviewed on the selected compiler and MCU.
+Mahony is the default lower-compute orientation backend. MEKF is opt-in and adds covariance calculations and temporary matrix/stack costs that must be reviewed on the selected compiler and MCU. Both currently retain a 6x6 covariance member, so choosing Mahony alone does not imply a smaller persistent object.
 
 Run a target preset to generate the static report:
 

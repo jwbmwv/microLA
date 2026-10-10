@@ -11,6 +11,7 @@
 #include "matrix.hpp"
 #include "microla.hpp"  // For clamp() utility function
 #include <optional>
+#include <tuple>
 #include <array>
 #include <algorithm>
 #include <cmath>
@@ -122,6 +123,8 @@ struct Plane
     }
 
     /// @brief Signed distance from point to plane.
+    /// @param point Point whose signed distance is measured.
+    /// @return normal.dot(point) + d, positive on the normal-facing side.
     [[nodiscard]] auto signed_distance(const Vec<T, 3>& point) const -> T { return distance(point); }
 
     /// @brief Project a point onto the plane.
@@ -221,6 +224,8 @@ struct AABB
     /// @brief Check if a point is inside the AABB.
     /// @param point Point to test.
     /// @return True if point is inside or on the boundary.
+    /// @retval true All coordinates lie within the inclusive box bounds.
+    /// @retval false At least one coordinate fails an inclusive bound comparison.
     [[nodiscard]] auto contains(const Vec<T, 3>& point) const -> bool
     {
         return (point.x() >= min.x() && point.x() <= max.x()) && (point.y() >= min.y() && point.y() <= max.y()) &&
@@ -230,6 +235,8 @@ struct AABB
     /// @brief Check if two AABBs intersect.
     /// @param other Other AABB.
     /// @return True if they overlap.
+    /// @retval true The boxes overlap or touch on every axis.
+    /// @retval false At least one axis fails the overlap comparisons.
     [[nodiscard]] auto intersects(const AABB& other) const -> bool
     {
         return (min.x() <= other.max.x() && max.x() >= other.min.x()) &&
@@ -268,6 +275,8 @@ struct AABB
     /// @brief Check if this AABB fully contains another AABB.
     /// @param other Other AABB to test.
     /// @return True if other is fully inside this AABB.
+    /// @retval true Both corners of other satisfy the inclusive bounds on every axis.
+    /// @retval false At least one containment comparison fails.
     [[nodiscard]] auto contains(const AABB& other) const -> bool
     {
         return (other.min.x() >= min.x() && other.max.x() <= max.x()) &&
@@ -362,6 +371,8 @@ struct Sphere
     /// @brief Check if point is inside sphere.
     /// @param point Point to test.
     /// @return True if point is inside or on the boundary.
+    /// @retval true Squared distance to the center is no greater than squared radius.
+    /// @retval false The squared-distance comparison fails.
     [[nodiscard]] auto contains(const Vec<T, 3>& point) const -> bool
     {
         Vec<T, 3> diff = point - center;
@@ -371,6 +382,8 @@ struct Sphere
     /// @brief Check if two spheres intersect.
     /// @param other Other sphere.
     /// @return True if they intersect.
+    /// @retval true Squared center distance is no greater than the squared sum of radii.
+    /// @retval false The squared-distance comparison fails.
     [[nodiscard]] auto intersects(const Sphere& other) const -> bool
     {
         Vec<T, 3> diff = center - other.center;
@@ -420,12 +433,18 @@ struct Sphere
         T t1 = (-b - sqrt_disc) / (static_cast<T>(2) * a);
         T t2 = (-b + sqrt_disc) / (static_cast<T>(2) * a);
 
-        return std::make_pair(t1, t2);
+        if (!(t2 >= T(0)) || !std::isfinite(t1) || !std::isfinite(t2))
+        {
+            return std::nullopt;
+        }
+        return std::make_pair(std::max(T(0), t1), t2);
     }
 
     /// @brief Check if this sphere fully contains another sphere.
     /// @param other Other sphere to test.
     /// @return True if other is fully inside this sphere.
+    /// @retval true Center distance plus other.radius is no greater than radius.
+    /// @retval false The containment comparison fails.
     [[nodiscard]] auto contains(const Sphere& other) const -> bool
     {
         Vec<T, 3> diff = center - other.center;
@@ -436,6 +455,8 @@ struct Sphere
     /// @brief Check if sphere intersects AABB.
     /// @param aabb AABB to test.
     /// @return True if they intersect.
+    /// @retval true The closest box point is within the sphere's inclusive squared radius.
+    /// @retval false The closest-point distance comparison fails.
     [[nodiscard]] auto intersects(const AABB<T>& aabb) const -> bool
     {
         // Find closest point on AABB to sphere center
@@ -547,6 +568,8 @@ auto intersect(const Ray<T>& ray, const AABB<T>& aabb) -> std::optional<T>
 /// @param sphere Sphere to test.
 /// @param aabb AABB to test.
 /// @return True if they intersect.
+/// @retval true The closest box point is within the sphere's inclusive squared radius.
+/// @retval false The closest-point distance comparison fails.
 template<typename T>
 auto intersects(const Sphere<T>& sphere, const AABB<T>& aabb) -> bool
 {
@@ -606,8 +629,7 @@ struct Triangle
     /// @return AABB containing the triangle.
     [[nodiscard]] auto to_aabb() const -> AABB<T>
     {
-        AABB<T> box;
-        box.expand(v0);
+        AABB<T> box(v0, v0);
         box.expand(v1);
         box.expand(v2);
         return box;
@@ -616,6 +638,8 @@ struct Triangle
     /// @brief Check if point is inside triangle (assumes point is on triangle plane).
     /// @param point Point to test.
     /// @return True if point is inside or on the triangle.
+    /// @retval true Computed barycentric coordinates are nonnegative and sum to at most one.
+    /// @retval false At least one barycentric containment comparison fails.
     [[nodiscard]] auto contains(const Vec<T, 3>& point) const -> bool
     {
         // Barycentric coordinate method
@@ -638,7 +662,8 @@ struct Triangle
 
     /// @brief Ray-triangle intersection.
     /// @param ray Ray to test.
-    /// @return Distance along ray to intersection point, or std::nullopt if no intersection.
+    /// @return Parameter t for ray.at(t), or std::nullopt if no intersection.
+    ///         The parameter is a distance only when the direction is normalized.
     [[nodiscard]] auto intersect(const Ray<T>& ray) const -> std::optional<T>
     {
         constexpr T epsilon = std::numeric_limits<T>::epsilon();
@@ -650,7 +675,7 @@ struct Triangle
         T a = edge1.dot(h);
 
         // Ray parallel to triangle
-        if (std::abs(a) < epsilon)
+        if (!std::isfinite(a) || std::abs(a) <= epsilon * edge1.length() * edge2.length() * ray.direction.length())
         {
             return std::nullopt;
         }
@@ -674,7 +699,7 @@ struct Triangle
 
         T t = f * edge2.dot(q);
 
-        return (t > epsilon) ? std::optional<T>(t) : std::nullopt;
+        return (t >= T(0) && std::isfinite(t)) ? std::optional<T>(t) : std::nullopt;
     }
 };
 
@@ -685,8 +710,9 @@ using Triangled = Triangle<double>;
 /// @tparam T Scalar type for coordinates.
 /// @param ray Ray to test.
 /// @param tri Triangle to test.
-/// @return Tuple (t, u, v) where t is distance along ray and (u, v) are barycentric
-///         coordinates, or std::nullopt if no intersection.
+/// @return Tuple (t, u, v) where t is the parameter for ray.at(t) and (u, v) are
+///         barycentric coordinates, or std::nullopt if no intersection.
+///         The parameter is a distance only when the direction is normalized.
 template<typename T>
 auto intersect(const Ray<T>& ray, const Triangle<T>& tri) -> std::optional<std::tuple<T, T, T>>
 {
@@ -699,7 +725,7 @@ auto intersect(const Ray<T>& ray, const Triangle<T>& tri) -> std::optional<std::
     T a = edge1.dot(h);
 
     // Ray parallel to triangle
-    if (std::abs(a) < epsilon)
+    if (!std::isfinite(a) || std::abs(a) <= epsilon * edge1.length() * edge2.length() * ray.direction.length())
     {
         return std::nullopt;
     }
@@ -723,7 +749,7 @@ auto intersect(const Ray<T>& ray, const Triangle<T>& tri) -> std::optional<std::
 
     T t = f * edge2.dot(q);
 
-    if (t > epsilon)
+    if (t >= T(0) && std::isfinite(t))
     {
         return std::make_tuple(t, u, v);
     }
@@ -758,38 +784,27 @@ struct Frustum
     [[nodiscard]] static auto from_matrix(const Mat<T, 4, 4>& vp) -> Frustum
     {
         Frustum f;
-
-        // Extract planes from VP matrix (Gribb-Hartmann method)
-        // Left plane
-        f.planes[LEFT] =
-            Plane<T>(Vec<T, 3>(vp(0, 3) + vp(0, 0), vp(1, 3) + vp(1, 0), vp(2, 3) + vp(2, 0)), vp(3, 3) + vp(3, 0));
-
-        // Right plane
-        f.planes[RIGHT] =
-            Plane<T>(Vec<T, 3>(vp(0, 3) - vp(0, 0), vp(1, 3) - vp(1, 0), vp(2, 3) - vp(2, 0)), vp(3, 3) - vp(3, 0));
-
-        // Bottom plane
-        f.planes[BOTTOM] =
-            Plane<T>(Vec<T, 3>(vp(0, 3) + vp(0, 1), vp(1, 3) + vp(1, 1), vp(2, 3) + vp(2, 1)), vp(3, 3) + vp(3, 1));
-
-        // Top plane
-        f.planes[TOP] =
-            Plane<T>(Vec<T, 3>(vp(0, 3) - vp(0, 1), vp(1, 3) - vp(1, 1), vp(2, 3) - vp(2, 1)), vp(3, 3) - vp(3, 1));
-
-        // Near plane
-        f.planes[NEAR] =
-            Plane<T>(Vec<T, 3>(vp(0, 3) + vp(0, 2), vp(1, 3) + vp(1, 2), vp(2, 3) + vp(2, 2)), vp(3, 3) + vp(3, 2));
-
-        // Far plane
-        f.planes[FAR] =
-            Plane<T>(Vec<T, 3>(vp(0, 3) - vp(0, 2), vp(1, 3) - vp(1, 2), vp(2, 3) - vp(2, 2)), vp(3, 3) - vp(3, 2));
-
+        for (std::size_t axis = 0; axis < 3; ++axis)
+        {
+            for (std::size_t side = 0; side < 2; ++side)
+            {
+                const T sign = side == 0 ? T(1) : T(-1);
+                Vec<T, 3> normal{vp(3, 0) + sign * vp(axis, 0), vp(3, 1) + sign * vp(axis, 1),
+                                 vp(3, 2) + sign * vp(axis, 2)};
+                const T length = std::hypot(normal[0], normal[1], normal[2]);
+                auto& plane = f.planes[2 * axis + side];
+                plane.normal = normal / length;
+                plane.d = (vp(3, 3) + sign * vp(axis, 3)) / length;
+            }
+        }
         return f;
     }
 
     /// @brief Check if point is inside frustum.
     /// @param point Point to test.
     /// @return True if inside or on all planes.
+    /// @retval true No plane places the point at negative signed distance.
+    /// @retval false At least one plane places the point outside.
     [[nodiscard]] auto contains(const Vec<T, 3>& point) const -> bool
     {
         for (const auto& plane : planes)
@@ -805,6 +820,8 @@ struct Frustum
     /// @brief Check if sphere is inside frustum.
     /// @param sphere Sphere to test.
     /// @return True if fully inside.
+    /// @retval true No plane places the sphere center closer than its radius to the outside.
+    /// @retval false At least one plane rejects full sphere containment.
     [[nodiscard]] auto contains(const Sphere<T>& sphere) const -> bool
     {
         for (const auto& plane : planes)
@@ -820,6 +837,8 @@ struct Frustum
     /// @brief Check if sphere intersects frustum.
     /// @param sphere Sphere to test.
     /// @return True if intersects or is inside.
+    /// @retval true No frustum plane separates the sphere completely from the frustum.
+    /// @retval false A plane places the center farther outside than the radius.
     [[nodiscard]] auto intersects(const Sphere<T>& sphere) const -> bool
     {
         for (const auto& plane : planes)
@@ -835,6 +854,8 @@ struct Frustum
     /// @brief Check if AABB intersects frustum.
     /// @param aabb AABB to test.
     /// @return True if intersects or is inside.
+    /// @retval true No frustum plane separates the box; this conservative test may include false positives.
+    /// @retval false At least one plane places the box's positive vertex outside.
     [[nodiscard]] auto intersects(const AABB<T>& aabb) const -> bool
     {
         for (const auto& plane : planes)

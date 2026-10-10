@@ -26,6 +26,9 @@ namespace constants
 {
 namespace detail
 {
+/// @brief Evaluate pi in the requested numeric type.
+/// @tparam T Numeric result type.
+/// @return Pi converted to T, using the standard-library constant for floating-point types.
 template<typename T>
 constexpr auto pi_value() noexcept -> T
 {
@@ -36,24 +39,36 @@ constexpr auto pi_value() noexcept -> T
     return static_cast<T>(std::numbers::pi_v<long double>);
 }
 
+/// @brief Evaluate the angle of one full revolution.
+/// @tparam T Numeric result type.
+/// @return Two times pi in radians, converted to T.
 template<typename T>
 constexpr auto two_pi_value() noexcept -> T
 {
     return T(6.28318530717958647692);
 }
 
+/// @brief Evaluate the angle of a quarter revolution.
+/// @tparam T Numeric result type.
+/// @return Pi divided by two in radians, converted to T.
 template<typename T>
 constexpr auto half_pi_value() noexcept -> T
 {
     return T(1.57079632679489661923);
 }
 
+/// @brief Evaluate the angle of an eighth revolution.
+/// @tparam T Numeric result type.
+/// @return Pi divided by four in radians, converted to T.
 template<typename T>
 constexpr auto quarter_pi_value() noexcept -> T
 {
     return T(0.78539816339744830962);
 }
 
+/// @brief Evaluate Euler's number in the requested numeric type.
+/// @tparam T Numeric result type.
+/// @return The base of natural logarithms, converted to T.
 template<typename T>
 constexpr auto e_value() noexcept -> T
 {
@@ -64,6 +79,9 @@ constexpr auto e_value() noexcept -> T
     return static_cast<T>(std::numbers::e_v<long double>);
 }
 
+/// @brief Evaluate the golden ratio in the requested numeric type.
+/// @tparam T Numeric result type.
+/// @return The golden ratio, converted to T.
 template<typename T>
 constexpr auto golden_ratio_value() noexcept -> T
 {
@@ -74,6 +92,9 @@ constexpr auto golden_ratio_value() noexcept -> T
     return static_cast<T>(std::numbers::phi_v<long double>);
 }
 
+/// @brief Evaluate the square root of two.
+/// @tparam T Numeric result type.
+/// @return The positive square root of two, converted to T.
 template<typename T>
 constexpr auto sqrt2_value() noexcept -> T
 {
@@ -84,6 +105,9 @@ constexpr auto sqrt2_value() noexcept -> T
     return static_cast<T>(std::numbers::sqrt2_v<long double>);
 }
 
+/// @brief Evaluate the square root of three.
+/// @tparam T Numeric result type.
+/// @return The positive square root of three, converted to T.
 template<typename T>
 constexpr auto sqrt3_value() noexcept -> T
 {
@@ -94,6 +118,9 @@ constexpr auto sqrt3_value() noexcept -> T
     return static_cast<T>(std::numbers::sqrt3_v<long double>);
 }
 
+/// @brief Evaluate the natural logarithm of two.
+/// @tparam T Numeric result type.
+/// @return The natural logarithm of two, converted to T.
 template<typename T>
 constexpr auto ln2_value() noexcept -> T
 {
@@ -104,6 +131,9 @@ constexpr auto ln2_value() noexcept -> T
     return static_cast<T>(std::numbers::ln2_v<long double>);
 }
 
+/// @brief Evaluate the natural logarithm of ten.
+/// @tparam T Numeric result type.
+/// @return The natural logarithm of ten, converted to T.
 template<typename T>
 constexpr auto ln10_value() noexcept -> T
 {
@@ -114,46 +144,68 @@ constexpr auto ln10_value() noexcept -> T
     return static_cast<T>(std::numbers::ln10_v<long double>);
 }
 
+/// @brief Evaluate the relaxed single-precision comparison tolerance.
+/// @return Eight times float machine epsilon.
 constexpr auto epsilon_f_value() noexcept -> float
 {
     return std::numeric_limits<float>::epsilon() * 8.0F;  // ≈ 9.5e-7
 }
 
+/// @brief Evaluate the relaxed double-precision comparison tolerance.
+/// @return 4.5 million times double machine epsilon, approximately 1e-9.
 constexpr auto epsilon_d_value() noexcept -> double
 {
     return std::numeric_limits<double>::epsilon() * 4.5e6;  // ≈ 1e-9 (relaxed from 1e-12)
 }
 
+/// @brief Evaluate the generic comparison tolerance.
+/// @tparam T Numeric type whose machine epsilon is used.
+/// @return One hundred times the machine epsilon of T.
 template<typename T>
 constexpr auto epsilon_value() noexcept -> T
 {
     return std::numeric_limits<T>::epsilon() * T(100);
 }
 
+/// @brief Evaluate the degrees-to-radians conversion factor.
+/// @tparam T Numeric result type.
+/// @return Pi divided by 180, converted to T.
 template<typename T>
 constexpr auto deg_to_rad_value() noexcept -> T
 {
     return T(0.01745329251994329577);
 }
 
+/// @brief Evaluate the radians-to-degrees conversion factor.
+/// @tparam T Numeric result type.
+/// @return 180 divided by pi, converted to T.
 template<typename T>
 constexpr auto rad_to_deg_value() noexcept -> T
 {
     return T(57.29577951308232087680);
 }
 
+/// @brief Evaluate standard gravitational acceleration.
+/// @tparam T Numeric result type.
+/// @return 9.80665 metres per second squared, converted to T.
 template<typename T>
 constexpr auto gravity_value() noexcept -> T
 {
     return T(9.80665);
 }
 
+/// @brief Evaluate the speed of light in vacuum.
+/// @tparam T Numeric result type.
+/// @return 299792458 metres per second, converted to T.
 template<typename T>
 constexpr auto speed_of_light_value() noexcept -> T
 {
     return T(299792458.0);
 }
 
+/// @brief Expose a constant through both conversion and function-call syntax.
+/// @tparam T Numeric value type.
+/// @tparam Fn Function that evaluates the constant without arguments.
 template<typename T, T (*Fn)()>
 struct ConstantProxy
 {
@@ -161,6 +213,7 @@ struct ConstantProxy
     /// @return Constant value.
     constexpr auto operator()() const noexcept -> T { return Fn(); }
     /// @brief Implicit conversion to the constant value.
+    /// @return The numeric value produced by Fn.
     constexpr operator T() const noexcept { return Fn(); }  // NOLINT(hicpp-explicit-conversions)
 };
 }  // namespace detail
@@ -238,7 +291,7 @@ inline constexpr detail::ConstantProxy<double, detail::epsilon_d_value> epsilon_
 /// @brief Default epsilon for floating-point comparisons (generic)
 /// @tparam T Numeric type (default: double)
 /// @details Scaled machine epsilon for practical comparison tolerance.
-///          For float: ~8x machine epsilon, for double: ~100x machine epsilon
+///          Uses 100x machine epsilon for both float and double.
 template<typename T = double>
 inline constexpr detail::ConstantProxy<T, detail::epsilon_value<T>> epsilon{};
 

@@ -76,7 +76,7 @@ int main()
 Each entity config chooses one backend at compile time through `Config::backend`.
 
 - `FusionBackend::mahony`
-  - Lowest-footprint default
+  - Lower-compute default; persistent storage currently includes the same 6x6 covariance member as MEKF
   - Good for most embedded targets
   - Uses proportional correction from gravity and magnetic reference vectors
   - Supports gyro-bias adaptation when the entity is stationary
@@ -88,6 +88,39 @@ Each entity config chooses one backend at compile time through `Config::backend`
   - Costs more CPU and matrix math than Mahony
 
 `SensorModel::accel_only` intentionally does not support the MEKF backend because there is no useful gyro-driven propagation state to estimate.
+
+### Measurement-only recovery
+
+When gyro propagation is unavailable, both IMU backends can use valid gravity and
+magnetic measurements to correct attitude. Mahony gravity-only recovery applies a
+minimum gravity-alignment rotation to the existing attitude rather than reconstructing
+a zero-heading attitude. MEKF uses its normal vector-measurement updates, including
+covariance-based gains and NIS gates, even when gyro propagation is skipped.
+Unobserved heading is retained and reported as
+`Observability::heading_with_drift`; only a valid magnetic correction restores
+absolute heading.
+
+MEKF uses Joseph covariance updates followed by the right-multiplicative attitude
+reset Jacobian, including attitude/bias cross-covariance. Corrections are committed
+only after finite-value checks; rejected measurements do not update attitude, bias,
+covariance, or the learned magnetic field norm. `error_covariance()` exposes the
+read-only 6x6 covariance in body-frame attitude-error (radians), then gyro-bias
+(radians/second) order; it is available only for MEKF IMU configurations.
+
+`estimate_gyro_bias = false` disables MEKF bias coupling, process-noise growth,
+and correction gains. `enable_accel_correction = false` also disables Mahony's
+measurement-only gravity recovery, not only its propagated feedback path.
+
+`StatusFlag::gyro_rejected` reports an invalid gyro input, not simply skipped
+propagation. A valid gyro is not marked rejected on the first sample or when a
+large timestamp gap suppresses integration.
+
+If neither propagation nor an accepted correction is possible, an initialized IMU
+retains its attitude with `StatusFlag::orientation_held`, `valid = false`,
+`quality = invalid`, and zero confidence. Its estimate timestamp stays at the last
+actual state update, and forward prediction is disabled. The processed-sample clock
+still advances, so recovery integrates only the latest interval, not rejected gaps.
+Accel-only estimators retain the explicit held-confidence policy described below.
 
 ## Scalar Outputs
 
@@ -145,6 +178,14 @@ If the chosen scalar requires heading but only drift is available, the estimator
 - `quality`
 - `StatusFlag::drift_exceeds_nominal` when applicable
 
+Each entity also exposes `tilt_confidence`, based on accepted gravity information
+without the heading-drift penalty. Tilt-only scalar modes use that confidence and
+report zero primary drift; the entity estimates retain their heading drift metadata.
+A tilt result can therefore remain valid after an entity's full-orientation
+confidence expires. Rejected or held IMU samples do not acquire fresh tilt confidence.
+Neutral-reference capture predicts both entities to the latest pair timestamp,
+using the same alignment horizon as `compute()`.
+
 ## High-Dynamics Configs
 
 The default configs are tuned for stationary-to-slow-walking activity. Wider sensor-acceptance
@@ -177,6 +218,8 @@ struct RunningAccelConfig : microla::fusion::HighDynamicsAccelOnlyConfig<float>
 
 Check `StatusFlag::freefall_detected` or `StatusFlag::high_linear_acceleration` to understand
 why the estimate is degraded regardless of the confidence setting.
+Held outputs also carry `StatusFlag::orientation_held` and retain the timestamp of
+the last accepted tilt update, even when positive held confidence is configured.
 
 ### `timestamp_needs_reset()`
 
@@ -196,7 +239,9 @@ if (microla::fusion::timestamp_needs_reset(timestamp_s)) {
 ```
 
 `rebase_timestamp()` preserves orientation, calibration, covariance, drift, and learned
-magnetic-field state. For a `RelativeAngleEstimator`, rebase both entities to the same
+magnetic-field state. The argument is the new time of the last processed sample;
+the age of a held attitude is preserved rather than making it appear fresh.
+For a `RelativeAngleEstimator`, rebase both entities to the same
 timestamp origin with `rebase_left_timestamp()` and `rebase_right_timestamp()`.
 
 ## Compile-Time Policy Model
@@ -252,12 +297,13 @@ The following knobs are implemented in the public policy types and affect runtim
 ### Timing and freshness
 
 - `min_dt_s`
-  - Rejects zero or implausibly tiny intervals for propagation
-  - Drops out-of-order samples before they can modify estimator state
+  - Rejects duplicate, out-of-order, and implausibly tiny sample intervals before correction or propagation
+  - Preserves orientation, bias, covariance, and learned magnetic reference; the rejected estimate carries `sample_time_invalid` and `valid = false`
 
 - `max_dt_s`
   - Suppresses propagation across large gaps
   - Prevents the estimator from blindly integrating stale rates for too long
+  - Allows measurement-only recovery and advances processed-sample time so subsequent normal intervals can resume propagation; the estimate timestamp advances only on a state update
 
 - `max_sample_age_s`
   - Marks an entity stale if its latest estimate is too old relative to the latest pair timestamp
@@ -279,8 +325,9 @@ The following knobs are implemented in the public policy types and affect runtim
   - Rejects saturated or physically implausible angular-rate samples
 
 - `expected_mag_norm`, `mag_norm_min`, and `mag_norm_max`
-  - Optional bootstrap hints when your calibrated magnetometer values already use a known field-strength unit
-  - The default estimator path also learns the local field norm online, so these no longer need to match a fixed uT-scale deployment
+  - Set `enforce_mag_norm_limits = true` to enforce the configured absolute minimum and maximum in your declared calibrated units
+  - By default, the first finite usable field establishes the learned norm without assuming microtesla, gauss, or tesla units
+  - Without declared absolute limits or a prior learned reference, strength alone cannot distinguish a disturbed first sample from a different unit scale
 
 - `mag_relative_norm_tolerance`
   - Allowed fractional deviation from the learned magnetic-field norm before a sample is rejected
@@ -292,11 +339,27 @@ The following knobs are implemented in the public policy types and affect runtim
   - Directional gate applied while heading is currently trusted
   - Rejects large magnetic direction jumps without blocking later heading reacquisition from a previously drift-only state
 
+Magnetic directions are normalized with scale-safe arithmetic, so field-strength
+units do not change the inferred heading. A magnetic sample must also have a usable
+component perpendicular to gravity. Vertical or nearly vertical fields set
+`StatusFlag::mag_rejected` and leave heading at `Observability::heading_with_drift`,
+including at startup. The gate uses the squared sine between unit directions,
+which must exceed `std::numeric_limits<T>::epsilon()`; it is independent of field
+magnitude. Valid acceleration supplies the gravity direction, otherwise the
+current attitude supplies a predicted gravity direction.
+
+The configured `world_magnetic_reference()` must pass the same horizontal-component
+check against `world_gravity_direction()`. A collinear reference produces
+`StatusFlag::configuration_invalid` rather than claiming full heading observability.
+
 - `stationary_gyro_norm_max`
 - `stationary_accel_error_max`
   - Define when the entity is considered stationary enough to adapt gyro bias safely
 
 ### Mahony backend gains
+
+Gravity and magnetic feedback use `measured_body.cross(expected_body)` to produce
+a corrective body rate under the library's body-to-world quaternion convention.
 
 - `kp_accel`
   - Strength of gravity-based correction
@@ -589,7 +652,7 @@ You can also smooth the **final orientation estimate**, though this adds latency
 **Quaternion SLERP Smoothing**
 ```cpp
 // Spherical linear interpolation between consecutive orientations
-auto smooth_quat = microla::slerp(prev_orientation, current_orientation, alpha);
+auto smooth_quat = prev_orientation.slerp(current_orientation, alpha);
 // alpha = 0.3-0.5 typical for moderate smoothing
 ```
 

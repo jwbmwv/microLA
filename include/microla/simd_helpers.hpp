@@ -264,6 +264,11 @@ inline void copy_n(const T* src, T* dst, std::size_t n) noexcept
 
 /// @brief Generic strided copy for any arithmetic type
 /// @tparam T Arithmetic type
+/// @param src Source storage covering the requested strided elements.
+/// @param src_stride Source step in elements.
+/// @param dst Destination storage covering the requested strided elements.
+/// @param dst_stride Destination step in elements.
+/// @param n Number of elements to copy; buffers must not overlap.
 template<typename T>
 inline void strided_copy(const T* src, std::size_t src_stride, T* dst, std::size_t dst_stride, std::size_t n) noexcept
 {
@@ -290,6 +295,10 @@ inline void strided_copy(const T* src, std::size_t src_stride, T* dst, std::size
 ///
 /// Useful for handling N==3 vector cases where a 4-wide SIMD load is
 /// convenient. `n` specifies how many valid elements are in `src` (0..4).
+/// @param src Source buffer containing at least min(n, 4) floats.
+/// @param n Requested count; at most four values are read.
+/// @param out Destination buffer of four floats.
+/// @param pad Value for unused output lanes.
 inline void load_padded4(const float* src, std::size_t n, float out[4], float pad = 0.0F) noexcept
 {
     std::size_t i = 0;
@@ -304,6 +313,9 @@ inline void load_padded4(const float* src, std::size_t n, float out[4], float pa
 }
 
 /// @brief Store the first `n` elements from `src4` into `dst`.
+/// @param src4 Source buffer of four floats.
+/// @param dst Destination buffer covering min(n, 4) floats.
+/// @param n Requested count; at most four values are written.
 inline void store_extract4(const float src4[4], float* dst, std::size_t n) noexcept
 {
     for (std::size_t i = 0; i < n && i < 4; ++i)
@@ -313,6 +325,9 @@ inline void store_extract4(const float src4[4], float* dst, std::size_t n) noexc
 }
 
 /// @brief Element-wise add of 4 floats: out = a + b.
+/// @param a First four-element input buffer.
+/// @param b Second four-element input buffer.
+/// @param out Four-element destination for the sums.
 inline void add4(const float a[4], const float b[4], float out[4]) noexcept
 {
 #if defined(CONFIG_MICROLA_AVX)
@@ -334,6 +349,9 @@ inline void add4(const float a[4], const float b[4], float out[4]) noexcept
 }
 
 /// @brief Element-wise subtract of 4 floats: out = a - b.
+/// @param a Four-element minuend buffer.
+/// @param b Four-element subtrahend buffer.
+/// @param out Four-element destination for the differences.
 inline void sub4(const float a[4], const float b[4], float out[4]) noexcept
 {
 #if defined(CONFIG_MICROLA_AVX)
@@ -355,6 +373,9 @@ inline void sub4(const float a[4], const float b[4], float out[4]) noexcept
 }
 
 /// @brief Element-wise multiply of 4 floats: out = a * b.
+/// @param a First four-element factor buffer.
+/// @param b Second four-element factor buffer.
+/// @param out Four-element destination for the products.
 inline void mul4(const float a[4], const float b[4], float out[4]) noexcept
 {
 #if defined(CONFIG_MICROLA_AVX)
@@ -376,6 +397,9 @@ inline void mul4(const float a[4], const float b[4], float out[4]) noexcept
 }
 
 /// @brief Fused multiply-add accumulate: r += a * b for 4-element vectors.
+/// @param r Four-element accumulator, read and updated in place.
+/// @param a First four-element factor buffer.
+/// @param b Second four-element factor buffer.
 inline void fma4_accumulate(float r[4], const float a[4], const float b[4]) noexcept
 {
 #if defined(CONFIG_MICROLA_AVX)
@@ -412,6 +436,10 @@ inline void fma4_accumulate(float r[4], const float a[4], const float b[4]) noex
 /// This is a simple scalar gather helper. For small fixed-size gathers
 /// (4-element) callers can use `gather4_float` which may be optimized
 /// by platform intrinsics when available.
+/// @param src Source storage containing every indexed element.
+/// @param idx Array of n valid source indices.
+/// @param dst Non-overlapping destination buffer of n floats.
+/// @param n Number of elements to gather.
 inline void gather_n_float(const float* src, const std::size_t* idx, float* dst, std::size_t n) noexcept
 {
     for (std::size_t i = 0; i < n; ++i)
@@ -421,6 +449,10 @@ inline void gather_n_float(const float* src, const std::size_t* idx, float* dst,
 }
 
 /// @brief Scatter `n` floats from `src` into `dst` using index array `idx`.
+/// @param src Non-overlapping source buffer of n floats.
+/// @param dst Destination storage covering every indexed element.
+/// @param idx Array of n valid destination indices; later duplicate indices overwrite earlier writes.
+/// @param n Number of elements to scatter.
 inline void scatter_n_float(const float* src, float* dst, const std::size_t* idx, std::size_t n) noexcept
 {
     for (std::size_t i = 0; i < n; ++i)
@@ -430,6 +462,9 @@ inline void scatter_n_float(const float* src, float* dst, const std::size_t* idx
 }
 
 /// @brief Gather exactly 4 floats (scalar fallback; AVX2 gather if available).
+/// @param src Source storage containing every indexed element.
+/// @param idx Four valid source indices, representable as int32_t for AVX2.
+/// @param out Four-element destination buffer.
 inline void gather4_float(const float* src, const std::size_t idx[4], float out[4]) noexcept
 {
 #if defined(CONFIG_MICROLA_AVX) && defined(__AVX2__)
@@ -457,6 +492,9 @@ inline void gather4_float(const float* src, const std::size_t idx[4], float out[
 }
 
 /// @brief Scatter exactly 4 floats from `in4` into `dst` at the indices `idx`.
+/// @param in4 Source buffer of four floats.
+/// @param dst Destination storage covering all selected elements.
+/// @param idx Four valid destination indices; later duplicate indices overwrite earlier writes.
 inline void scatter4_float(const float in4[4], float* dst, const std::size_t idx[4]) noexcept
 {
     dst[idx[0]] = in4[0];
@@ -467,6 +505,10 @@ inline void scatter4_float(const float in4[4], float* dst, const std::size_t idx
 
 /// @brief Gather `n` floats from `src` using `idx`, but detect contiguous runs and
 ///        forward to `copy_n_float` for improved throughput when possible.
+/// @param src Source storage containing every indexed element.
+/// @param idx Array of n valid source indices.
+/// @param dst Non-overlapping destination buffer of n floats.
+/// @param n Number of elements to gather; zero performs no access.
 inline void gather_n_optimized(const float* src, const std::size_t* idx, float* dst, std::size_t n) noexcept
 {
     if (n == 0)
@@ -497,6 +539,10 @@ inline void gather_n_optimized(const float* src, const std::size_t* idx, float* 
 
 /// @brief Scatter `n` floats from `src` into `dst` using `idx`, but detect
 ///        contiguous target ranges and forward to `copy_n_float` when possible.
+/// @param src Non-overlapping source buffer of n floats.
+/// @param dst Destination storage covering every indexed element.
+/// @param idx Array of n valid destination indices; later duplicate indices overwrite earlier writes.
+/// @param n Number of elements to scatter; zero performs no access.
 inline void scatter_n_optimized(const float* src, float* dst, const std::size_t* idx, std::size_t n) noexcept
 {
     if (n == 0)
@@ -525,6 +571,11 @@ inline void scatter_n_optimized(const float* src, float* dst, const std::size_t*
 
 /// @brief Gather with a fixed start and stride: dst[i] = src[start + i*stride].
 ///        If stride==1 this forwards to `copy_n_float` for best throughput.
+/// @param src Source storage covering start + (n - 1) * stride when n is nonzero.
+/// @param start Index of the first source element.
+/// @param stride Source step in elements; AVX2 offsets must fit int.
+/// @param dst Non-overlapping destination buffer of n floats.
+/// @param n Number of elements to gather; zero performs no access.
 inline void gather_strided_float(const float* src, std::size_t start, std::size_t stride, float* dst,
                                  std::size_t n) noexcept
 {
@@ -574,6 +625,11 @@ inline void gather_strided_float(const float* src, std::size_t start, std::size_
 }
 
 /// @brief Scatter with a fixed start and stride: dst[start + i*stride] = src[i].
+/// @param src Non-overlapping source buffer of n floats.
+/// @param dst Destination storage covering start + (n - 1) * stride when n is nonzero.
+/// @param start Index of the first destination element.
+/// @param stride Destination step in elements.
+/// @param n Number of elements to scatter; zero performs no access.
 inline void scatter_strided_float(const float* src, float* dst, std::size_t start, std::size_t stride,
                                   std::size_t n) noexcept
 {
@@ -649,6 +705,9 @@ inline void fill_double(double* dst, std::size_t n, double value) noexcept
 }
 
 /// @brief Copy n doubles from src to dst (SIMD-optimized)
+/// @param src Source buffer of n doubles.
+/// @param dst Non-overlapping destination buffer of n doubles.
+/// @param n Number of elements to copy.
 inline void copy_n_double(const double* src, double* dst, std::size_t n) noexcept
 {
 #if defined(CONFIG_MICROLA_AVX512)

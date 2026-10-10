@@ -150,6 +150,10 @@ namespace microla
 {
 namespace detail
 {
+/// @brief Check that the configured per-type storage limit is positive.
+/// @return Whether MICROLA_STACK_SIZE_LIMIT is greater than zero.
+/// @retval true The configured limit is positive.
+/// @retval false The configured limit is zero or negative.
 MICROLA_CONSTEVAL inline auto stack_size_limit_is_valid() noexcept -> bool
 {
     return MICROLA_STACK_SIZE_LIMIT > 0;
@@ -314,6 +318,11 @@ namespace microla
 namespace detail
 {
 
+/// @brief Copy an object representation into a same-sized trivially copyable type.
+/// @tparam To Destination type, with the same size as From.
+/// @tparam From Trivially copyable source type.
+/// @param src Object whose representation is copied.
+/// @return Destination object with the copied representation; the bits must represent a valid To value.
 template<typename To, typename From>
 inline auto bit_cast_memcpy(const From& src) noexcept -> To
 {

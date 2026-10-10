@@ -40,18 +40,25 @@ namespace microla
 // Minimal index_sequence implementation to allow constexpr factories
 namespace detail
 {
+/// @brief Carry a compile-time pack of vector element indices.
+/// @tparam Is Index values in the sequence.
 template<std::size_t... Is>
 struct index_sequence
 {
     // NOLINT(readability-identifier-naming)
 };
 
+/// @brief Recursively prepend indices until a complete sequence is built.
+/// @tparam N Number of remaining indices to prepend.
+/// @tparam Is Indices already accumulated.
 template<std::size_t N, std::size_t... Is>
 struct make_index_sequence_impl : make_index_sequence_impl<N - 1, N - 1, Is...>
 {
     // NOLINT(readability-identifier-naming)
 };
 
+/// @brief Terminate index-sequence construction at zero remaining indices.
+/// @tparam Is Complete index pack.
 template<std::size_t... Is>
 struct make_index_sequence_impl<0, Is...>
 {
@@ -59,12 +66,13 @@ struct make_index_sequence_impl<0, Is...>
     using type = index_sequence<Is...>;
 };
 
+/// @brief Form the compile-time sequence [0, N).
+/// @tparam N Number of indices in the sequence.
 template<std::size_t N>
 using make_index_sequence = typename make_index_sequence_impl<N>::type;
 
 }  // namespace detail
 
-/// \class Vec<T, N>
 /// \brief A vector class templated on type T and dimension N.
 /// \tparam T The storage type.
 /// \tparam N The dimension.
@@ -94,12 +102,17 @@ public:
     constexpr Vec(const Vec& other) noexcept = default;
 
     /// \brief Move constructor (default for fixed-size arrays).
+    /// @param other Vector whose fixed-size element storage is moved.
     constexpr Vec(Vec&& other) noexcept = default;
 
     /// \brief Copy assignment operator.
+    /// @param other Vector whose elements replace this vector.
+    /// @return Reference to this vector.
     constexpr auto operator=(const Vec& other) noexcept -> Vec& = default;
 
     /// \brief Move assignment operator (default for fixed-size arrays).
+    /// @param other Vector whose fixed-size element storage replaces this vector.
+    /// @return Reference to this vector.
     constexpr auto operator=(Vec&& other) noexcept -> Vec& = default;
 
     /// \brief Destructor (defaulted to satisfy rule-of-five checkers).
@@ -134,6 +147,9 @@ private:
         // NOLINT(readability-identifier-naming)
     };
 
+    /// @brief Initialize all elements through the private pack-construction tag.
+    /// @tparam U Types of the N input values, convertible to T.
+    /// @param u Element values in index order; the unnamed tag selects this overload.
     template<typename... U>
     constexpr Vec(_pack_tag, U... u) noexcept : data{static_cast<T>(u)...}
     {
@@ -141,6 +157,9 @@ private:
     }
 
 #ifdef CONFIG_MICROLA_NEON
+    /// @brief Load three float elements without reading a fourth element.
+    /// @param src Source buffer of at least three floats.
+    /// @return NEON vector with the three inputs and a zero fourth lane.
     static auto load3_neon(const float* src) noexcept -> float32x4_t
     {
         float32x4_t value = vdupq_n_f32(0.0F);
@@ -150,6 +169,9 @@ private:
         return value;
     }
 
+    /// @brief Store the first three NEON lanes without writing a fourth element.
+    /// @param dst Destination buffer of at least three floats.
+    /// @param value NEON value whose first three lanes are written.
     static void store3_neon(float* dst, float32x4_t value) noexcept
     {
         vst1q_lane_f32(dst, value, 0);
@@ -158,12 +180,19 @@ private:
     }
 #endif
 
+    /// @brief Expand a zero initializer for every element index.
+    /// @tparam Is Complete element-index pack; the unnamed sequence selects its size.
+    /// @return Vector with every component set to zero.
     template<std::size_t... Is>
     constexpr static Vec zero_impl(detail::index_sequence<Is...>) noexcept
     {
         return Vec(_pack_tag{}, (static_cast<T>(0) + static_cast<T>(Is * 0))...);
     }
 
+    /// @brief Expand a constant initializer for every element index.
+    /// @tparam Is Complete element-index pack; the unnamed sequence selects its size.
+    /// @param value Value copied to every component.
+    /// @return Vector filled with value.
     template<std::size_t... Is>
     constexpr static Vec filled_impl(detail::index_sequence<Is...>, T value) noexcept
     {
@@ -224,6 +253,7 @@ public:
     }
 
     /// \brief Single value constructor for N=1 vectors.
+    /// @tparam U Input type convertible to T, enabled only for N = 1.
     /// \param value The value to initialize with.
     template<typename U = T>
     constexpr Vec(std::enable_if_t<N == 1, U> value)
@@ -277,12 +307,23 @@ public:
     /// \return Const pointer to the first element.
     [[nodiscard]] auto data_ptr() const noexcept -> const T* { return data; }
 
-    /// \brief Iterators for ranged-for compatibility.
+    /// @brief Access the first element for mutable iteration.
+    /// @return Pointer to the first stored element.
     [[nodiscard]] auto begin() noexcept -> T* { return data; }
+    /// @brief Get the mutable past-the-end iterator.
+    /// @return Pointer one element past the N-element storage; not dereferenceable.
     [[nodiscard]] auto end() noexcept -> T* { return data + N; }
+    /// @brief Access the first element for read-only iteration.
+    /// @return Const pointer to the first stored element.
     [[nodiscard]] auto begin() const noexcept -> const T* { return data; }
+    /// @brief Get the read-only past-the-end iterator.
+    /// @return Const pointer one element past the N-element storage; not dereferenceable.
     [[nodiscard]] auto end() const noexcept -> const T* { return data + N; }
+    /// @brief Explicitly obtain a read-only begin iterator.
+    /// @return Const pointer to the first stored element.
     [[nodiscard]] auto cbegin() const noexcept -> const T* { return data; }
+    /// @brief Explicitly obtain a read-only end iterator.
+    /// @return Const pointer one element past the N-element storage; not dereferenceable.
     [[nodiscard]] auto cend() const noexcept -> const T* { return data + N; }
 
     /// \brief Addition operator.
@@ -290,6 +331,15 @@ public:
     /// \return The result vector.
     [[nodiscard]] constexpr auto operator+(const Vec& other) const noexcept -> Vec
     {
+        if (std::is_constant_evaluated())
+        {
+            Vec result;
+            for (std::size_t index = 0; index < N; ++index)
+            {
+                result.data[index] = data[index] + other.data[index];
+            }
+            return result;
+        }
 #ifdef CONFIG_MICROLA_RISCV
         if constexpr (std::is_same_v<T, float> && (N == 2 || N == 3 || N == 4))
         {
@@ -376,6 +426,15 @@ public:
     /// \return The result vector.
     [[nodiscard]] constexpr auto operator-(const Vec& other) const noexcept -> Vec
     {
+        if (std::is_constant_evaluated())
+        {
+            Vec result;
+            for (std::size_t index = 0; index < N; ++index)
+            {
+                result.data[index] = data[index] - other.data[index];
+            }
+            return result;
+        }
 #ifdef CONFIG_MICROLA_RISCV
         if constexpr (std::is_same_v<T, float> && (N == 2 || N == 3 || N == 4))
         {
@@ -494,6 +553,15 @@ public:
     /// \return The result vector.
     [[nodiscard]] constexpr auto operator*(T scalar) const noexcept -> Vec
     {
+        if (std::is_constant_evaluated())
+        {
+            Vec result;
+            for (std::size_t index = 0; index < N; ++index)
+            {
+                result.data[index] = data[index] * scalar;
+            }
+            return result;
+        }
 #ifdef CONFIG_MICROLA_RISCV
         if constexpr (std::is_same_v<T, float> && (N == 2 || N == 3 || N == 4))
         {
@@ -570,6 +638,15 @@ public:
     /// \note In debug builds, asserts if scalar is zero. In release builds, returns NaN-filled vector.
     [[nodiscard]] constexpr auto operator/(T scalar) const noexcept -> Vec
     {
+        if (std::is_constant_evaluated() && scalar != T(0))
+        {
+            Vec result;
+            for (std::size_t index = 0; index < N; ++index)
+            {
+                result.data[index] = data[index] / scalar;
+            }
+            return result;
+        }
 #ifdef MICROLA_DEBUG
         assert(scalar != T(0) && "Division by zero in Vec::operator/");
 #endif
@@ -632,15 +709,40 @@ public:
         }
 #endif
         Vec result;
-        const T inv_scalar = T(1) / scalar;
+        const T inv_scalar = std::is_integral_v<T> ? T(0) : T(1) / scalar;
         for (std::size_t i = 0; i < N; ++i)
         {
-            result.data[i] = data[i] * inv_scalar;
+            if constexpr (std::is_integral_v<T>)
+            {
+                result.data[i] = data[i] / scalar;
+            }
+            else
+            {
+                result.data[i] = data[i] * inv_scalar;
+            }
         }
         return result;
     }
 
+    /// @brief Check every stored component for finiteness.
+    /// @return Whether every component is neither infinity nor NaN.
+    /// @retval true All components are finite.
+    /// @retval false At least one component is infinite or NaN.
+    [[nodiscard]] auto is_finite() const noexcept -> bool
+    {
+        for (const auto value : data)
+        {
+            if (!std::isfinite(value))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /// \brief Equality operator.
+    /// @retval true All components pass absolute machine-epsilon comparison, or exact comparison for integral T.
+    /// @retval false At least one component comparison fails.
     /// \param other The vector to compare.
     /// \return True if equal (uses epsilon comparison for floating-point types).
     /// \note Uses `std::numeric_limits<T>::epsilon()` as an **absolute** tolerance.
@@ -683,7 +785,7 @@ public:
                 // Use approximate comparison for floats
                 for (std::size_t i = 0; i < 3; ++i)
                 {
-                    if (std::abs(data[i] - other.data[i]) > std::numeric_limits<float>::epsilon())
+                    if (!(std::abs(data[i] - other.data[i]) <= std::numeric_limits<float>::epsilon()))
                         return false;
                 }
                 return true;
@@ -702,7 +804,7 @@ public:
             // Fallback: epsilon comparison for all floating-point types
             for (std::size_t i = 0; i < N; ++i)
             {
-                if (std::abs(data[i] - other.data[i]) > std::numeric_limits<T>::epsilon())
+                if (!(std::abs(data[i] - other.data[i]) <= std::numeric_limits<T>::epsilon()))
                 {
                     return false;
                 }
@@ -721,6 +823,8 @@ public:
     }
 
     /// \brief Inequality operator.
+    /// @retval true The component-wise equality comparison fails.
+    /// @retval false The component-wise equality comparison succeeds.
     /// \param other The vector to compare.
     /// \return True if not equal.
     auto operator!=(const Vec& other) const noexcept -> bool { return !(*this == other); }
@@ -863,10 +967,17 @@ public:
                 return *this;
             }
         }
-        const T inv_scalar = T(1) / scalar;
+        const T inv_scalar = std::is_integral_v<T> ? T(0) : T(1) / scalar;
         for (std::size_t i = 0; i < N; ++i)
         {
-            data[i] = data[i] * inv_scalar;
+            if constexpr (std::is_integral_v<T>)
+            {
+                data[i] /= scalar;
+            }
+            else
+            {
+                data[i] = data[i] * inv_scalar;
+            }
         }
         return *this;
     }
@@ -876,6 +987,15 @@ public:
     /// \return The dot product.
     [[nodiscard]] constexpr auto dot(const Vec& other) const noexcept -> T
     {
+        if (std::is_constant_evaluated())
+        {
+            T result = T(0);
+            for (std::size_t index = 0; index < N; ++index)
+            {
+                result += data[index] * other.data[index];
+            }
+            return result;
+        }
         // RISCV vector extension path
 #ifdef CONFIG_MICROLA_RISCV
         if constexpr (std::is_same_v<T, float> && (N == 2 || N == 3 || N == 4))
@@ -942,6 +1062,7 @@ public:
     /// \brief Cross product (only for 3D vectors).
     /// \param other The other vector.
     /// \return The cross product.
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN == 3)
     [[nodiscard]] constexpr auto cross(const Vec& other) const noexcept -> Vec
@@ -1000,6 +1121,7 @@ public:
     /// \brief Cross product operator (only for 3D).
     /// \param other The other vector.
     /// \return The cross product.
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN == 3)
     [[nodiscard]] constexpr auto operator^(const Vec& other) const noexcept -> Vec
@@ -1010,7 +1132,23 @@ public:
     /// \brief Length of the vector.
     /// \return The Euclidean length.
     /// \details In C++26+, this function is constexpr when the vector is known at compile-time.
-    MICROLA_CONSTEXPR_TRIG [[nodiscard]] auto length() const noexcept -> T { return std::sqrt(dot(*this)); }
+    MICROLA_CONSTEXPR_TRIG [[nodiscard]] auto length() const noexcept -> T
+    {
+        const T squared = dot(*this);
+        if constexpr (std::is_floating_point_v<T>)
+        {
+            if (!std::isfinite(squared) || squared < std::numeric_limits<T>::min())
+            {
+                T result = T(0);
+                for (const T value : data)
+                {
+                    result = std::hypot(result, value);
+                }
+                return result;
+            }
+        }
+        return std::sqrt(squared);
+    }
 
     /// \brief Squared length of the vector.
     /// \return The squared Euclidean length.
@@ -1032,43 +1170,28 @@ public:
     /// \return The unit vector in the same direction.
     [[nodiscard]] auto normalized() const noexcept -> Vec
     {
-#ifdef CONFIG_MICROLA_NEON
-        if constexpr (std::is_same_v<T, float> && (N == 2 || N == 3 || N == 4))
+        if constexpr (std::is_floating_point_v<T>)
         {
-            const T len_sq = dot(*this);
-            if (len_sq != T(0))
+            T scale = T(0);
+            for (const T value : data)
             {
-                // Fast inverse square root with Newton-Raphson refinement
-                float32x2_t len_sq_v = vdup_n_f32(static_cast<float>(len_sq));
-                float32x2_t rsqrt = vrsqrte_f32(len_sq_v);  // Initial estimate
-                // Newton-Raphson: x' = x * (3 - x^2 * a) / 2
-                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
-                rsqrt = vmul_f32(rsqrt, vrsqrts_f32(vmul_f32(len_sq_v, rsqrt), rsqrt));
-                const T inv_len = static_cast<T>(vget_lane_f32(rsqrt, 0));
-                return *this * inv_len;
+                if (!std::isfinite(value))
+                {
+                    return *this;
+                }
+                scale = std::max(scale, std::abs(value));
             }
-            return *this;
-        }
-#endif
-#ifdef CONFIG_MICROLA_CMSIS
-        if constexpr (std::is_same_v<T, float>)
-        {
-            const T len_sq = dot(*this);
-            if (len_sq != T(0))
+            if (scale == T(0))
             {
-                float len;
-                float len_sq_f = static_cast<float>(len_sq);
-                arm_sqrt_f32(len_sq_f, &len);
-
-                const float inv_len = 1.0f / len;
-                Vec result;
-                arm_scale_f32(data, inv_len, result.data, N);
-                return result;
+                return *this;
             }
-            return *this;
+            Vec scaled;
+            for (std::size_t index = 0; index < N; ++index)
+            {
+                scaled[index] = data[index] / scale;
+            }
+            return scaled * (T(1) / std::sqrt(scaled.dot(scaled)));
         }
-#endif
-        // Fallback: compute length from cached length_squared
         const T len_sq = dot(*this);
         if (len_sq != T(0)) [[likely]]
         {
@@ -1105,12 +1228,16 @@ public:
 
     /// \brief Get x component (index 0).
     /// \return Reference to x component.
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 1)
     auto x() noexcept -> T&
     {
         return data[X];
     }
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
+    /// @brief Read the x component at index zero.
+    /// @return Const reference to the x component.
     template<std::size_t NN = N>
         requires(NN >= 1)
     [[nodiscard]] auto x() const noexcept -> const T&
@@ -1120,12 +1247,16 @@ public:
 
     /// \brief Get y component (index 1).
     /// \return Reference to y component.
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 2)
     auto y() noexcept -> T&
     {
         return data[Y];
     }
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
+    /// @brief Read the y component at index one.
+    /// @return Const reference to the y component.
     template<std::size_t NN = N>
         requires(NN >= 2)
     [[nodiscard]] auto y() const noexcept -> const T&
@@ -1135,12 +1266,16 @@ public:
 
     /// \brief Get z component (index 2).
     /// \return Reference to z component.
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     auto z() noexcept -> T&
     {
         return data[Z];
     }
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
+    /// @brief Read the z component at index two.
+    /// @return Const reference to the z component.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto z() const noexcept -> const T&
@@ -1150,12 +1285,16 @@ public:
 
     /// \brief Get w component (index 3).
     /// \return Reference to w component.
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 4)
     auto w() noexcept -> T&
     {
         return data[W];
     }
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
+    /// @brief Read the w component at index three.
+    /// @return Const reference to the w component.
     template<std::size_t NN = N>
         requires(NN >= 4)
     [[nodiscard]] auto w() const noexcept -> const T&
@@ -1167,12 +1306,14 @@ public:
     /// \param other The vector to compare.
     /// \param epsilon The tolerance (defaults to machine epsilon for type T).
     /// \return True if approximately equal.
+    /// @retval true Every component difference is within the supplied absolute tolerance.
+    /// @retval false At least one comparison fails, including NaN differences.
     [[nodiscard]] auto approx_equal(const Vec& other,
                                     T epsilon = std::numeric_limits<T>::epsilon()) const noexcept -> bool
     {
         for (std::size_t i = 0; i < N; ++i)
         {
-            if (std::abs(data[i] - other.data[i]) > epsilon)
+            if (!(std::abs(data[i] - other.data[i]) <= epsilon))
             {
                 return false;
             }
@@ -1183,13 +1324,15 @@ public:
     /// \brief Check whether every component is approximately zero.
     /// \param epsilon Tolerance for floating-point comparisons.
     /// \return True if each component is within epsilon of zero.
+    /// @retval true Every component is within epsilon of zero, or exactly zero for integral T.
+    /// @retval false At least one zero-component comparison fails.
     [[nodiscard]] auto is_zero(T epsilon = std::numeric_limits<T>::epsilon() * static_cast<T>(8)) const noexcept -> bool
     {
         if constexpr (std::is_floating_point_v<T>)
         {
             for (std::size_t i = 0; i < N; ++i)
             {
-                if (std::abs(data[i]) > epsilon)
+                if (!(std::abs(data[i]) <= epsilon))
                 {
                     return false;
                 }
@@ -1210,13 +1353,15 @@ public:
     /// \brief Check whether every component is approximately one.
     /// \param epsilon Tolerance for floating-point comparisons.
     /// \return True if each component is within epsilon of one.
+    /// @retval true Every component is within epsilon of one, or exactly one for integral T.
+    /// @retval false At least one unit-component comparison fails.
     [[nodiscard]] auto is_one(T epsilon = std::numeric_limits<T>::epsilon() * static_cast<T>(8)) const noexcept -> bool
     {
         if constexpr (std::is_floating_point_v<T>)
         {
             for (std::size_t i = 0; i < N; ++i)
             {
-                if (std::abs(data[i] - T(1)) > epsilon)
+                if (!(std::abs(data[i] - T(1)) <= epsilon))
                 {
                     return false;
                 }
@@ -1453,6 +1598,7 @@ public:
     /// \param other The other vector.
     /// \param normal The normal vector defining the plane (should be normalized).
     /// \return The signed angle in radians [-π, π].
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN == 3)
     [[nodiscard]] auto signed_angle(const Vec& other, const Vec& normal) const noexcept -> T
@@ -1481,6 +1627,7 @@ public:
     /// \param axis The rotation axis (should be normalized).
     /// \param angle The rotation angle in radians.
     /// \return The rotated vector.
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN == 3)
     [[nodiscard]] auto rotate(const Vec& axis, T angle) const noexcept -> Vec
@@ -1507,6 +1654,8 @@ public:
     static constexpr auto one() noexcept -> Vec { return filled(static_cast<T>(1)); }
 
     /// \brief Create a vector filled with `value` (constexpr-capable where supported).
+    /// @param value Value copied to every component.
+    /// @return Vector containing N copies of value.
     static constexpr auto filled(T value) noexcept -> Vec
     {
         return filled_impl(detail::make_index_sequence<N>{}, value);
@@ -1523,6 +1672,7 @@ public:
 
     /// \brief Static factory: create unit vector along Y axis (0, 1, 0, ...)
     /// \return Unit Y vector
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 2)
     static auto unit_y() noexcept -> Vec
@@ -1534,6 +1684,7 @@ public:
 
     /// \brief Static factory: create unit vector along Z axis (0, 0, 1, ...)
     /// \return Unit Z vector
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     static auto unit_z() noexcept -> Vec
@@ -1545,6 +1696,7 @@ public:
 
     /// \brief Static factory: create unit vector along W axis (0, 0, 0, 1)
     /// \return Unit W vector
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 4)
     static auto unit_w() noexcept -> Vec
@@ -1598,6 +1750,7 @@ public:
 
     /// \brief Get 2D swizzle (only for N >= 2)
     /// \return Vec<T,2> with x,y components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 2)
     [[nodiscard]] auto xy() const noexcept -> Vec<T, 2>
@@ -1607,6 +1760,7 @@ public:
 
     /// \brief Get 2D swizzle yx (only for N >= 2)
     /// \return Vec<T,2> with y,x components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 2)
     [[nodiscard]] auto yx() const noexcept -> Vec<T, 2>
@@ -1616,6 +1770,7 @@ public:
 
     /// \brief Get 3D swizzle (only for N >= 3)
     /// \return Vec<T,3> with x,y,z components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto xyz() const noexcept -> Vec<T, 3>
@@ -1625,6 +1780,7 @@ public:
 
     /// \brief Get xz swizzle (only for N >= 3)
     /// \return Vec<T,2> with x,z components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     auto xz() const noexcept -> Vec<T, 2>
@@ -1634,6 +1790,7 @@ public:
 
     /// \brief Get yz swizzle (only for N >= 3)
     /// \return Vec<T,2> with y,z components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     auto yz() const noexcept -> Vec<T, 2>
@@ -1643,6 +1800,7 @@ public:
 
     /// \brief Get zx swizzle (only for N >= 3)
     /// \return Vec<T,2> with z,x components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto zx() const noexcept -> Vec<T, 2>
@@ -1652,6 +1810,7 @@ public:
 
     /// \brief Get zy swizzle (only for N >= 3)
     /// \return Vec<T,2> with z,y components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto zy() const noexcept -> Vec<T, 2>
@@ -1661,6 +1820,7 @@ public:
 
     /// \brief Get xzy swizzle (only for N >= 3)
     /// \return Vec<T,3> with x,z,y components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto xzy() const noexcept -> Vec<T, 3>
@@ -1670,6 +1830,7 @@ public:
 
     /// \brief Get yxz swizzle (only for N >= 3)
     /// \return Vec<T,3> with y,x,z components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto yxz() const noexcept -> Vec<T, 3>
@@ -1679,6 +1840,7 @@ public:
 
     /// \brief Get yzx swizzle (only for N >= 3)
     /// \return Vec<T,3> with y,z,x components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto yzx() const noexcept -> Vec<T, 3>
@@ -1688,6 +1850,7 @@ public:
 
     /// \brief Get zxy swizzle (only for N >= 3)
     /// \return Vec<T,3> with z,x,y components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto zxy() const noexcept -> Vec<T, 3>
@@ -1697,6 +1860,7 @@ public:
 
     /// \brief Get zyx swizzle (only for N >= 3)
     /// \return Vec<T,3> with z,y,x components
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 3)
     [[nodiscard]] auto zyx() const noexcept -> Vec<T, 3>
@@ -1719,6 +1883,7 @@ public:
 
     /// \brief Convert from homogeneous coordinates (divide by w, drop w component)
     /// \return Vec<T,N-1> with perspective division applied
+    /// @tparam NN Dimension used by the availability constraint; retain the default N.
     template<std::size_t NN = N>
         requires(NN >= 2)
     [[nodiscard]] auto from_homogeneous() const noexcept -> Vec<T, N - 1>

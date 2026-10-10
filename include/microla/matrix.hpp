@@ -12,7 +12,9 @@
 #include "constants.hpp"          // Ensure constants are included for mathematical operations
 #include "compiler_features.hpp"  // Ensure compiler-specific optimizations are included
 #include "vector.hpp"
+#include "high_precision.hpp"
 
+#include <array>
 #include <cstdint>
 #include <cmath>
 #include <initializer_list>
@@ -52,6 +54,9 @@ namespace microla
 {
 
 // Forward declarations
+/// @brief Fixed-size vector used by matrix/vector operations.
+/// @tparam T Vector storage element type.
+/// @tparam N Number of vector elements.
 template<typename T, std::size_t N>
 class Vec;
 
@@ -87,6 +92,10 @@ struct mat_traits  // NOLINT(readability-identifier-naming)
 // ============================================================================
 
 /// @brief Helper struct for creating identity matrices (forward declaration)
+/// @tparam T Matrix element type.
+/// @tparam R Number of rows, equal to C for identity construction.
+/// @tparam C Number of columns.
+/// @tparam Enable Reserved customization parameter, normally void.
 template<typename T, std::size_t R, std::size_t C, typename Enable>
 struct IdentityHelper;
 
@@ -120,9 +129,11 @@ public:
     alignas(MICROLA_DATA_ALIGNMENT) T data[R * C] = {};
 
     /// @brief Number of rows (compile-time)
+    /// @return Compile-time row count R.
     static constexpr auto rows() noexcept -> std::size_t { return R; }
 
     /// @brief Number of columns (compile-time)
+    /// @return Compile-time column count C.
     static constexpr auto cols() noexcept -> std::size_t { return C; }
 
     /// @brief Pointer to underlying storage.
@@ -130,6 +141,7 @@ public:
     [[nodiscard]] auto data_ptr() noexcept -> T* { return data; }
 
     /// @brief Pointer to underlying storage (const).
+    /// @return Const pointer to the first element in row-major order.
     [[nodiscard]] auto data_ptr() const noexcept -> const T* { return data; }
 
     /// @brief Default constructor - constexpr-trivial to allow compile-time use
@@ -138,15 +150,21 @@ public:
     constexpr Mat() noexcept = default;
 
     /// @brief Copy constructor (default for fixed-size arrays).
+    /// @param other Matrix whose elements are copied.
     constexpr Mat(const Mat& other) noexcept = default;
 
     /// @brief Move constructor (default for fixed-size arrays).
+    /// @param other Matrix whose fixed-size element storage is moved.
     constexpr Mat(Mat&& other) noexcept = default;
 
     /// @brief Copy assignment operator.
+    /// @param other Matrix whose elements replace this matrix.
+    /// @return Reference to this matrix.
     constexpr auto operator=(const Mat& other) noexcept -> Mat& = default;
 
     /// @brief Move assignment operator (default for fixed-size arrays).
+    /// @param other Matrix whose fixed-size element storage replaces this matrix.
+    /// @return Reference to this matrix.
     constexpr auto operator=(Mat&& other) noexcept -> Mat& = default;
 
     /// @brief Destructor (defaulted to satisfy rule-of-five checkers).
@@ -154,6 +172,8 @@ public:
 
     /// @brief Variadic constexpr constructor to allow direct compile-time initialization
     ///        with a list of R*C values (enables Mat<T,R,C>{v0, v1, ...} in constexpr).
+    /// @tparam U Types of the R * C input values, convertible to T.
+    /// @param vals Matrix elements in row-major order.
     template<typename... U>
         requires(sizeof...(U) == (R * C))
     constexpr Mat(U... vals) noexcept : data{static_cast<T>(vals)...}
@@ -220,8 +240,11 @@ public:
         Mat result;
         if constexpr (std::is_same_v<T, float>)
         {
-            microla::simd::fill_float(result.data, R * C, static_cast<float>(0));
-            return result;
+            if (!std::is_constant_evaluated())
+            {
+                microla::simd::fill_float(result.data, R * C, static_cast<float>(0));
+                return result;
+            }
         }
         for (std::size_t i = 0; i < R * C; ++i)
         {
@@ -239,8 +262,11 @@ public:
         Mat result;
         if constexpr (std::is_same_v<T, float>)
         {
-            microla::simd::fill_float(result.data, R * C, static_cast<float>(1));
-            return result;
+            if (!std::is_constant_evaluated())
+            {
+                microla::simd::fill_float(result.data, R * C, static_cast<float>(1));
+                return result;
+            }
         }
         for (std::size_t i = 0; i < R * C; ++i)
         {
@@ -250,6 +276,7 @@ public:
     }
 
     /// @brief Creates a diagonal matrix from a vector
+    /// @tparam N Vector dimension, required to equal R and C.
     /// @param diag The diagonal elements as a Vec<T, N> where N = min(R, C)
     /// @return Matrix with diagonal elements from the vector, zeros elsewhere
     /// @details Only available for square matrices (R == C).
@@ -484,6 +511,50 @@ public:
                    data[1] * (data[3] * data[8] - data[5] * data[6]) +
                    data[2] * (data[3] * data[7] - data[4] * data[6]);
         }
+        else if constexpr (std::is_integral_v<T>)
+        {
+            using Work = std::conditional_t<(sizeof(T) < sizeof(std::int64_t)), std::int64_t, T>;
+            std::array<Work, R * C> work{};
+            for (std::size_t index = 0; index < R * C; ++index)
+            {
+                work[index] = static_cast<Work>(data[index]);
+            }
+            Work previous_pivot = Work(1);
+            bool negative = false;
+            for (std::size_t column = 0; column + 1 < C; ++column)
+            {
+                std::size_t pivot_row = column;
+                while (pivot_row < R && work[pivot_row * C + column] == Work(0))
+                {
+                    ++pivot_row;
+                }
+                if (pivot_row == R)
+                {
+                    return T(0);
+                }
+                if (pivot_row != column)
+                {
+                    for (std::size_t index = 0; index < C; ++index)
+                    {
+                        std::swap(work[column * C + index], work[pivot_row * C + index]);
+                    }
+                    negative = !negative;
+                }
+                const Work pivot = work[column * C + column];
+                for (std::size_t row = column + 1; row < R; ++row)
+                {
+                    for (std::size_t index = column + 1; index < C; ++index)
+                    {
+                        work[row * C + index] =
+                            (work[row * C + index] * pivot - work[row * C + column] * work[column * C + index]) /
+                            previous_pivot;
+                    }
+                    work[row * C + column] = Work(0);
+                }
+                previous_pivot = pivot;
+            }
+            return static_cast<T>(negative ? -work.back() : work.back());
+        }
         else
         {
             // Generic determinant using LU decomposition
@@ -540,9 +611,11 @@ public:
         }
     }
 
-    /// @brief Computes the inverse of the matrix
-    /// @return The inverse matrix
-    /// @throws std::runtime_error if the matrix is singular (determinant is zero)
+    /// @brief Compute a non-throwing inverse into caller-owned storage.
+    /// @param out Destination for the inverse; may alias this matrix and may be modified on failure.
+    /// @return Whether inversion succeeded.
+    /// @retval true An inverse was written to out.
+    /// @retval false The input or computed inverse is invalid or a pivot is singular.
     /// @details Uses analytical inverse formulas for 2x2 and 3x3 matrices for performance.
     ///          For matrices larger than 3x3, uses Gauss-Jordan elimination.
     ///          Only available for square matrices (R == C).
@@ -553,6 +626,49 @@ public:
         // Warn if matrix size may cause stack overflow
         static_assert(R * C * sizeof(T) < 16384,
                       "Large matrix inverse may overflow embedded stack - consider dynamic allocation");
+
+        if (&out == this)
+        {
+            const Mat source = *this;
+            return source.inverse(out);
+        }
+        if constexpr (std::is_floating_point_v<T>)
+        {
+            T scale = T(0);
+            for (const auto value : data)
+            {
+                if (!std::isfinite(value))
+                {
+                    return false;
+                }
+                scale = std::max(scale, std::abs(value));
+            }
+            if (scale == T(0))
+            {
+                return false;
+            }
+            if (scale != T(1))
+            {
+                Mat normalized;
+                for (std::size_t index = 0; index < R * C; ++index)
+                {
+                    normalized.data[index] = data[index] / scale;
+                }
+                if (!normalized.inverse(out))
+                {
+                    return false;
+                }
+                for (auto& value : out.data)
+                {
+                    value /= scale;
+                    if (!std::isfinite(value))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
 
         // Fast paths for small matrices
         if constexpr (R == 2)
@@ -566,7 +682,7 @@ public:
             out(0, 1) = -data[1] / det;
             out(1, 0) = -data[2] / det;
             out(1, 1) = data[0] / det;
-            return true;
+            return out.is_finite();
         }
         else if constexpr (R == 3)
         {
@@ -587,7 +703,7 @@ public:
             out(2, 0) = (data[3] * data[7] - data[4] * data[6]) / det;
             out(2, 1) = (data[1] * data[6] - data[0] * data[7]) / det;
             out(2, 2) = (data[0] * data[4] - data[1] * data[3]) / det;
-            return true;
+            return out.is_finite();
         }
         else if constexpr (R == 4)
         {
@@ -641,7 +757,7 @@ public:
             out(3, 2) = (-data[12] * s3 + data[13] * s1 - data[14] * s0) * inv_det;
             out(3, 3) = (data[8] * s3 - data[9] * s1 + data[10] * s0) * inv_det;
 
-            return true;
+            return out.is_finite();
         }
         else
         {
@@ -716,8 +832,30 @@ public:
                     out(i, j) = augmented[i][j + C];
                 }
             }
-            return true;
+            return out.is_finite();
         }
+    }
+
+    /// @brief Computes a scale-aware checked inverse into caller-owned storage.
+    /// @param out Destination, assigned only on success; may alias this matrix.
+    /// @param threshold Maximum accepted infinity-norm condition estimate; must be at least one.
+    /// @return Whether inversion and condition checking succeeded.
+    /// @retval true An acceptable inverse was committed to out.
+    /// @retval false Inversion failed or the condition/threshold check failed; out is unchanged.
+    [[nodiscard]] auto inverse_checked(Mat& out, T threshold = T(1e6)) const noexcept -> bool
+    {
+        Mat candidate;
+        if (!inverse(candidate))
+        {
+            return false;
+        }
+        const T condition = scaled_condition_number(candidate);
+        if (!std::isfinite(condition) || !(threshold >= T(1)) || condition > threshold)
+        {
+            return false;
+        }
+        out = candidate;
+        return true;
     }
 
     /// @brief Computes the inverse of the matrix
@@ -760,13 +898,6 @@ public:
     {
         static_assert(R == C, "Inverse is only defined for square matrices.");
 
-        // Quick determinant check first
-        T det = determinant();
-        if (std::abs(det) < std::numeric_limits<T>::epsilon())
-        {
-            return InverseError::Singular;
-        }
-
         // Compute inverse
         auto inv_mat = try_inverse();
         if (!inv_mat.has_value())
@@ -774,12 +905,9 @@ public:
             return InverseError::Singular;
         }
 
-        // Check condition number: κ(A) = ||A|| * ||A^-1||
-        T norm_a = norm_inf();
-        T norm_a_inv = inv_mat->norm_inf();
-        T cond = norm_a * norm_a_inv;
+        const T cond = scaled_condition_number(*inv_mat);
 
-        if (cond > threshold)
+        if (!std::isfinite(cond) || !(threshold >= T(1)) || cond > threshold)
         {
             return InverseError::IllConditioned;
         }
@@ -851,15 +979,13 @@ public:
 #endif  // !MICROLA_EMBEDDED
 
     /// @brief Equality comparison operator
+    /// @retval true All entries pass absolute machine-epsilon comparison, or exact comparison for integral T.
+    /// @retval false At least one entry comparison fails.
     /// @param other The matrix to compare with
     /// @return true if all elements are equal, false otherwise
     /// @details Performs element-wise comparison of all matrix elements
     [[nodiscard]] constexpr auto operator==(const Mat& other) const noexcept -> bool
     {
-        if (this == &other)
-        {
-            return true;
-        }
         if constexpr (std::is_floating_point_v<T>)
         {
             // Use a tolerant element-wise comparison for floating-point matrices
@@ -875,7 +1001,7 @@ public:
                     continue;
                 }
                 T max_abs = std::max(std::abs(a), std::abs(b));
-                if (diff > rel_tol * max_abs)
+                if (!std::isfinite(a) || !std::isfinite(b) || !(diff <= rel_tol * max_abs))
                 {
                     return false;
                 }
@@ -896,12 +1022,18 @@ public:
     }
 
     /// @brief Matrix inequality operator
+    /// @retval true The matrix equality comparison fails.
+    /// @retval false The matrix equality comparison succeeds.
     /// @param other The matrix to compare
     /// @return True if matrices are not equal, false otherwise
     /// @details Performs element-wise inequality comparison
     [[nodiscard]] constexpr auto operator!=(const Mat& other) const noexcept -> bool { return !(*this == other); }
 
     /// @brief Check whether a square matrix is approximately identity.
+    /// @tparam RR Row count used by the square-matrix constraint; defaults to R.
+    /// @tparam CC Column count used by the square-matrix constraint; defaults to C.
+    /// @retval true All entries match identity within epsilon, or exactly for integral T.
+    /// @retval false At least one identity-entry comparison fails.
     /// @param epsilon Tolerance for floating-point comparisons.
     /// @return True if diagonal entries are approximately one and off-diagonal entries are approximately zero.
     template<std::size_t RR = R, std::size_t CC = C>
@@ -916,7 +1048,7 @@ public:
                 const T expected = row == col ? T(1) : T(0);
                 if constexpr (std::is_floating_point_v<T>)
                 {
-                    if (std::abs((*this)(row, col) - expected) > epsilon)
+                    if (!(std::abs((*this)(row, col) - expected) <= epsilon))
                     {
                         return false;
                     }
@@ -925,6 +1057,22 @@ public:
                 {
                     return false;
                 }
+            }
+        }
+        return true;
+    }
+
+    /// @brief Check every stored entry for finiteness.
+    /// @return Whether every entry is neither infinity nor NaN.
+    /// @retval true All entries are finite.
+    /// @retval false At least one entry is infinite or NaN.
+    [[nodiscard]] auto is_finite() const noexcept -> bool
+    {
+        for (const auto value : data)
+        {
+            if (!std::isfinite(value))
+            {
+                return false;
             }
         }
         return true;
@@ -1039,23 +1187,18 @@ public:
             /* cppcheck-suppress invalidPointerCast */
             float* r = result.data;
 
-            // Process each row
             for (std::size_t i = 0; i < 4; ++i)
             {
-                // Load row from A
-                float32x4_t a_row = vld1q_f32(&a[i * 4]);
-
-                // Compute dot products with columns of B
-                for (std::size_t j = 0; j < 4; ++j)
+                float32x4_t row = vmulq_n_f32(vld1q_f32(b), a[i * 4]);
+                for (std::size_t inner = 1; inner < 4; ++inner)
                 {
-                    float32x4_t b_col = {b[j], b[4 + j], b[8 + j], b[12 + j]};
-                    float32x4_t prod = vmulq_f32(a_row, b_col);
-
-                    // Horizontal sum
-                    float32x2_t sum = vadd_f32(vget_low_f32(prod), vget_high_f32(prod));
-                    sum = vpadd_f32(sum, sum);
-                    r[i * 4 + j] = vget_lane_f32(sum, 0);
+#if defined(__aarch64__) && defined(__ARM_FEATURE_FMA)
+                    row = vfmaq_n_f32(row, vld1q_f32(b + inner * 4), a[i * 4 + inner]);
+#else
+                    row = vmlaq_n_f32(row, vld1q_f32(b + inner * 4), a[i * 4 + inner]);
+#endif
                 }
+                vst1q_f32(r + i * 4, row);
             }
             return result;
         }
@@ -1077,48 +1220,17 @@ public:
         }
 #endif
 
-        // Generic implementation
-        // Attempt a simple portable SIMD-friendly fast path for float when
-        // operating on contiguous rows/columns using 4-wide kernels. This
-        // processes the k dimension in blocks of 4 and accumulates using
-        // the small 4-wide FMA helper. Falls back to scalar tail handling.
         if constexpr (std::is_same_v<T, float>)
         {
-            /* cppcheck-suppress invalidPointerCast */
-            const auto* a = data;
-            /* cppcheck-suppress invalidPointerCast */
-            const auto* b = other.data;
-            /* cppcheck-suppress invalidPointerCast */
-            auto* r = result.data;
-
-            for (std::size_t i = 0; i < R; ++i)
+            for (std::size_t row = 0; row < R; ++row)
             {
-                const float* arow = a + i * C;
-                for (std::size_t j = 0; j < OtherC; ++j)
+                for (std::size_t inner = 0; inner < C; ++inner)
                 {
-                    float acc4[4] = {0.0F, 0.0F, 0.0F, 0.0F};
-                    std::size_t k = 0;
-
-                    for (; k + 4 <= C; k += 4)
+                    const float left = data[row * C + inner];
+                    for (std::size_t col = 0; col < OtherC; ++col)
                     {
-                        float a4[4];
-                        float b4[4];
-                        microla::simd::load_padded4(arow + k, 4, a4);
-                        // Gather 4 elements from column j of B starting at row k
-                        microla::simd::gather_strided_float(b, k * OtherC + j, OtherC, b4, 4);
-                        microla::simd::fma4_accumulate(acc4, a4, b4);
+                        result.data[row * OtherC + col] += left * other.data[inner * OtherC + col];
                     }
-
-                    // Horizontal sum of acc4
-                    float sum = acc4[0] + acc4[1] + acc4[2] + acc4[3];
-
-                    // Tail
-                    for (; k < C; ++k)
-                    {
-                        sum += arow[k] * b[k * OtherC + j];
-                    }
-
-                    r[i * OtherC + j] = sum;
                 }
             }
         }
@@ -1653,7 +1765,7 @@ public:
     ///          In C++26+, this function is constexpr when the matrix is known at compile-time.
     [[nodiscard]] MICROLA_CONSTEXPR_TRIG auto frobenius_norm() const noexcept -> T
     {
-        if constexpr (std::is_floating_point_v<T>)
+        if constexpr (std::is_same_v<T, float>)
         {
             const auto* src = data;
             auto n = R * C;
@@ -1807,6 +1919,14 @@ public:
             {
                 std::swap_ranges(u.data + i * C, u.data + (i + 1) * C, u.data + pivot * C);
                 std::swap_ranges(p.data + i * C, p.data + (i + 1) * C, p.data + pivot * C);
+                for (std::size_t column = 0; column < i; ++column)
+                {
+                    std::swap(l(i, column), l(pivot, column));
+                }
+            }
+            if (u(i, i) == T(0))
+            {
+                continue;
             }
 
             // Gaussian elimination
@@ -1834,6 +1954,30 @@ public:
     {
         static_assert(R == C, "Cholesky decomposition is only defined for square matrices.");
 
+        if (!is_finite())
+        {
+            return std::nullopt;
+        }
+        T scale = T(0);
+        for (const T value : data)
+        {
+            scale = std::max(scale, std::abs(value));
+        }
+        if (scale == T(0))
+        {
+            return std::nullopt;
+        }
+        for (std::size_t row = 0; row < R; ++row)
+        {
+            for (std::size_t col = row + 1; col < C; ++col)
+            {
+                if (std::abs((*this)(row, col) / scale - (*this)(col, row) / scale) >
+                    T(100) * std::numeric_limits<T>::epsilon())
+                {
+                    return std::nullopt;
+                }
+            }
+        }
         Mat l;  // Initialize to zero
 
         for (std::size_t i = 0; i < R; ++i)
@@ -1853,7 +1997,7 @@ public:
                     T diag_val = (*this)(j, j) - sum;
 
                     // Check for positive-definiteness
-                    if (diag_val <= static_cast<T>(0))
+                    if (!(diag_val > T(0)) || !std::isfinite(diag_val))
                     {
                         return std::nullopt;
                     }
@@ -1873,14 +2017,10 @@ public:
             }
         }
 
-        return l;
+        return l.is_finite() ? std::optional<Mat>(l) : std::nullopt;
     }
 #endif  // !MICROLA_EMBEDDED
 
-    /// @brief Computes eigenvalues using the QR algorithm
-    /// @param maxIterations Maximum number of QR iterations (default: 100)
-    /// @param tolerance Convergence tolerance (default: 1e-6)
-    /// @return A vector containing the eigenvalues
     /// @details Uses iterative QR decomposition to compute eigenvalues.
     ///          Only available for square matrices (R == C).
     /// @note Convergence is not guaranteed for all matrices
@@ -1890,13 +2030,22 @@ public:
     /// @param maxIterations Maximum number of QR iterations (default: 100)
     /// @param tolerance Convergence tolerance (default: 1e-6)
     /// @return true on success, false on failure (e.g., out_size < R or no convergence)
+    /// @retval true QR converged and R diagonal estimates were written to out_buffer.
+    /// @retval false Invalid buffer, input, tolerance, or no convergence; out_buffer is unchanged.
     [[nodiscard]] auto eigenvalues_qr(T* out_buffer, std::size_t out_size, std::size_t maxIterations = 100,
                                       T tolerance = 1e-6) const noexcept -> bool
     {
         static_assert(R == C, "Eigenvalue computation is only defined for square matrices.");
-        if (out_buffer == nullptr || out_size < R)
+        if (out_buffer == nullptr || out_size < R || !std::isfinite(tolerance) || tolerance < T(0))
         {
             return false;
+        }
+        for (const auto value : data)
+        {
+            if (!std::isfinite(value))
+            {
+                return false;
+            }
         }
 
         Mat a = *this;
@@ -1914,12 +2063,14 @@ public:
 
             // Check for convergence
             converged = true;
-            for (std::size_t i = 0; i < R - 1; ++i)
+            for (std::size_t row = 0; row < R; ++row)
             {
-                if (std::abs(a(i + 1, i)) > tolerance)
+                for (std::size_t column = 0; column < row; ++column)
                 {
-                    converged = false;
-                    break;
+                    if (!(std::abs(a(row, column)) <= tolerance))
+                    {
+                        converged = false;
+                    }
                 }
             }
             if (converged)
@@ -1943,6 +2094,9 @@ public:
 
     MICROLA_DYNAMIC_ALLOC_ONLY(
         /// @brief Convenience wrapper that returns eigenvalues or an error
+        /// @param maxIterations Maximum number of QR iterations.
+        /// @param tolerance Absolute subdiagonal convergence tolerance.
+        /// @return R eigenvalue estimates, or EigenError::NotConverged on failure.
         [[nodiscard]] auto eigenvalues_qr(std::size_t maxIterations = 100, T tolerance = 1e-6)
             const->std::variant<std::vector<T>, EigenError> {
                 std::vector<T> result(R);
@@ -1981,266 +2135,187 @@ public:
     ///          - S: Singular values as diagonal matrix (R×C)
     ///          - V: Right singular vectors (C×C orthogonal matrix)
     ///          Uses the Jacobi algorithm which is stable for embedded systems.
-    /// @note For non-square matrices, this uses the covariance method: A^T*A for tall matrices
-    ///       or A*A^T for wide matrices. For best accuracy, prefer square or nearly-square matrices.
+    /// @param converged Optional output reporting whether the Jacobi sweeps converged.
+    /// @note Uses one-sided Jacobi rotations without forming normal equations.
+    ///       Results are approximate if the iteration limit is reached; inspect converged.
 #if !defined(MICROLA_EMBEDDED)
-    [[nodiscard]] auto svd(std::size_t maxIterations = 100,
-                           T tolerance = 1e-9) const -> std::tuple<Mat<T, R, R>, Mat<T, R, C>, Mat<T, C, C>>
+    [[nodiscard]] auto svd(std::size_t maxIterations = 100, T tolerance = 1e-9,
+                           bool* converged = nullptr) const -> std::tuple<Mat<T, R, R>, Mat<T, R, C>, Mat<T, C, C>>
     {
-        // Initialize result matrices
         Mat<T, R, R> u = Mat<T, R, R>::identity();
         Mat<T, C, C> v = Mat<T, C, C>::identity();
-        Mat<T, R, C> s = *this;
-
-        if constexpr (R >= C)
+        Mat<T, R, C> s;
+        if (converged != nullptr)
         {
-            // Tall or square matrix: compute V from A^T * A
-            Mat<T, C, C> ata;
-            for (std::size_t i = 0; i < C; ++i)
-            {
-                for (std::size_t j = 0; j < C; ++j)
-                {
-                    T sum = static_cast<T>(0);
-                    for (std::size_t k = 0; k < R; ++k)
-                    {
-                        sum += (*this)(k, i) * (*this)(k, j);
-                    }
-                    ata(i, j) = sum;
-                }
-            }
-
-            // Jacobi iterations for symmetric ATA
-            for (std::size_t iter = 0; iter < maxIterations; ++iter)
-            {
-                T max_off_diag = static_cast<T>(0);
-                std::size_t p = 0;
-                std::size_t q = 1;
-
-                // Find largest off-diagonal element
-                for (std::size_t i = 0; i < C; ++i)
-                {
-                    for (std::size_t j = i + 1; j < C; ++j)
-                    {
-                        if (std::abs(ata(i, j)) > max_off_diag)
-                        {
-                            max_off_diag = std::abs(ata(i, j));
-                            p = i;
-                            q = j;
-                        }
-                    }
-                }
-
-                // Check convergence
-                if (max_off_diag < tolerance)
-                {
-                    break;
-                }
-
-                // Compute Jacobi rotation
-                T theta = (ata(q, q) - ata(p, p)) / (static_cast<T>(2) * ata(p, q));
-                T t = static_cast<T>(1) / (std::abs(theta) + std::sqrt(static_cast<T>(1) + theta * theta));
-                if (theta < static_cast<T>(0))
-                {
-                    t = -t;
-                }
-
-                T c = static_cast<T>(1) / std::sqrt(static_cast<T>(1) + t * t);
-                T s = t * c;
-
-                // Apply rotation to ATA
-                for (std::size_t i = 0; i < C; ++i)
-                {
-                    if (i != p && i != q)
-                    {
-                        T aip = ata(i, p);
-                        T aiq = ata(i, q);
-                        ata(i, p) = c * aip - s * aiq;
-                        ata(p, i) = ata(i, p);
-                        ata(i, q) = s * aip + c * aiq;
-                        ata(q, i) = ata(i, q);
-                    }
-                }
-
-                T app = ata(p, p);
-                T aqq = ata(q, q);
-                T apq = ata(p, q);
-                ata(p, p) = c * c * app - static_cast<T>(2) * s * c * apq + s * s * aqq;
-                ata(q, q) = s * s * app + static_cast<T>(2) * s * c * apq + c * c * aqq;
-                ata(p, q) = static_cast<T>(0);
-                ata(q, p) = static_cast<T>(0);
-
-                // Update V
-                for (std::size_t i = 0; i < C; ++i)
-                {
-                    T vip = v(i, p);
-                    T viq = v(i, q);
-                    v(i, p) = c * vip - s * viq;
-                    v(i, q) = s * vip + c * viq;
-                }
-            }
-
-            // Extract singular values (sqrt of eigenvalues of A^T*A)
-            for (std::size_t i = 0; i < C; ++i)
-            {
-                T sigma = std::sqrt(std::abs(ata(i, i)));
-
-                // Compute U column: U[:, i] = A * V[:, i] / sigma
-                if (sigma > tolerance)
-                {
-                    for (std::size_t j = 0; j < R; ++j)
-                    {
-                        T sum = static_cast<T>(0);
-                        for (std::size_t k = 0; k < C; ++k)
-                        {
-                            sum += (*this)(j, k) * v(k, i);
-                        }
-                        u(j, i) = sum / sigma;
-                    }
-                }
-
-                // Store singular value in S
-                s(i, i) = sigma;
-                for (std::size_t j = 0; j < C; ++j)
-                {
-                    if (i != j)
-                    {
-                        s(i, j) = static_cast<T>(0);
-                    }
-                }
-            }
-
-            // Fill remaining rows of S with zeros
-            for (std::size_t i = C; i < R; ++i)
-            {
-                for (std::size_t j = 0; j < C; ++j)
-                {
-                    s(i, j) = static_cast<T>(0);
-                }
-            }
+            *converged = false;
+        }
+        if constexpr (R < C)
+        {
+            auto [transposed_u, transposed_s, transposed_v] = transpose().svd(maxIterations, tolerance, converged);
+            return std::make_tuple(transposed_v, transposed_s.transpose(), transposed_u);
         }
         else
         {
-            // Wide matrix: compute U from A * A^T
-            Mat<T, R, R> aat;
-            for (std::size_t i = 0; i < R; ++i)
+            T scale = T(0);
+            for (const auto value : data)
             {
-                for (std::size_t j = 0; j < R; ++j)
+                if (!std::isfinite(value))
                 {
-                    T sum = static_cast<T>(0);
-                    for (std::size_t k = 0; k < C; ++k)
-                    {
-                        sum += (*this)(i, k) * (*this)(j, k);
-                    }
-                    aat(i, j) = sum;
+                    return std::make_tuple(u, s, v);
                 }
+                scale = std::max(scale, std::abs(value));
             }
-
-            // Jacobi iterations for symmetric AAT
-            for (std::size_t iter = 0; iter < maxIterations; ++iter)
+            if (!std::isfinite(tolerance) || tolerance < T(0))
             {
-                T max_off_diag = static_cast<T>(0);
-                std::size_t p = 0;
-                std::size_t q = 1;
-
-                for (std::size_t i = 0; i < R; ++i)
+                return std::make_tuple(u, s, v);
+            }
+            if (scale == T(0))
+            {
+                if (converged != nullptr)
                 {
-                    for (std::size_t j = i + 1; j < R; ++j)
+                    *converged = true;
+                }
+                return std::make_tuple(u, s, v);
+            }
+            Mat work;
+            for (std::size_t index = 0; index < R * C; ++index)
+            {
+                work.data[index] = data[index] / scale;
+            }
+            const T relative_tolerance = std::max(tolerance, std::numeric_limits<T>::epsilon() * T(4));
+            bool finished = C == 1;
+            for (std::size_t sweep = 0; sweep < maxIterations; ++sweep)
+            {
+                finished = true;
+                for (std::size_t first = 0; first < C; ++first)
+                {
+                    for (std::size_t second = first + 1; second < C; ++second)
                     {
-                        if (std::abs(aat(i, j)) > max_off_diag)
+                        detail::hi_t<T> alpha = 0;
+                        detail::hi_t<T> beta = 0;
+                        detail::hi_t<T> gamma = 0;
+                        for (std::size_t row = 0; row < R; ++row)
                         {
-                            max_off_diag = std::abs(aat(i, j));
-                            p = i;
-                            q = j;
+                            const detail::hi_t<T> left = work(row, first);
+                            const detail::hi_t<T> right = work(row, second);
+                            alpha += left * left;
+                            beta += right * right;
+                            gamma += left * right;
+                        }
+                        if (std::abs(gamma) <= relative_tolerance * std::sqrt(alpha * beta))
+                        {
+                            continue;
+                        }
+                        finished = false;
+                        const detail::hi_t<T> theta = (beta - alpha) / (static_cast<detail::hi_t<T>>(2) * gamma);
+                        const T tangent =
+                            static_cast<T>(std::copysign(static_cast<detail::hi_t<T>>(1), theta) /
+                                           (std::abs(theta) + std::hypot(static_cast<detail::hi_t<T>>(1), theta)));
+                        const T cosine = T(1) / std::hypot(T(1), tangent);
+                        const T sine = tangent * cosine;
+                        for (std::size_t row = 0; row < R; ++row)
+                        {
+                            const T left = work(row, first);
+                            const T right = work(row, second);
+                            work(row, first) = cosine * left - sine * right;
+                            work(row, second) = sine * left + cosine * right;
+                        }
+                        for (std::size_t row = 0; row < C; ++row)
+                        {
+                            const T left = v(row, first);
+                            const T right = v(row, second);
+                            v(row, first) = cosine * left - sine * right;
+                            v(row, second) = sine * left + cosine * right;
                         }
                     }
                 }
-
-                if (max_off_diag < tolerance)
+                if (finished)
                 {
                     break;
                 }
-
-                T theta = (aat(q, q) - aat(p, p)) / (static_cast<T>(2) * aat(p, q));
-                T t = static_cast<T>(1) / (std::abs(theta) + std::sqrt(static_cast<T>(1) + theta * theta));
-                if (theta < static_cast<T>(0))
+            }
+            std::array<T, C> magnitudes{};
+            for (std::size_t column = 0; column < C; ++column)
+            {
+                for (std::size_t row = 0; row < R; ++row)
                 {
-                    t = -t;
-                }
-
-                T c = static_cast<T>(1) / std::sqrt(static_cast<T>(1) + t * t);
-                T s_rot = t * c;
-
-                for (std::size_t i = 0; i < R; ++i)
-                {
-                    if (i != p && i != q)
-                    {
-                        T aip = aat(i, p);
-                        T aiq = aat(i, q);
-                        aat(i, p) = c * aip - s_rot * aiq;
-                        aat(p, i) = aat(i, p);
-                        aat(i, q) = s_rot * aip + c * aiq;
-                        aat(q, i) = aat(i, q);
-                    }
-                }
-
-                T app = aat(p, p);
-                T aqq = aat(q, q);
-                T apq = aat(p, q);
-                aat(p, p) = c * c * app - static_cast<T>(2) * s_rot * c * apq + s_rot * s_rot * aqq;
-                aat(q, q) = s_rot * s_rot * app + static_cast<T>(2) * s_rot * c * apq + c * c * aqq;
-                aat(p, q) = static_cast<T>(0);
-                aat(q, p) = static_cast<T>(0);
-
-                // Update U
-                for (std::size_t i = 0; i < R; ++i)
-                {
-                    T uip = u(i, p);
-                    T uiq = u(i, q);
-                    u(i, p) = c * uip - s_rot * uiq;
-                    u(i, q) = s_rot * uip + c * uiq;
+                    magnitudes[column] = std::hypot(magnitudes[column], work(row, column));
                 }
             }
-
-            // Extract singular values (sqrt of eigenvalues of A*A^T)
-            for (std::size_t i = 0; i < R; ++i)
+            for (std::size_t column = 0; column < C; ++column)
             {
-                T sigma = std::sqrt(std::abs(aat(i, i)));
-
-                // Compute V column: V[:, i] = A^T * U[:, i] / sigma
-                if (sigma > tolerance)
+                std::size_t largest = column;
+                for (std::size_t candidate = column + 1; candidate < C; ++candidate)
                 {
-                    for (std::size_t j = 0; j < C; ++j)
+                    if (magnitudes[candidate] > magnitudes[largest])
                     {
-                        T sum = static_cast<T>(0);
-                        for (std::size_t k = 0; k < R; ++k)
+                        largest = candidate;
+                    }
+                }
+                std::swap(magnitudes[column], magnitudes[largest]);
+                for (std::size_t row = 0; row < R; ++row)
+                {
+                    std::swap(work(row, column), work(row, largest));
+                }
+                for (std::size_t row = 0; row < C; ++row)
+                {
+                    std::swap(v(row, column), v(row, largest));
+                }
+            }
+            const T rank_tolerance = std::numeric_limits<T>::epsilon() * T(R) * magnitudes[0];
+            u = Mat<T, R, R>::zero();
+            std::size_t rank = 0;
+            while (rank < C && magnitudes[rank] > rank_tolerance)
+            {
+                s(rank, rank) = magnitudes[rank] * scale;
+                finished = finished && std::isfinite(s(rank, rank));
+                for (std::size_t row = 0; row < R; ++row)
+                {
+                    u(row, rank) = work(row, rank) / magnitudes[rank];
+                }
+                ++rank;
+            }
+            for (std::size_t column = rank; column < R; ++column)
+            {
+                for (std::size_t axis = 0; axis < R; ++axis)
+                {
+                    std::array<T, R> candidate{};
+                    candidate[axis] = T(1);
+                    for (int pass = 0; pass < 2; ++pass)
+                    {
+                        for (std::size_t previous = 0; previous < column; ++previous)
                         {
-                            sum += (*this)(k, j) * u(k, i);
+                            T projection = T(0);
+                            for (std::size_t row = 0; row < R; ++row)
+                            {
+                                projection += candidate[row] * u(row, previous);
+                            }
+                            for (std::size_t row = 0; row < R; ++row)
+                            {
+                                candidate[row] -= projection * u(row, previous);
+                            }
                         }
-                        v(j, i) = sum / sigma;
                     }
-                }
-
-                // Store singular value in S
-                s(i, i) = sigma;
-                for (std::size_t j = 0; j < C; ++j)
-                {
-                    if (i != j)
+                    T length = T(0);
+                    for (auto value : candidate)
                     {
-                        s(i, j) = static_cast<T>(0);
+                        length = std::hypot(length, value);
+                    }
+                    if (length > std::sqrt(std::numeric_limits<T>::epsilon()))
+                    {
+                        for (std::size_t row = 0; row < R; ++row)
+                        {
+                            u(row, column) = candidate[row] / length;
+                        }
+                        break;
                     }
                 }
             }
-
-            // Fill remaining columns of S with zeros
-            for (std::size_t i = R; i < R; ++i)
+            if (converged != nullptr)
             {
-                for (std::size_t j = 0; j < C; ++j)
-                {
-                    s(i, j) = static_cast<T>(0);
-                }
+                *converged = finished;
             }
         }
-
         return std::make_tuple(u, s, v);
     }
 
@@ -2251,6 +2326,26 @@ public:
     [[nodiscard]] constexpr auto rank() const -> std::size_t
     {
         Mat temp = *this;
+        if constexpr (std::is_floating_point_v<T>)
+        {
+            T scale = T(0);
+            for (const T value : data)
+            {
+                if (!std::isfinite(value))
+                {
+                    return 0;
+                }
+                scale = std::max(scale, std::abs(value));
+            }
+            if (scale == T(0))
+            {
+                return 0;
+            }
+            for (T& value : temp.data)
+            {
+                value /= scale;
+            }
+        }
         std::size_t r = 0;
         const T tol = T(100) * std::numeric_limits<T>::epsilon();
 
@@ -2301,7 +2396,40 @@ public:
 #endif  // !MICROLA_EMBEDDED
 
 private:
+    /// @brief Estimate the infinity-norm condition number using scaled row sums.
+    /// @param inverse_matrix Computed inverse of this square matrix.
+    /// @return Product of source and inverse infinity norms, or infinity for an invalid source scale.
+    [[nodiscard]] auto scaled_condition_number(const Mat& inverse_matrix) const noexcept -> T
+    {
+        T scale = T(0);
+        for (const T value : data)
+        {
+            scale = std::max(scale, std::abs(value));
+        }
+        if (!(scale > T(0)) || !std::isfinite(scale))
+        {
+            return std::numeric_limits<T>::infinity();
+        }
+        T source_norm = T(0);
+        T inverse_norm = T(0);
+        for (std::size_t row = 0; row < R; ++row)
+        {
+            T source_sum = T(0);
+            T inverse_sum = T(0);
+            for (std::size_t col = 0; col < C; ++col)
+            {
+                source_sum += std::abs((*this)(row, col)) / scale;
+                inverse_sum += std::abs(inverse_matrix(row, col)) * scale;
+            }
+            source_norm = std::max(source_norm, source_sum);
+            inverse_norm = std::max(inverse_norm, inverse_sum);
+        }
+        return source_norm * inverse_norm;
+    }
+
     /// @brief Internal Householder QR step: fills q_out and r_out without returning a tuple.
+    /// @param q_out Destination for the orthogonal factor; must not alias r_out or this matrix.
+    /// @param r_out Destination for the upper-triangular factor; must not alias q_out or this matrix.
     /// @details Used by eigenvalues_qr (embedded-safe) and by the public qr() wrapper.
     ///          Only available for square matrices (R == C).
     void qr_step(Mat& q_out, Mat& r_out) const noexcept
@@ -2309,29 +2437,41 @@ private:
         static_assert(R == C, "QR decomposition is only defined for square matrices.");
         q_out = identity();
         r_out = *this;
+        T scale = T(0);
+        for (const T value : data)
+        {
+            scale = std::max(scale, std::abs(value));
+        }
+        if (!(scale > T(0)) || !std::isfinite(scale))
+        {
+            return;
+        }
+        for (T& value : r_out.data)
+        {
+            value /= scale;
+        }
 
         for (std::size_t k = 0; k < std::min(R - 1, C); ++k)
         {
             T norm = T(0);
             for (std::size_t i = k; i < R; ++i)
             {
-                norm += r_out(i, k) * r_out(i, k);
+                norm = std::hypot(norm, r_out(i, k));
             }
-            norm = std::sqrt(norm);
 
-            if (norm < std::numeric_limits<T>::epsilon())
+            if (norm == T(0))
             {
                 continue;
             }
 
             T sign = (r_out(k, k) >= T(0)) ? T(1) : T(-1);
-            T u1 = r_out(k, k) + sign * norm;
+            T u1 = r_out(k, k) / norm + sign;
 
             Vec<T, R> v;
             v[k] = u1;
             for (std::size_t i = k + 1; i < R; ++i)
             {
-                v[i] = r_out(i, k);
+                v[i] = r_out(i, k) / norm;
             }
 
             T v_norm_sq = u1 * u1;
@@ -2367,6 +2507,10 @@ private:
                 }
             }
         }
+        for (T& value : r_out.data)
+        {
+            value *= scale;
+        }
     }
 };
 
@@ -2375,9 +2519,15 @@ private:
 // ============================================================================
 
 /// @brief Helper struct for creating identity matrices (general case with loops)
+/// @tparam T Matrix element type.
+/// @tparam R Number of rows, equal to C for identity construction.
+/// @tparam C Number of columns.
+/// @tparam Enable Reserved customization parameter, normally void.
 template<typename T, std::size_t R, std::size_t C, typename Enable = void>
 struct IdentityHelper
 {
+    /// @brief Construct the square identity matrix with element-wise initialization.
+    /// @return Matrix with ones on its diagonal and zeros elsewhere.
     static constexpr auto create() -> Mat<T, R, C>
     {
         static_assert(R == C, "Identity matrix is only defined for square matrices.");

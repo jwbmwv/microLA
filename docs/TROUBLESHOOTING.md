@@ -27,7 +27,7 @@ Common issues, solutions, and debugging strategies for MicroLA.
 target_compile_features(your_target PRIVATE cxx_std_20)
 
 # Or set compiler flag
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 ```
 
@@ -54,7 +54,7 @@ float* ptr = v;
 
 // ✅ Correct
 Vec3f v(1, 2, 3);
-float* ptr = v.data();  // Explicit conversion
+float* ptr = v.data;  // Pointer to the public contiguous array
 
 // Or use indexing
 for (int i = 0; i < 3; ++i) {
@@ -72,14 +72,13 @@ for (int i = 0; i < 3; ++i) {
 
 ```cpp
 // ❌ Wrong (only works in C++26)
-constexpr auto m = Mat3f::rotation(45.0f * constants::deg_to_rad<float>);
+constexpr auto m = Mat3f::rotation_z(45.0f * constants::deg_to_rad<float>);
 
-// ✅ Correct for C++20-23 (use special angle helpers)
-constexpr auto m = Mat3f::rotation_45();  // Precomputed
-constexpr auto m2 = Mat3f::rotation_90();
+// ✅ Correct for C++20-23 (explicit coefficients)
+constexpr Mat3f m{0, -1, 0, 1, 0, 0, 0, 0, 1};
 
 // ✅ Or compute at runtime
-const auto m3 = Mat3f::rotation(45.0f * constants::deg_to_rad<float>);
+const auto m3 = Mat3f::rotation_z(45.0f * constants::deg_to_rad<float>);
 ```
 
 ---
@@ -145,7 +144,8 @@ Mat4f m = Mat4f::identity();
 
 ```cpp
 // header.hpp
-namespace microla { template<typename T, int N> class Vec; }
+#include <cstddef>
+namespace microla { template<typename T, std::size_t N> class Vec; }
 class MyClass {
     microla::Vec<float, 3>* velocity;  // Pointer avoids full definition
 };
@@ -204,7 +204,7 @@ void process(Vec<T, 3> v);
 target_link_libraries(your_target microla.a)
 
 # ✅ Correct (header-only)
-target_link_libraries(your_target INTERFACE microla::microla)
+target_link_libraries(your_target PRIVATE microla::microla)
 
 # Or just include directories
 target_include_directories(your_target PRIVATE ${MICROLA_INCLUDE_DIR})
@@ -231,15 +231,8 @@ namespace {  // Anonymous namespace
 }
 ```
 
-Or use linker option:
-
-```bash
-# GCC/Clang
-g++ -Wl,--allow-multiple-definition
-
-# MSVC
-cl /FORCE:MULTIPLE
-```
+Do not suppress duplicate definitions with linker overrides. Fix inconsistent
+declarations, duplicate definitions, or mixed build configuration instead.
 
 ---
 
@@ -346,11 +339,11 @@ if (vec.length() > std::numeric_limits<float>::epsilon()) {
 
 ```cpp
 // Rotation order matters!
-// ❌ Wrong (roll-pitch-yaw is Z-Y-X)
+// Correct: column-vector roll-pitch-yaw applies X, then Y, then Z.
 Mat3f rot = Mat3f::rotation_z(yaw) * Mat3f::rotation_y(pitch) * Mat3f::rotation_x(roll);
 
-// ✅ Correct
-Mat3f rot = Mat3f::rotation_x(roll) * Mat3f::rotation_y(pitch) * Mat3f::rotation_z(yaw);
+// Equivalent quaternion convention:
+Quaternion<float> quat = Quaternion<float>::from_euler(Vec3f{roll, pitch, yaw});
 ```
 
 2. **Degrees vs radians**:
@@ -376,22 +369,16 @@ Quaternion<float> q2 = Quaternion<float>::from_axis_angle(Vec3f(0, 1, 0), angle2
 
 ---
 
-### Matrix inversion returns identity matrix
+### Matrix inversion fails
 
-**Cause**: Singular or near-singular matrix (determinant ≈ 0).
+**Cause**: Singular input or a condition estimate above the configured threshold.
 
 **Solution**:
 
 ```cpp
 Mat4f m = /* ... */;
-float det = m.determinant();
-
-if (std::abs(det) < 1e-6f) {
-    // Matrix is singular or ill-conditioned
-    // Cannot invert reliably
-} else {
-    Mat4f inv = m.inverse();
-}
+Mat4f inverse;
+bool accepted = m.inverse_checked(inverse);
 
 // Check condition number (how well-conditioned the matrix is)
 // High condition number = numerical instability
@@ -415,7 +402,7 @@ cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake -DCMAKE_BUILD_TYPE=Release ..
 
 # ✅ Aggressive optimization
-g++ -O3 -march=native -ffast-math main.cpp
+g++ -O3 -march=native main.cpp
 ```
 
 2. **Verify SIMD is enabled**:
@@ -489,12 +476,15 @@ result = temp1 * (e * f);
 2. **Stack overflow with large matrices**:
 
 ```cpp
-// ❌ May overflow stack
-Mat<float, 1000, 1000> big;  // 4 MB on stack!
-
-// ✅ Use heap for large matrices
-auto big = std::make_unique<Mat<float, 1000, 1000>>();
+// The type's configured size limit is checked even when allocated on the heap.
+// Prefer small dimensions or a library designed for large dynamic matrices.
+Mat<float, 4, 4> bounded;
 ```
+
+Increasing `MICROLA_STACK_SIZE_LIMIT` explicitly permits a larger type; it does
+not make its operations heap-based or prove the call stack fits. Products and
+decompositions can still create local temporaries. Review compiler stack reports
+and the linked application's stack budget before overriding the limit.
 
 ---
 
@@ -524,7 +514,7 @@ option(MICROLA_ENABLE_NEON "Enable NEON" ON)
 if(MICROLA_ENABLE_NEON)
     target_compile_definitions(your_target PRIVATE CONFIG_MICROLA_NEON)
 
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm|aarch64)")
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm" AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64")
         target_compile_options(your_target PRIVATE -mfpu=neon)
     endif()
 endif()
@@ -719,7 +709,7 @@ gdb ./your_program
 (gdb) break main
 (gdb) run
 (gdb) print my_vec
-(gdb) print my_vec.data()[0]
+(gdb) print my_vec.data[0]
 (gdb) print sizeof(my_mat)
 (gdb) backtrace  # Show call stack on crash
 ```
@@ -754,7 +744,7 @@ If you're still stuck:
 **Compiler**: GCC 11.4 / MSVC 19.35 / Clang 14.0
 **Platform**: x86-64 / ARM Cortex-A72 / STM32F4
 **Build**: Debug / Release
-**C++ Standard**: 11 / 14 / 17 / 20
+**C++ Standard**: 20 / 23 / conditional 26
 
 **Description**:
 [What's wrong?]

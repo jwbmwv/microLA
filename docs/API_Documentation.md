@@ -5,8 +5,8 @@ A header-only C++20 linear algebra library providing efficient vector, matrix, a
 ## Features
 
 - **Header-only**: No compilation required, just include the headers
-- **Zero allocation**: All operations use stack memory
-- **POD types**: Compatible with C interfaces and DMA transfers
+- **Inline storage**: Core owning types do not allocate; hosted eigenvalue convenience APIs can allocate
+- **Standard-layout, trivially copyable types**: Alignment and hardware-transfer requirements remain target-specific
 - **SIMD optimized**: ARM NEON for Cortex-A/ARM64, CMSIS-DSP for Cortex-M processors
 - **Namespaced**: All classes in `microla` namespace
 - **Versioned**: Runtime version API for compatibility checking
@@ -15,9 +15,11 @@ A header-only C++20 linear algebra library providing efficient vector, matrix, a
 - **Modular**: Include only what you need for faster compilation
 - **Safety features**:
   - Bounds-checked `at()` accessors (debug mode only)
-  - Division-by-zero prevention
+    - Explicit checked operations and scalar division guards; unchecked arithmetic still requires valid inputs
   - Epsilon-based float comparisons
-  - No undefined behavior
+    - Caller responsibility for bounds, view lifetimes, and representable integral arithmetic
+
+See [RELEASE_CONTRACT.md](RELEASE_CONTRACT.md) for supported profiles and qualification limits.
 
 ## Including the Library
 
@@ -48,8 +50,8 @@ using namespace microla;
 
 ### Header Organization
 
-- **compiler_features.hpp** - C++ feature detection macros (MICROLA_CONSTEXPR, MICROLA_NODISCARD, MICROLA_BIT_CAST, etc.) - **independent**, provides centralized feature detection
-- **microla.hpp** - Convenience header that includes all components and utility functions
+- **compiler_features.hpp** - Feature detection macros including MICROLA_CONSTEXPR20, MICROLA_CONSTEVAL, and MICROLA_BIT_CAST
+- **microla.hpp** - Convenience header for core math, views, filters, fusion, and utilities; include geometry.hpp and version.hpp separately
 - **constants.hpp** - Mathematical constants (pi, e, sqrt2, golden_ratio, etc.) with C++20-C++26 optimizations - **independent**, can be used standalone
 - **vector.hpp** - Generic `Vec<T,N>` template, vector operations, and fixed-size aliases such as `Vec2f` and `Vec3f`
 - **matrix.hpp** - Generic `Mat<T,R,C>` and `SquareMat<T,N>` templates, fixed-size aliases, and transformation helpers
@@ -84,7 +86,7 @@ float pi_f = constants::pi<float>;
 double pi_d = constants::pi<double>;
 
 // Default is double
-auto default_pi = constants::pi<>;  // double
+double default_pi = constants::pi<>;  // Convert the constant proxy to double
 
 // In expressions
 float angle = constants::half_pi<float>;
@@ -110,9 +112,9 @@ float degrees = radians * constants::rad_to_deg<float>;
 - `rad_to_deg<T>` - Multiply radians by this to get degrees (180/π)
 
 **Epsilon Values:**
-- `epsilon<T>` - Generic epsilon for floating-point comparisons (1e-6)
+- `epsilon<T>` - 100 times the type's machine epsilon (about 1.19e-5 for float)
 - `epsilon_f` - Single precision epsilon (1e-6f)
-- `epsilon_d` - Double precision epsilon (1e-12)
+- `epsilon_d` - Relaxed double comparison epsilon (about 1e-9)
 
 **Physical Constants (Optional):**
 - `gravity<T>` - Earth's gravity (9.80665 m/s²)
@@ -171,7 +173,7 @@ void process_vec(const Vec<T, N>& v) {
 ### Construction
 
 ```cpp
-// Default constructor (uninitialized)
+// Default constructor (zero-initialized)
 Vec<float, 3> v1;
 
 // From individual components
@@ -350,7 +352,7 @@ VectorView<float, 3> v(data, /*parent_size=*/6, /*start_index=*/1, /*stride=*/2)
 
 // From an owning Vec: use the Vec's data pointer
 Vec<float,4> base{1,2,3,4};
-VectorView<float,4> whole(base.data(), /*parent_size=*/4, /*start_index=*/0);
+VectorView<float,4> whole(base.data, /*parent_size=*/4, /*start_index=*/0);
 ```
 
 ### Element Access
@@ -364,7 +366,7 @@ v[1] = 7.0f;      // write (mutates underlying storage)
 
 ```cpp
 // Return an owning copy of the view contents
-Vec<float, 3> copied = v.toVec();
+Vec<float, 3> copied = v.to_vec();
 
 // Copy elements from a Vec into the view (writes into parent storage)
 v.set(copied);
@@ -438,7 +440,7 @@ void process_matrix(const Mat<T, R, C>& m) {
 ### Construction
 
 ```cpp
-// Default constructor (uninitialized)
+// Default constructor (zero-initialized)
 Mat<float, 3, 3> m1;
 
 // From array
@@ -462,8 +464,8 @@ Mat<float, 3, 3> m = Mat<float, 3, 3>::identity();
 float element = m[0][0];     // 1.0
 m[1][2] = 5.0f;
 
-// at() method
-float val = m.at(0, 0);      // 1.0
+// Parenthesis indexing
+float val = m(0, 0);        // 1.0; caller must supply in-range indices
 
 // Row and column extraction
 Vec<float, 3> row0 = m.row(0);
@@ -501,18 +503,17 @@ Vec<float, 3> v;
 
 // Matrix multiplication
 Mat<float, 3, 4> C = A * B;
-C = mul(A, B);               // Free function form
 
 // Matrix-vector multiplication
 Vec<float, 3> result = A * v;
-result = mul(A, v);
 
 // Transpose
 Mat<float, 3, 3> AT = A.transpose();
 
 // Frobenius norm
 float norm = A.frobenius_norm();
-Mat<float, 3, 3> normalized = A.normalized();
+Mat<float, 3, 3> scaled = A;
+if (norm > 0.0f) scaled = A / norm;
 ```
 
 ### Utility Functions
@@ -520,32 +521,19 @@ Mat<float, 3, 3> normalized = A.normalized();
 ```cpp
 Mat<float, 3, 3> A, B;
 
-// Element-wise operations
-Mat<float, 3, 3> hadamard = A.hadamard(B);
+// Owning matrices expose their contiguous array for element-wise work
+for (std::size_t index = 0; index < A.size(); ++index) A.data[index] = 0.0f;
+Mat<float, 3, 3> interp = A * 0.5f + B * 0.5f;
 
-// Min/Max
-float min_elem = A.min_element();
-float max_elem = A.max_element();
-
-// Fill
-A.fill(0.0f);
-
-// Interpolation
-Mat<float, 3, 3> interp = A.lerp(B, 0.5f);
-
-// Comparison
+// Floating-point equality uses the library's comparison tolerance
 bool equal = A == B;
-bool approx = A.approx_equal(B, 1e-6f);
-
-// Swap
-A.swap(B);
 ```
 
 ---
 
 ## SquareMat Class
 
-`SquareMat<T, N>` extends `Mat<T, N, N>` with square matrix operations.
+`SquareMat<T, N>` is an alias for `Mat<T, N, N>`, not a derived class.
 
 ### Additional Operations
 
@@ -561,7 +549,11 @@ float det = A.determinant();
 // Inverse
 SquareMat<float, 3> inv = A.inverse();
 
-// Safe inverse with condition number checking (variant-based)
+// Embedded-compatible inverse with condition number checking
+SquareMat<float, 3> checked_inv;
+bool accepted = A.inverse_checked(checked_inv, 1e6f);
+
+// Hosted convenience overload (not exposed by MICROLA_EMBEDDED)
 auto checked_result = A.inverse_checked(1e6f);
 if (std::holds_alternative<SquareMat<float, 3>>(checked_result)) {
     SquareMat<float, 3> checked_inv = std::get<SquareMat<float, 3>>(checked_result);
@@ -570,7 +562,7 @@ if (std::holds_alternative<SquareMat<float, 3>>(checked_result)) {
 }
 
 // Rank
-std::size_t rank = A.rank();
+std::size_t rank = A.rank();  // Hosted only, like Cholesky and QR below
 ```
 
 ### 3D Rotation Matrices
@@ -581,19 +573,8 @@ SquareMat<float, 3> Rx = SquareMat<float, 3>::rotation_x(1.57f); // 90° around 
 SquareMat<float, 3> Ry = SquareMat<float, 3>::rotation_y(1.57f); // 90° around Y
 SquareMat<float, 3> Rz = SquareMat<float, 3>::rotation_z(1.57f); // 90° around Z
 
-// Compile-time rotation for special angles (0°, 90°, 180°, 270°)
-// These are constexpr and can be evaluated at compile time
-constexpr auto R90x = SquareMat<float, 3>::rotation_x_deg<90>();   // 90° around X
-constexpr auto R180y = SquareMat<float, 3>::rotation_y_deg<180>(); // 180° around Y
-constexpr auto R270z = SquareMat<float, 3>::rotation_z_deg<270>(); // 270° around Z
-
-// 2D rotation (compile-time for special angles)
-constexpr auto R2D = SquareMat<float, 2>::rotation_deg<90>();      // 90° in 2D
-
-// Example: Use in constexpr context
-constexpr SquareMat<float, 3> transform = SquareMat<float, 3>::rotation_z_deg<90>();
-// This matrix is computed at compile time, zero runtime cost!
-```
+// Explicit coefficients work in constexpr contexts under C++20
+constexpr SquareMat<float, 3> R90x{1, 0, 0, 0, 0, -1, 0, 1, 0};
 
 // Rotation from axis and angle
 Vec<float, 3> axis(0.0f, 0.0f, 1.0f);
@@ -620,12 +601,14 @@ Vec<float, 3> euler = R.euler_angles();  // (roll, pitch, yaw)
 
 // Scale matrix
 Vec<float, 3> scale_factors(2.0f, 3.0f, 4.0f);
-SquareMat<float, 3> S1 = SquareMat<float, 3>::scale(scale_factors);
-SquareMat<float, 3> S2 = SquareMat<float, 3>::scale(2.0f); // Uniform scale
+SquareMat<float, 3> S1 = SquareMat<float, 3>::zero();
+for (std::size_t axis = 0; axis < 3; ++axis) S1(axis, axis) = scale_factors[axis];
+SquareMat<float, 3> S2 = SquareMat<float, 3>::identity() * 2.0f;
 
 // Translation (4x4 only)
 Vec<float, 3> translation(10.0f, 20.0f, 30.0f);
-SquareMat<float, 4> T = SquareMat<float, 4>::translation(translation);
+SquareMat<float, 4> T = SquareMat<float, 4>::identity();
+for (std::size_t axis = 0; axis < 3; ++axis) T(axis, 3) = translation[axis];
 
 ```
 
@@ -674,11 +657,11 @@ Quaternion<float> identity = Quaternion<float>::identity();
 
 ```cpp
 
-Quaternion<float> q(0.7071f, 0.0f, 0.0f, 0.7071f); // 90° around X
+Quaternion<float> q(0.7071f, 0.0f, 0.0f, 0.7071f); // 90° around Z
 
 // Subscript operator
 float w = q[Quaternion<float>::W];  // 0.7071
-float x = q[Quaternion<float>::X];  // 0.7071
+float x = q[Quaternion<float>::X];  // 0.0
 
 // Named accessors
 float w_val = q.w();
@@ -888,7 +871,7 @@ The library supports hardware acceleration on ARM processors with a three-tier o
 #define CONFIG_MICROLA_NEON
 
 // CMake:
-cmake -DMICROLA_ENABLE_NEON=ON ..
+// cmake --preset benchmark-ci -DMICROLA_ENABLE_NEON=ON
 
 // Then include the library
 
@@ -924,7 +907,7 @@ When `CONFIG_MICROLA_NEON` is defined and `T=float`, the following use ARM NEON 
 - Negation: `vnegq_f32`
 - Scalar multiplication: `vmulq_f32`
 - Dot product: `vmulq_f32` + horizontal reduction
-- Norm: NEON dot product + `std::sqrt`
+- Norm: scale-safe fallback when the squared norm overflows or underflows
 
 ### CMSIS-DSP Optimizations
 
@@ -960,7 +943,7 @@ When `CONFIG_MICROLA_CMSIS` is defined and `T=float`, the following operations u
 - Matrix multiplication: `arm_mat_mult_f32`
 - Matrix-vector multiplication: `arm_mat_vec_mult_f32`
 - Transpose: `arm_mat_trans_f32`
-- Inverse: `arm_mat_inverse_f32`
+- Inverse: library caller-owned elimination, not a CMSIS inverse adapter
 
 **Quaternion Operations:**
 - Addition: `arm_add_f32` (4 elements)
@@ -968,17 +951,17 @@ When `CONFIG_MICROLA_CMSIS` is defined and `T=float`, the following operations u
 - Scalar multiplication: `arm_scale_f32` (4 elements)
 - Negation: `arm_negate_f32` (4 elements)
 - Dot product: `arm_dot_prod_f32` (4 elements)
-- Quaternion multiplication: `arm_quaternion_product_f32`
+- Quaternion multiplication: `arm_quaternion_product_single_f32`, with scalar-first storage conversion
 
 ### Performance Notes
 
 - **Three-tier strategy**: NEON preferred on Cortex-A/ARM64, CMSIS-DSP on Cortex-M, generic C++ fallback
 - **NEON operations**: Only used for `float` types (not `double`)
 - **CMSIS operations**: Only used for `float` types (not `double`)
-- **Zero overhead**: Optimizations are compile-time conditional, no runtime checks
-- **Vec<T,3> alignment**: NEON uses padding to 4 elements for optimal 128-bit register usage
+- **Selection**: Backends are compile-time conditional; methods may still perform runtime validation
+- **Vec<T,3> loads**: Use padding-aware helpers; object padding is not a fourth array element
 - **Quaternion efficiency**: 4-component structure maps perfectly to 128-bit NEON registers
-- **Performance gains**: Typically 2-4x speedup on supported platforms
+- **Performance**: Measure the workload on the target; backend selection does not guarantee a speedup
 
 ### Namespace Usage
 
@@ -1030,7 +1013,7 @@ float rad_mult = constants::rad_to_deg<float>; // 57.2958...
 // Default epsilon values
 float eps = constants::epsilon<float>;         // 1e-6
 float eps_f = constants::epsilon_f;            // 1e-6f
-double eps_d = constants::epsilon_d;           // 1e-12
+double eps_d = constants::epsilon_d;           // About 1e-9
 
 ```
 
@@ -1127,12 +1110,16 @@ using namespace microla;
 Vec<float, 3> translation(10.0f, 0.0f, 0.0f);
 Vec<float, 3> scale(2.0f, 2.0f, 2.0f);
 
-SquareMat<float, 4> T = SquareMat<float, 4>::translation(translation);
-SquareMat<float, 3> S = SquareMat<float, 3>::scale(scale);
+SquareMat<float, 4> T = SquareMat<float, 4>::identity();
+SquareMat<float, 3> S = SquareMat<float, 3>::zero();
+for (std::size_t axis = 0; axis < 3; ++axis) {
+    T(axis, 3) = translation[axis];
+    S(axis, axis) = scale[axis];
+}
 SquareMat<float, 3> R = SquareMat<float, 3>::rotation_z(1.57f);
 
 // Combine 3x3 operations
-SquareMat<float, 3> transform = R * S;  // Rotate then scale
+SquareMat<float, 3> transform = R * S;  // Scale, then rotate a column vector
 
 ```
 
@@ -1166,17 +1153,16 @@ using namespace microla;
 
 // Direct memory access for DMA transfers
 Vec<float, 3> data;
-float* raw_ptr = data.ptr();
+float* raw_ptr = data.data;
 // Send raw_ptr to hardware...
 
 // Size information
 std::size_t byte_size = sizeof(data);        // 16 bytes (aligned)
-std::size_t element_count = data.size();     // Not available for Vec
-// For Vec, size is template parameter N
+std::size_t element_count = data.size();     // 3
 
 // Matrix data access
 Mat<float, 3, 3> matrix;
-float* mat_ptr = matrix.ptr();
+float* mat_ptr = matrix.data;
 std::size_t mat_elements = matrix.size();    // 9
 
 ```
@@ -1216,7 +1202,7 @@ namespace microla {
 - **SIMD Support**: ARM NEON (Cortex-A/ARM64), CMSIS-DSP (Cortex-M)
 - **IDE Support**: Visual Studio, CLion, Eclipse, IAR Embedded Workbench, VS Code
 
-For IAR-specific integration instructions, see [IAR Integration Guide](IAR_Integration.md).
+For toolchain integration and current qualification limits, see [Quickstart](../QUICKSTART.md) and [Release Contract](RELEASE_CONTRACT.md).
 
 ## Version
 
@@ -1236,12 +1222,14 @@ Apache License 2.0
 This library provides non-throwing, allocation-free APIs intended for constrained embedded builds.
 
 - `bool Mat<T,R,C>::inverse(Mat<T,R,C>& out) const noexcept` — non-throwing inversion; returns `false` if the matrix is singular. Preferred for builds with `MICROLA_NO_EXCEPTIONS` enabled.
-- `std::optional<Mat<T,R,C>> Mat<T,R,C>::try_inverse() const noexcept` — non-throwing inversion with optional return.
-- `std::variant<Mat<T,R,C>, Mat<T,R,C>::InverseError> Mat<T,R,C>::inverse_checked(T threshold = T(1e6)) const noexcept` — inversion with condition number checking and typed error reporting (`Singular`, `IllConditioned`).
-- `std::optional<Mat<T,R,C>> Mat<T,R,C>::cholesky() const noexcept` — Cholesky decomposition for SPD matrices; returns `std::nullopt` when the matrix is not positive-definite.
+- `bool Mat<T,R,C>::inverse_checked(Mat& out, T threshold = T(1e6)) const noexcept` — scale-aware condition checking; output is unchanged on failure.
 - `bool Mat<T,R,C>::eigenvalues_qr(T* out_buffer, std::size_t out_size, ...) const noexcept` — writes eigenvalues into a caller-provided buffer and returns `true` on success. Use this to avoid heap allocations in embedded environments.
-- `std::variant<std::vector<T>, Mat<T,R,C>::EigenError> Mat<T,R,C>::eigenvalues_qr(...) const` — convenience wrapper with typed convergence errors.
+- Hosted-only conveniences include `try_inverse()`, variant-returning `inverse_checked(threshold)`, Cholesky, rank, QR, LU, and SVD; they are hidden by `MICROLA_EMBEDDED` even where their storage is inline. Cholesky rejects non-finite, asymmetric, and non-positive-definite input. The allocating eigenvalue wrapper additionally requires dynamic allocation to be enabled.
 
 Notes:
-- The convenience wrapper `Mat inverse() const` continues to exist for host builds; prefer optional/variant or buffer-based APIs for embedded/no-exceptions/no-heap configurations.
+- Prefer caller-owned inverse and eigenvalue APIs for embedded builds. Floating-point normalization is scale-safe for finite nonzero input; zero and non-finite inputs are returned unchanged. Squared norms can still overflow when their mathematical result is unrepresentable.
+- KF/EKF predictions leave state and covariance unchanged when input, callback output, or the candidate result is non-finite. Noise matrices must still satisfy the application's covariance assumptions.
+- `Quaternion::angle_to()` returns a shortest rotation angle in [0, pi], independent of quaternion sign or finite nonzero scale. A zero quaternion yields NaN.
+- `numerical::ulp_distance()` supports IEEE `float` and `double`, treats signed zero as equal, and saturates at INT64_MAX; NaN returns that sentinel.
+- Integral determinant elimination is fraction-free for dimensions above three, with widened intermediates for smaller integral types. Intermediate arithmetic and the returned determinant must remain representable.
 - To build for embedded targets, define `-DMICROLA_NO_EXCEPTIONS -DMICROLA_NO_DYNAMIC_ALLOC -DMICROLA_EMBEDDED` (see `QUICKSTART.md` for commands). A GitHub Actions workflow exists to validate these settings automatically: `.github/workflows/embedded-build.yml`.

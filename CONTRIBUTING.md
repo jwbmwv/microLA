@@ -360,7 +360,27 @@ ctest --preset sanitizers-ci
 
 ### Code Documentation (Doxygen)
 
-All public APIs must have Doxygen comments:
+Every function and template in `include/microla`, including private helpers,
+configuration templates, and aliases, must have a Doxygen header. Include a
+`@brief`, describe every named `@tparam` and `@param`, and document non-void
+results with `@return` or applicable `@retval` entries. Boolean functions must
+describe both `@retval true` and `@retval false`. Constructors and void functions
+do not need return documentation. Document units, frame conventions, preconditions,
+and state/output changes on failure where applicable.
+
+With Python 3.9+ and Doxygen installed, check complete signature coverage:
+
+```bash
+python3 scripts/check_doxygen.py --generate
+```
+
+This generates temporary hosted, safe-mode/NEON, and embedded XML inventories,
+including private/static helpers and allocating overloads, and fails for missing
+documentation or an empty inventory. It does not compile platform-specific code
+or check the semantic accuracy of prose. Existing XML can also be checked with
+`python3 scripts/check_doxygen.py path/to/xml`.
+
+Example:
 
 ```cpp
 /// \brief Computes the dot product of two vectors
