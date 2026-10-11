@@ -450,6 +450,7 @@ For detailed performance comparisons with other libraries, see [PERFORMANCE.md](
 
 ## Documentation
 
+- **[Reconstruction Design](docs/Design.md)** - Implementation-ready specification for recreating the library
 - **[Quick Reference](QUICK_REFERENCE.md)** - Compact API cheat sheet
 - **[API Documentation](docs/API_Documentation.md)** - Complete API reference
 - **[Migration Guide](MIGRATION.md)** - Switch from Eigen, GLM, or custom code

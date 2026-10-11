@@ -15,6 +15,7 @@
 | [CHANGELOG.md](CHANGELOG.md) | Version history and changes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Development guidelines and contribution process |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Design decisions and architectural rationale |
+| [Design.md](docs/Design.md) | Source-grounded reconstruction specification, algorithms, contracts, and acceptance criteria |
 | [PERFORMANCE.md](PERFORMANCE.md) | Benchmarks and optimization tips |
 | [LICENSE](LICENSE) | Apache License 2.0 |
 | [NOTICE](NOTICE) | AI generation disclosure and IP notices |
@@ -109,6 +110,7 @@ cmake --build --preset benchmark
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Development guidelines
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Design philosophy
+- [Design.md](docs/Design.md) - Rebuild the library from its behavioral and algorithmic specification
 - [design/](design/) - Architecture diagrams
 
 ## 🔧 Tools and Configuration

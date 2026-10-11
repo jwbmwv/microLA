@@ -13,6 +13,7 @@ Comprehensive documentation for MicroLA - a header-only C++20 linear algebra lib
 
 ### Core Documentation
 
+- **[Design.md](Design.md)** - Source-grounded reconstruction specification, algorithms, contracts, and acceptance criteria
 - **[API_Documentation.md](API_Documentation.md)** - Complete API reference
 - **[COOKBOOK.md](COOKBOOK.md)** - Common use cases and examples
 - **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues and solutions
