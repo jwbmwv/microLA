@@ -93,8 +93,8 @@ $(document).ready(function(){initNavTree('md__2home_2runner_2work_2microLA_2micr
   <div class="headertitle"><div class="title">MicroLA Troubleshooting Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md269"></a> Common issues, solutions, and debugging strategies for MicroLA.</p>
-<h1><a class="anchor" id="autotoc_md270"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md354"></a> Common issues, solutions, and debugging strategies for MicroLA.</p>
+<h1><a class="anchor" id="autotoc_md355"></a>
 Table of Contents</h1>
 <ol type="1">
 <li>Compilation Issues</li>
@@ -106,9 +106,9 @@ Table of Contents</h1>
 <li>Debugging Techniques</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md272"></a>
+<h1><a class="anchor" id="autotoc_md357"></a>
 Compilation Issues</h1>
-<h2><a class="anchor" id="autotoc_md273"></a>
+<h2><a class="anchor" id="autotoc_md358"></a>
 Error: "no member named 'MICROLA_CONSTEXPR' in namespace 'microla'"</h2>
 <p><b>Cause</b>: Using a C++ standard below C++20.</p>
 <p><b>Solution</b>:</p>
@@ -124,7 +124,7 @@ Error: "no member named 'MICROLA_CONSTEXPR' in namespace 'microla'"</h2>
 <div class="line"># MSVC</div>
 <div class="line">cl /std:c++20 main.cpp</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md275"></a>
+<h2><a class="anchor" id="autotoc_md360"></a>
 Error: "cannot convert 'microla::Vec&lt;float, 3&gt;' to 'float*'"</h2>
 <p><b>Cause</b>: MicroLA types are not implicitly convertible to raw pointers.</p>
 <p><b>Solution</b>:</p>
@@ -141,7 +141,7 @@ Error: "cannot convert 'microla::Vec&lt;float, 3&gt;' to 'float*'"</h2>
 <div class="line">    <span class="keywordtype">float</span> value = v[i];</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md277"></a>
+<h2><a class="anchor" id="autotoc_md362"></a>
 Error: "call to constexpr function is not a constant expression"</h2>
 <p><b>Cause</b>: Using trigonometric functions in constexpr context with C++ &lt; 26.</p>
 <p><b>Solution</b>:</p>
@@ -154,7 +154,7 @@ Error: "call to constexpr function is not a constant expression"</h2>
 <div class="line"><span class="comment">// ✅ Or compute at runtime</span></div>
 <div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> m3 = Mat3f::rotation_z(45.0f * constants::deg_to_rad&lt;float&gt;);</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md279"></a>
+<h2><a class="anchor" id="autotoc_md364"></a>
 Warning: "unused variable" for temporaries</h2>
 <p><b>Cause</b>: Compiler warning on intermediate calculations.</p>
 <p><b>Solution</b>:</p>
@@ -177,7 +177,7 @@ Warning: "unused variable" for temporaries</h2>
 <div class="line"><span class="preprocessor">    #pragma GCC diagnostic pop</span></div>
 <div class="line"><span class="preprocessor">#endif</span></div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md281"></a>
+<h2><a class="anchor" id="autotoc_md366"></a>
 Error: "no matching function for call to 'Mat&lt;float, 4, 4&gt;::Mat(int)'"</h2>
 <p><b>Cause</b>: Ambiguous constructor overload.</p>
 <p><b>Solution</b>:</p>
@@ -193,7 +193,7 @@ Error: "no matching function for call to 'Mat&lt;float, 4, 4&gt;::Mat(int)'"</h2
 <div class="line"><span class="comment">// ✅ Or identity</span></div>
 <div class="line">Mat4f m = Mat4f::identity();</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md283"></a>
+<h2><a class="anchor" id="autotoc_md368"></a>
 Compilation time too long (&gt;60 seconds)</h2>
 <p><b>Cause</b>: Template instantiation overhead, especially with heavy SIMD usage.</p>
 <p><b>Solutions</b>:</p>
@@ -242,9 +242,9 @@ Compilation time too long (&gt;60 seconds)</h2>
 <div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><span class="keywordtype">void</span> process(Vec&lt;T, 3&gt; v);</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md285"></a>
+<h1><a class="anchor" id="autotoc_md370"></a>
 Linker Errors</h1>
-<h2><a class="anchor" id="autotoc_md286"></a>
+<h2><a class="anchor" id="autotoc_md371"></a>
 Error: "undefined reference to 'microla::version()'"</h2>
 <p><b>Cause</b>: Header-only library incorrectly linked or missing inline specifiers.</p>
 <p><b>Solution</b>:</p>
@@ -258,7 +258,7 @@ Error: "undefined reference to 'microla::version()'"</h2>
 <div class="line"># Or just include directories</div>
 <div class="line">target_include_directories(your_target PRIVATE ${MICROLA_INCLUDE_DIR})</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md288"></a>
+<h2><a class="anchor" id="autotoc_md373"></a>
 Error: "multiple definition of 'microla::constants::pi'"</h2>
 <p><b>Cause</b>: Building some translation units below the required C++20 mode or mixing inconsistent dialect settings.</p>
 <p><b>Solution</b>:</p>
@@ -276,7 +276,7 @@ Error: "multiple definition of 'microla::constants::pi'"</h2>
 <div class="ttc" id="anamespacemicrola_1_1constants_html_a6a1d6abf3b2646a9b1265db5dfa343ee"><div class="ttname"><a href="namespacemicrola_1_1constants.html#a6a1d6abf3b2646a9b1265db5dfa343ee">microla::constants::pi</a></div><div class="ttdeci">constexpr detail::ConstantProxy&lt; T, detail::pi_value&lt; T &gt; &gt; pi</div><div class="ttdoc">Pi (π) - Ratio of circle's circumference to diameter.</div><div class="ttdef"><b>Definition</b> <a href="constants_8hpp_source.html#l00225">constants.hpp:225</a></div></div>
 </div><!-- fragment --><p>Do not suppress duplicate definitions with linker overrides. Fix inconsistent declarations, duplicate definitions, or mixed build configuration instead.</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md290"></a>
+<h2><a class="anchor" id="autotoc_md375"></a>
 Error: "undefined reference to '__aeabi_uldivmod'" (ARM Cortex-M)</h2>
 <p><b>Cause</b>: Missing runtime library for 64-bit division.</p>
 <p><b>Solution</b>:</p>
@@ -290,9 +290,9 @@ Error: "undefined reference to '__aeabi_uldivmod'" (ARM Cortex-M)</h2>
 <div class="line">Vec3f v;  // ✅ 32-bit</div>
 <div class="line">Vec3d v;  // ❌ 64-bit (requires soft float library)</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md292"></a>
+<h1><a class="anchor" id="autotoc_md377"></a>
 Runtime Problems</h1>
-<h2><a class="anchor" id="autotoc_md293"></a>
+<h2><a class="anchor" id="autotoc_md378"></a>
 Segmentation fault / Access violation</h2>
 <p><b>Likely causes</b>:</p>
 <ol type="1">
@@ -325,7 +325,7 @@ Segmentation fault / Access violation</h2>
 <div class="line">    <span class="keywordflow">return</span> Vec3f(1, 2, 3);  <span class="comment">// Return by value (RVO optimizes)</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md295"></a>
+<h2><a class="anchor" id="autotoc_md380"></a>
 NaN (Not-a-Number) propagation</h2>
 <p><b>Cause</b>: Division by zero or sqrt of negative number.</p>
 <p><b>Debug</b>:</p>
@@ -349,7 +349,7 @@ NaN (Not-a-Number) propagation</h2>
 <div class="line">}</div>
 <div class="ttc" id="aclassmicrola_1_1Vec_html_aded023c517385c0133facdd871bfbdeb"><div class="ttname"><a href="classmicrola_1_1Vec.html#aded023c517385c0133facdd871bfbdeb">microla::Vec::normalized</a></div><div class="ttdeci">auto normalized() const noexcept -&gt; Vec</div><div class="ttdoc">Normalized vector.</div><div class="ttdef"><b>Definition</b> <a href="vector_8hpp_source.html#l01171">vector.hpp:1171</a></div></div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md297"></a>
+<h2><a class="anchor" id="autotoc_md382"></a>
 Incorrect rotation results</h2>
 <p><b>Common mistakes</b>:</p>
 <ol type="1">
@@ -379,7 +379,7 @@ Incorrect rotation results</h2>
 <div class="line"><span class="comment">// q1 * q2 applies q2 first, then q1 (right-to-left)</span></div>
 <div class="line"><span class="comment">// q2 * q1 applies q1 first, then q2 (right-to-left)</span></div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md299"></a>
+<h2><a class="anchor" id="autotoc_md384"></a>
 Matrix inversion fails</h2>
 <p><b>Cause</b>: Singular input or a condition estimate above the configured threshold.</p>
 <p><b>Solution</b>:</p>
@@ -390,9 +390,9 @@ Matrix inversion fails</h2>
 <div class="line"><span class="comment">// Check condition number (how well-conditioned the matrix is)</span></div>
 <div class="line"><span class="comment">// High condition number = numerical instability</span></div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md301"></a>
+<h1><a class="anchor" id="autotoc_md386"></a>
 Performance Issues</h1>
-<h2><a class="anchor" id="autotoc_md302"></a>
+<h2><a class="anchor" id="autotoc_md387"></a>
 Operations slower than expected</h2>
 <p><b>Diagnostic steps</b>:</p>
 <ol type="1">
@@ -449,7 +449,7 @@ Operations slower than expected</h2>
 <div class="line"><span class="comment">// ✅ Compile-time (C++20+)</span></div>
 <div class="line"><span class="keyword">constexpr</span> Mat4f identity = Mat4f::identity();</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md304"></a>
+<h2><a class="anchor" id="autotoc_md389"></a>
 High memory usage</h2>
 <p><b>Causes</b>:</p>
 <ol type="1">
@@ -471,9 +471,9 @@ High memory usage</h2>
 <div class="line">Mat&lt;float, 4, 4&gt; bounded;</div>
 </div><!-- fragment --><p>Increasing <code>MICROLA_STACK_SIZE_LIMIT</code> explicitly permits a larger type; it does not make its operations heap-based or prove the call stack fits. Products and decompositions can still create local temporaries. Review compiler stack reports and the linked application's stack budget before overriding the limit.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md306"></a>
+<h1><a class="anchor" id="autotoc_md391"></a>
 SIMD/Platform-Specific Issues</h1>
-<h2><a class="anchor" id="autotoc_md307"></a>
+<h2><a class="anchor" id="autotoc_md392"></a>
 NEON not detected on ARM</h2>
 <p><b>Diagnostic</b>:</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
@@ -498,7 +498,7 @@ NEON not detected on ARM</h2>
 </div><!-- fragment --><p>Or compiler flag:</p>
 <div class="fragment"><div class="line">arm-linux-gnueabihf-g++ -mfpu=neon -DCONFIG_MICROLA_NEON main.cpp</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md309"></a>
+<h2><a class="anchor" id="autotoc_md394"></a>
 SIMD results differ from scalar</h2>
 <p><b>Cause</b>: Floating-point rounding differences.</p>
 <p><b>Solution</b>:</p>
@@ -512,7 +512,7 @@ SIMD results differ from scalar</h2>
 <div class="line">    <span class="comment">// Results are equivalent</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md311"></a>
+<h2><a class="anchor" id="autotoc_md396"></a>
 Illegal instruction / SIGILL on ARM Cortex-M</h2>
 <p><b>Cause</b>: NEON instructions used on CPU without NEON support.</p>
 <p><b>Solution</b>:</p>
@@ -522,9 +522,9 @@ Illegal instruction / SIGILL on ARM Cortex-M</h2>
 <div class="line">    set(MICROLA_ENABLE_CMSIS ON)  # Use CMSIS-DSP instead</div>
 <div class="line">endif()</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md313"></a>
+<h1><a class="anchor" id="autotoc_md398"></a>
 Build System Integration</h1>
-<h2><a class="anchor" id="autotoc_md314"></a>
+<h2><a class="anchor" id="autotoc_md399"></a>
 CMake: "Target 'microla' not found"</h2>
 <p><b>Solution</b>:</p>
 <div class="fragment"><div class="line"># Option 1: add_subdirectory</div>
@@ -543,7 +543,7 @@ CMake: "Target 'microla' not found"</h2>
 <div class="line"># Option 3: Manual include</div>
 <div class="line">target_include_directories(your_target PRIVATE ${MICROLA_ROOT}/include)</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md316"></a>
+<h2><a class="anchor" id="autotoc_md401"></a>
 Zephyr: "module 'microla' not found"</h2>
 <p><b>Solution</b>:</p>
 <div class="fragment"><div class="line"># west.yml</div>
@@ -559,7 +559,7 @@ Zephyr: "module 'microla' not found"</h2>
 <div class="fragment"><div class="line">CONFIG_MICROLA=y</div>
 <div class="line">CONFIG_MICROLA_NEON=y  # If ARM with NEON</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md318"></a>
+<h2><a class="anchor" id="autotoc_md403"></a>
 PlatformIO / Arduino integration</h2>
 <p><b>Solution</b>:</p>
 <div class="fragment"><div class="line">; platformio.ini</div>
@@ -572,9 +572,9 @@ PlatformIO / Arduino integration</h2>
 <div class="line">    -I include</div>
 </div><!-- fragment --><p>Or manually copy <code>include/microla/</code> to your project's <code>lib/</code> folder.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md320"></a>
+<h1><a class="anchor" id="autotoc_md405"></a>
 Debugging Techniques</h1>
-<h2><a class="anchor" id="autotoc_md321"></a>
+<h2><a class="anchor" id="autotoc_md406"></a>
 Enable assertions</h2>
 <div class="fragment"><div class="line"><span class="comment">// Add to build</span></div>
 <div class="line"><span class="preprocessor">#define MICROLA_DEBUG</span></div>
@@ -585,7 +585,7 @@ Enable assertions</h2>
 <div class="fragment"><div class="line">Vec3f v;</div>
 <div class="line">v.<a class="code hl_function" href="classmicrola_1_1Vec.html#a66ac4b34ba3d642a41a1078bc5914f08">at</a>(5);  <span class="comment">// Assertion failure: index 5 &gt;= size 3</span></div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md323"></a>
+<h2><a class="anchor" id="autotoc_md408"></a>
 Print matrix contents</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"> </div>
@@ -602,7 +602,7 @@ Print matrix contents</h2>
 <div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;[&quot;</span> &lt;&lt; v.x() &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; v.y() &lt;&lt; <span class="stringliteral">&quot;, &quot;</span> &lt;&lt; v.z() &lt;&lt; <span class="stringliteral">&quot;]\n&quot;</span>;</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md325"></a>
+<h2><a class="anchor" id="autotoc_md410"></a>
 Sanitizer instrumentation</h2>
 <div class="fragment"><div class="line"># CMakeLists.txt</div>
 <div class="line">set(CMAKE_CXX_FLAGS_DEBUG &quot;${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined&quot;)</div>
@@ -615,7 +615,7 @@ Sanitizer instrumentation</h2>
 <li>Undefined behavior (integer overflow, misaligned access, etc.)</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md327"></a>
+<h2><a class="anchor" id="autotoc_md412"></a>
 GDB debugging</h2>
 <div class="fragment"><div class="line">gdb ./your_program</div>
 <div class="line"> </div>
@@ -627,7 +627,7 @@ GDB debugging</h2>
 <div class="line">(gdb) print sizeof(my_mat)</div>
 <div class="line">(gdb) backtrace  # Show call stack on crash</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md329"></a>
+<h1><a class="anchor" id="autotoc_md414"></a>
 Common Error Messages</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -638,7 +638,7 @@ Common Error Messages</h1>
 <td class="markdownTableBodyNone">&lsquo;no matching function for call to 'cross&rsquo;<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; Cross product requires Vec3 \ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; Use</code><a class="el" href="classmicrola_1_1Vec.html">Vec&lt;T, 3&gt;</a><code>only for cross product \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>division by zero<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; Normalizing zero-length vector \ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; Check length before normalizing \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowEven"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>std::bad_alloc<code>\ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; Out of memory \ilinebr &lt;/td&gt; &lt;td class="markdownTableBodyNone"&gt; Reduce matrix sizes or use heap allocation \ilinebr &lt;/td&gt; &lt;/tr&gt; &lt;tr class="markdownTableRowOdd"&gt; &lt;td class="markdownTableBodyNone"&gt;</code>pure virtual method called`   </td><td class="markdownTableBodyNone">Destroyed object still referenced   </td><td class="markdownTableBodyNone">Fix object lifetime   </td></tr>
 </table>
 <hr  />
-<h1><a class="anchor" id="autotoc_md331"></a>
+<h1><a class="anchor" id="autotoc_md416"></a>
 Getting Help</h1>
 <p>If you're still stuck:</p>
 <ol type="1">
@@ -647,7 +647,7 @@ Getting Help</h1>
 <li><b>Ask on discussions</b>: <a href="https://github.com/jwbmwv/microla/discussions">https://github.com/jwbmwv/microla/discussions</a></li>
 <li><b>File a bug report</b>: Provide minimal reproducible example</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md332"></a>
+<h2><a class="anchor" id="autotoc_md417"></a>
 Bug Report Template</h2>
 <div class="fragment"><div class="line">**MicroLA Version**: 0.0.4</div>
 <div class="line">**Compiler**: GCC 11.4 / MSVC 19.35 / Clang 14.0</div>
@@ -674,7 +674,7 @@ Bug Report Template</h2>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sat Oct 10 2026 21:25:21 for MicroLA by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+    <li class="footer">Generated on Sun Oct 11 2026 15:10:01 for MicroLA by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>
 </body>

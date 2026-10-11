@@ -224,112 +224,213 @@ var NAVTREE =
       [ "Views And Future Features", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Cpp__Standard__Optimizations.html#autotoc_md205", null ],
       [ "Verification", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Cpp__Standard__Optimizations.html#autotoc_md206", null ]
     ] ],
+    [ "MicroLA Reconstruction Design", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html", [
+      [ "1. Purpose and interpretation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md208", [
+        [ "Contents", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md209", null ],
+        [ "1.1 Intended users", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md210", null ],
+        [ "1.2 Goals and non-goals", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md211", null ],
+        [ "1.3 Minimal compatibility check", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md212", null ]
+      ] ],
+      [ "2. System architecture", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md213", [
+        [ "2.1 Required module boundaries", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md214", null ],
+        [ "2.2 Dependency direction", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md215", null ],
+        [ "2.3 Ownership and concurrency", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md216", null ]
+      ] ],
+      [ "3. Mathematical and representation conventions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md217", [
+        [ "3.1 Scalars and dimensions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md218", null ],
+        [ "3.2 Coordinates and composition", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md219", null ],
+        [ "3.3 Units", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md220", null ],
+        [ "3.4 Memory and ABI", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md221", null ]
+      ] ],
+      [ "4. Core mathematics and view contracts", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md222", [
+        [ "4.1 Owning vectors", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md223", [
+          [ "Construction and access", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md224", null ],
+          [ "Arithmetic and comparison", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md225", null ],
+          [ "Division, norm, and degeneracy", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md226", null ],
+          [ "Geometric and component helpers", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md227", null ]
+        ] ],
+        [ "4.2 Owning matrices", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md228", [
+          [ "Construction and access", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md229", null ],
+          [ "Arithmetic and norms", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md230", null ],
+          [ "Rotation constructors", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md231", null ]
+        ] ],
+        [ "4.3 Inversion, decompositions, and eigenvalues", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md232", [
+          [ "Determinant and inverse", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md233", null ],
+          [ "Hosted factorization APIs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md234", null ],
+          [ "QR eigenvalues and allocation boundary", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md235", null ]
+        ] ],
+        [ "4.4 Quaternions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md236", null ],
+        [ "4.5 Borrowed matrix views", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md237", null ],
+        [ "4.6 Borrowed vector views", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md238", null ],
+        [ "4.7 Geometry", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md239", [
+          [ "Rays and planes", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md240", null ],
+          [ "Axis-aligned boxes", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md241", null ],
+          [ "Spheres", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md242", null ],
+          [ "Triangles", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md243", null ],
+          [ "Free intersection functions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md244", null ],
+          [ "Frusta", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md245", null ]
+        ] ]
+      ] ],
+      [ "5. Generic state estimation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md246", [
+        [ "5.1 Shared dimensions and state", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md247", null ],
+        [ "5.2 Linear filter", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md248", null ],
+        [ "5.3 Extended Kalman filter", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md249", null ],
+        [ "5.4 Resource and failure policy", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md250", null ]
+      ] ],
+      [ "6. Sensor-fusion data model and configuration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md251", [
+        [ "6.1 Public enumerations", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md252", null ],
+        [ "6.2 Samples, calibration, and results", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md253", null ],
+        [ "6.3 Orientation policy defaults", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md254", null ],
+        [ "6.4 Relative policy defaults", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md255", null ]
+      ] ],
+      [ "7. Per-entity orientation state machine", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md256", [
+        [ "7.1 Public surface", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md257", null ],
+        [ "7.2 Timing and transactional rejection", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md258", null ],
+        [ "7.3 Measurement gates and initialization", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md259", null ],
+        [ "7.4 Magnetic acceptance and learning", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md260", null ],
+        [ "7.5 Accelerometer-only backend", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md261", null ],
+        [ "7.6 Mahony-style backend", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md262", null ],
+        [ "7.7 Multiplicative EKF backend", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md263", null ],
+        [ "7.8 Drift, confidence, and validity", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md264", null ]
+      ] ],
+      [ "8. Relative-angle estimator", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md265", [
+        [ "8.1 API and ownership", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md266", null ],
+        [ "8.2 Alignment and reference transform", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md267", null ],
+        [ "8.3 Frame and hinge checks", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md268", null ],
+        [ "8.4 Scalar extraction", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md269", null ],
+        [ "8.5 Relative diagnostics and publication", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md270", null ]
+      ] ],
+      [ "9. Numerical utility and platform contracts", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md271", [
+        [ "9.1 Constants and precision selection", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md272", null ],
+        [ "9.2 Stable numerical functions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md273", null ],
+        [ "9.3 Guarded scalar math", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md274", null ],
+        [ "9.4 Opt-in fast math", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md275", null ],
+        [ "9.5 Compiler gates, alignment, and allocation policy", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md276", null ],
+        [ "9.6 SIMD buffer primitives", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md277", null ],
+        [ "9.7 Resource inspection and version", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md278", null ]
+      ] ],
+      [ "10. Packaging and build integration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md279", [
+        [ "10.1 CMake interface", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md280", null ],
+        [ "10.2 Zephyr and package managers", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md281", null ],
+        [ "10.3 Licensing and generated documentation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md282", null ]
+      ] ],
+      [ "11. Verification and acceptance", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md283", [
+        [ "11.1 Build matrix", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md284", null ],
+        [ "11.2 Numerical test methodology", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md285", null ],
+        [ "11.3 Filter and fusion acceptance cases", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md286", null ],
+        [ "11.4 Tooling and reproducibility", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md287", null ],
+        [ "11.5 Performance and resource acceptance", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md288", null ]
+      ] ],
+      [ "12. Implementation sequence", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md289", null ],
+      [ "13. Reconstruction smoke program", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md290", null ],
+      [ "14. Evidence and maintenance", "md__2home_2runner_2work_2microLA_2microLA_2docs_2Design.html#autotoc_md291", null ]
+    ] ],
     [ "MicroLA Release Contract", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html", [
-      [ "Language and Configuration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md216", null ],
-      [ "Ownership, Timing, and ISR Use", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md217", null ],
-      [ "Validation Scope", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md218", null ],
-      [ "Resource and Backend Selection", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md219", null ],
-      [ "SIMD Scope", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md220", null ],
-      [ "Release Evidence", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md221", null ]
+      [ "Language and Configuration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md301", null ],
+      [ "Ownership, Timing, and ISR Use", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md302", null ],
+      [ "Validation Scope", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md303", null ],
+      [ "Resource and Backend Selection", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md304", null ],
+      [ "SIMD Scope", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md305", null ],
+      [ "Release Evidence", "md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html#autotoc_md306", null ]
     ] ],
     [ "Sensor Fusion and Relative Angle Estimation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html", [
-      [ "Overview", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md223", null ],
-      [ "Main Types", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md224", null ],
-      [ "Units Policy", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md225", null ],
-      [ "Maintained Example", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md226", null ],
-      [ "Compile-Checked Orientation Smoke Test", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md227", null ],
-      [ "Backend Choices", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md228", [
-        [ "Measurement-only recovery", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md229", null ]
+      [ "Overview", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md308", null ],
+      [ "Main Types", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md309", null ],
+      [ "Units Policy", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md310", null ],
+      [ "Maintained Example", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md311", null ],
+      [ "Compile-Checked Orientation Smoke Test", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md312", null ],
+      [ "Backend Choices", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md313", [
+        [ "Measurement-only recovery", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md314", null ]
       ] ],
-      [ "Scalar Outputs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md230", null ],
-      [ "Observability Model", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md231", null ],
-      [ "High-Dynamics Configs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md232", [
-        [ "<tt>held_orientation_confidence</tt>", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md233", null ],
-        [ "<tt>timestamp_needs_reset()</tt>", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md234", null ]
+      [ "Scalar Outputs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md315", null ],
+      [ "Observability Model", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md316", null ],
+      [ "High-Dynamics Configs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md317", [
+        [ "<tt>held_orientation_confidence</tt>", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md318", null ],
+        [ "<tt>timestamp_needs_reset()</tt>", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md319", null ]
       ] ],
-      [ "Compile-Time Policy Model", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md235", null ],
-      [ "Tuning Knobs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md236", [
-        [ "Timing and freshness", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md237", null ],
-        [ "Validity gates", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md238", null ],
-        [ "Mahony backend gains", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md239", null ],
-        [ "MEKF backend noise model", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md240", null ],
-        [ "Frame conventions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md241", null ],
-        [ "Relative-output policy", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md242", null ]
+      [ "Compile-Time Policy Model", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md320", null ],
+      [ "Tuning Knobs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md321", [
+        [ "Timing and freshness", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md322", null ],
+        [ "Validity gates", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md323", null ],
+        [ "Mahony backend gains", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md324", null ],
+        [ "MEKF backend noise model", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md325", null ],
+        [ "Frame conventions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md326", null ],
+        [ "Relative-output policy", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md327", null ]
       ] ],
-      [ "Runtime Calibration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md243", null ],
-      [ "Typical Usage", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md244", null ],
-      [ "Filtering Strategies for Improved Performance", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md245", [
-        [ "Built-In Filtering", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md246", null ],
-        [ "Pre-Filtering Raw Sensor Data", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md247", null ],
-        [ "Application-Specific Strategies", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md248", null ],
-        [ "Filtering Trade-Offs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md249", null ],
-        [ "Post-Filtering Orientation Output", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md250", null ],
-        [ "Recommended Starting Point", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md251", null ]
+      [ "Runtime Calibration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md328", null ],
+      [ "Typical Usage", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md329", null ],
+      [ "Filtering Strategies for Improved Performance", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md330", [
+        [ "Built-In Filtering", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md331", null ],
+        [ "Pre-Filtering Raw Sensor Data", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md332", null ],
+        [ "Application-Specific Strategies", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md333", null ],
+        [ "Filtering Trade-Offs", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md334", null ],
+        [ "Post-Filtering Orientation Output", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md335", null ],
+        [ "Recommended Starting Point", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md336", null ]
       ] ],
-      [ "Known Limitations and Failure Modes", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md252", [
-        [ "Fundamental Assumptions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md253", null ],
-        [ "Freefall and Zero-G Environments", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md254", null ],
-        [ "High-G Impacts and Extreme Acceleration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md255", null ],
-        [ "Running and Rhythmic Motion", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md256", null ],
-        [ "High Angular Rates", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md257", null ],
-        [ "Magnetometer Disturbances", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md258", null ],
-        [ "Summary Table", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md259", null ],
-        [ "Design Response", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md260", null ]
+      [ "Known Limitations and Failure Modes", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md337", [
+        [ "Fundamental Assumptions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md338", null ],
+        [ "Freefall and Zero-G Environments", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md339", null ],
+        [ "High-G Impacts and Extreme Acceleration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md340", null ],
+        [ "Running and Rhythmic Motion", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md341", null ],
+        [ "High Angular Rates", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md342", null ],
+        [ "Magnetometer Disturbances", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md343", null ],
+        [ "Summary Table", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md344", null ],
+        [ "Design Response", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md345", null ]
       ] ],
-      [ "Current Scope Notes", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md261", null ]
+      [ "Current Scope Notes", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md346", null ]
     ] ],
     [ "SIMD Optimization Guide", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html", [
-      [ "Implemented Paths", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md263", null ],
-      [ "Configuration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md264", null ],
-      [ "Memory And Alignment", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md265", null ],
-      [ "Reproducible Benchmarks", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md266", null ],
-      [ "Accuracy And Target Validation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md267", null ],
-      [ "References", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md268", null ]
+      [ "Implemented Paths", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md348", null ],
+      [ "Configuration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md349", null ],
+      [ "Memory And Alignment", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md350", null ],
+      [ "Reproducible Benchmarks", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md351", null ],
+      [ "Accuracy And Target Validation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md352", null ],
+      [ "References", "md__2home_2runner_2work_2microLA_2microLA_2docs_2SIMD__Optimizations.html#autotoc_md353", null ]
     ] ],
     [ "MicroLA Troubleshooting Guide", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html", [
-      [ "Table of Contents", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md270", null ],
-      [ "Compilation Issues", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md272", [
-        [ "Error: \"no member named 'MICROLA_CONSTEXPR' in namespace 'microla'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md273", null ],
-        [ "Error: \"cannot convert 'microla::Vec<float, 3>' to 'float*'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md275", null ],
-        [ "Error: \"call to constexpr function is not a constant expression\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md277", null ],
-        [ "Warning: \"unused variable\" for temporaries", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md279", null ],
-        [ "Error: \"no matching function for call to 'Mat<float, 4, 4>::Mat(int)'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md281", null ],
-        [ "Compilation time too long (>60 seconds)", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md283", null ]
+      [ "Table of Contents", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md355", null ],
+      [ "Compilation Issues", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md357", [
+        [ "Error: \"no member named 'MICROLA_CONSTEXPR' in namespace 'microla'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md358", null ],
+        [ "Error: \"cannot convert 'microla::Vec<float, 3>' to 'float*'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md360", null ],
+        [ "Error: \"call to constexpr function is not a constant expression\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md362", null ],
+        [ "Warning: \"unused variable\" for temporaries", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md364", null ],
+        [ "Error: \"no matching function for call to 'Mat<float, 4, 4>::Mat(int)'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md366", null ],
+        [ "Compilation time too long (>60 seconds)", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md368", null ]
       ] ],
-      [ "Linker Errors", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md285", [
-        [ "Error: \"undefined reference to 'microla::version()'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md286", null ],
-        [ "Error: \"multiple definition of 'microla::constants::pi'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md288", null ],
-        [ "Error: \"undefined reference to '__aeabi_uldivmod'\" (ARM Cortex-M)", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md290", null ]
+      [ "Linker Errors", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md370", [
+        [ "Error: \"undefined reference to 'microla::version()'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md371", null ],
+        [ "Error: \"multiple definition of 'microla::constants::pi'\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md373", null ],
+        [ "Error: \"undefined reference to '__aeabi_uldivmod'\" (ARM Cortex-M)", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md375", null ]
       ] ],
-      [ "Runtime Problems", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md292", [
-        [ "Segmentation fault / Access violation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md293", null ],
-        [ "NaN (Not-a-Number) propagation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md295", null ],
-        [ "Incorrect rotation results", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md297", null ],
-        [ "Matrix inversion fails", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md299", null ]
+      [ "Runtime Problems", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md377", [
+        [ "Segmentation fault / Access violation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md378", null ],
+        [ "NaN (Not-a-Number) propagation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md380", null ],
+        [ "Incorrect rotation results", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md382", null ],
+        [ "Matrix inversion fails", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md384", null ]
       ] ],
-      [ "Performance Issues", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md301", [
-        [ "Operations slower than expected", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md302", null ],
-        [ "High memory usage", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md304", null ]
+      [ "Performance Issues", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md386", [
+        [ "Operations slower than expected", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md387", null ],
+        [ "High memory usage", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md389", null ]
       ] ],
-      [ "SIMD/Platform-Specific Issues", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md306", [
-        [ "NEON not detected on ARM", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md307", null ],
-        [ "SIMD results differ from scalar", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md309", null ],
-        [ "Illegal instruction / SIGILL on ARM Cortex-M", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md311", null ]
+      [ "SIMD/Platform-Specific Issues", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md391", [
+        [ "NEON not detected on ARM", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md392", null ],
+        [ "SIMD results differ from scalar", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md394", null ],
+        [ "Illegal instruction / SIGILL on ARM Cortex-M", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md396", null ]
       ] ],
-      [ "Build System Integration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md313", [
-        [ "CMake: \"Target 'microla' not found\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md314", null ],
-        [ "Zephyr: \"module 'microla' not found\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md316", null ],
-        [ "PlatformIO / Arduino integration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md318", null ]
+      [ "Build System Integration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md398", [
+        [ "CMake: \"Target 'microla' not found\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md399", null ],
+        [ "Zephyr: \"module 'microla' not found\"", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md401", null ],
+        [ "PlatformIO / Arduino integration", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md403", null ]
       ] ],
-      [ "Debugging Techniques", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md320", [
-        [ "Enable assertions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md321", null ],
-        [ "Print matrix contents", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md323", null ],
-        [ "Sanitizer instrumentation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md325", null ],
-        [ "GDB debugging", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md327", null ]
+      [ "Debugging Techniques", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md405", [
+        [ "Enable assertions", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md406", null ],
+        [ "Print matrix contents", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md408", null ],
+        [ "Sanitizer instrumentation", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md410", null ],
+        [ "GDB debugging", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md412", null ]
       ] ],
-      [ "Common Error Messages", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md329", null ],
-      [ "Getting Help", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md331", [
-        [ "Bug Report Template", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md332", null ]
+      [ "Common Error Messages", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md414", null ],
+      [ "Getting Help", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md416", [
+        [ "Bug Report Template", "md__2home_2runner_2work_2microLA_2microLA_2docs_2TROUBLESHOOTING.html#autotoc_md417", null ]
       ] ]
     ] ],
     [ "Namespaces", "namespaces.html", [
@@ -373,11 +474,11 @@ var NAVTREEINDEX =
 "classmicrola_1_1Vec.html#a1d54b6d227c704fae6244da7bbff40a1",
 "classmicrola_1_1fusion_1_1RelativeAngleEstimator.html#aa41db54619c17cfca6cd59dce0fc20c2",
 "index.html#autotoc_md7",
-"microla_8hpp.html#a6e3cb69ee653e33e7055d8153ae6b99e",
-"namespacemicrola_1_1geometry.html#a2eee7794f29f5d45da70bfe2254a0145",
-"structmicrola_1_1Version.html",
-"structmicrola_1_1fusion_1_1RelativeAngleConfigBase.html#a0447147ed88fc48bf9ff61ae8b3bc020",
-"structmicrola_1_1geometry_1_1Sphere.html"
+"md__2home_2runner_2work_2microLA_2microLA_2docs_2SENSOR__FUSION.html#autotoc_md312",
+"namespacemicrola_1_1fusion.html#a27402f11db50f46d277d33b2ff369d66a0260bd21e175cd431b2ad844b762812a",
+"sensor__fusion_8hpp.html#a27402f11db50f46d277d33b2ff369d66af374c96abd62775f270ef24c9d1a7c91",
+"structmicrola_1_1fusion_1_1OrientationConfigBase.html#a1de45cce5f9cf6b7e1e53e1d921110bc",
+"structmicrola_1_1geometry_1_1AABB.html#a3c5dc541a82817e22b504496235742f3"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

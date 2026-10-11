@@ -93,8 +93,8 @@ $(document).ready(function(){initNavTree('md__2home_2runner_2work_2microLA_2micr
   <div class="headertitle"><div class="title">Sensor Fusion and Relative Angle Estimation</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md222"></a> </p>
-<h1><a class="anchor" id="autotoc_md223"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md307"></a> </p>
+<h1><a class="anchor" id="autotoc_md308"></a>
 Overview</h1>
 <p>MicroLA now provides a relative sensor-fusion API in <code><a class="el" href="namespacemicrola_1_1fusion.html">microla::fusion</a></code> for estimating the angle between two entities when each side may provide one of these sensor sets:</p>
 <ul>
@@ -109,7 +109,7 @@ Overview</h1>
 <li>Runtime calibration structs for board-specific alignment and bias correction</li>
 <li>Explicit drift and quality reporting instead of pretending every output is fully observable</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md224"></a>
+<h1><a class="anchor" id="autotoc_md309"></a>
 Main Types</h1>
 <ul>
 <li><code>OrientationEstimator&lt;T, Config&gt;</code>: per-entity orientation state estimator</li>
@@ -119,7 +119,7 @@ Main Types</h1>
 <li><code>RelativeAngleResult&lt;T&gt;</code>: relative quaternion, selected scalar output, drift estimate, confidence, and status flags</li>
 </ul>
 <p>Changing runtime calibration with <code>set_calibration()</code> intentionally resets the affected estimator state so orientation, drift, and any learned magnetic-field reference are rebuilt under the new calibration frame. On a <code>RelativeAngleEstimator</code>, changing either entity calibration also clears a captured neutral reference pose because it belongs to the previous calibration frame.</p>
-<h1><a class="anchor" id="autotoc_md225"></a>
+<h1><a class="anchor" id="autotoc_md310"></a>
 Units Policy</h1>
 <p>The sensor-fusion API uses explicit scalar SI conventions instead of a mandatory units-library dependency.</p>
 <ul>
@@ -130,7 +130,7 @@ Units Policy</h1>
 <li>Magnetometer samples may use any consistent field-strength unit after calibration (for example uT)</li>
 <li>The estimator learns the calibrated magnetic-field norm online, so those magnetometer units do not need to match the default policy constants</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md226"></a>
+<h1><a class="anchor" id="autotoc_md311"></a>
 Maintained Example</h1>
 <p>The shipped example in <code>examples/sensor_fusion.cpp</code> uses the public API directly rather than a private complementary filter. It demonstrates:</p>
 <ul>
@@ -141,7 +141,7 @@ Maintained Example</h1>
 <li>Drift-aware diagnostics when one side lacks absolute heading correction</li>
 </ul>
 <p>That example is also executed as a CTest smoke test when examples and tests are enabled together, so the documented flow is exercised in CI instead of being compile-only.</p>
-<h1><a class="anchor" id="autotoc_md227"></a>
+<h1><a class="anchor" id="autotoc_md312"></a>
 Compile-Checked Orientation Smoke Test</h1>
 <p>The following standalone sample verifies the public 6-axis orientation API used by an application update loop:</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="sensor__fusion_8hpp.html">microla/sensor_fusion.hpp</a>&gt;</span></div>
@@ -168,7 +168,7 @@ Compile-Checked Orientation Smoke Test</h1>
 <div class="ttc" id="anamespacemicrola_1_1fusion_html"><div class="ttname"><a href="namespacemicrola_1_1fusion.html">microla::fusion</a></div><div class="ttdef"><b>Definition</b> <a href="sensor__fusion_8hpp_source.html#l00025">sensor_fusion.hpp:26</a></div></div>
 <div class="ttc" id="asensor__fusion_8hpp_html"><div class="ttname"><a href="sensor__fusion_8hpp.html">sensor_fusion.hpp</a></div><div class="ttdoc">Relative sensor-fusion utilities for angle estimation between two entities.</div></div>
 <div class="ttc" id="astructmicrola_1_1fusion_1_1Imu6Sample_html"><div class="ttname"><a href="structmicrola_1_1fusion_1_1Imu6Sample.html">microla::fusion::Imu6Sample</a></div><div class="ttdoc">6-axis IMU sample (gyro + accel).</div><div class="ttdef"><b>Definition</b> <a href="sensor__fusion_8hpp_source.html#l00198">sensor_fusion.hpp:199</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md228"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md313"></a>
 Backend Choices</h1>
 <p>Each entity config chooses one backend at compile time through <code>Config::backend</code>.</p>
 <ul>
@@ -188,14 +188,14 @@ Backend Choices</h1>
 </li>
 </ul>
 <p><code>SensorModel::accel_only</code> intentionally does not support the MEKF backend because there is no useful gyro-driven propagation state to estimate.</p>
-<h2><a class="anchor" id="autotoc_md229"></a>
+<h2><a class="anchor" id="autotoc_md314"></a>
 Measurement-only recovery</h2>
 <p>When gyro propagation is unavailable, both IMU backends can use valid gravity and magnetic measurements to correct attitude. Mahony gravity-only recovery applies a minimum gravity-alignment rotation to the existing attitude rather than reconstructing a zero-heading attitude. MEKF uses its normal vector-measurement updates, including covariance-based gains and NIS gates, even when gyro propagation is skipped. Unobserved heading is retained and reported as <code>Observability::heading_with_drift</code>; only a valid magnetic correction restores absolute heading.</p>
 <p>MEKF uses Joseph covariance updates followed by the right-multiplicative attitude reset Jacobian, including attitude/bias cross-covariance. Corrections are committed only after finite-value checks; rejected measurements do not update attitude, bias, covariance, or the learned magnetic field norm. <code>error_covariance()</code> exposes the read-only 6x6 covariance in body-frame attitude-error (radians), then gyro-bias (radians/second) order; it is available only for MEKF IMU configurations.</p>
 <p><code>estimate_gyro_bias = false</code> disables MEKF bias coupling, process-noise growth, and correction gains. <code>enable_accel_correction = false</code> also disables Mahony's measurement-only gravity recovery, not only its propagated feedback path.</p>
 <p><code>StatusFlag::gyro_rejected</code> reports an invalid gyro input, not simply skipped propagation. A valid gyro is not marked rejected on the first sample or when a large timestamp gap suppresses integration.</p>
 <p>If neither propagation nor an accepted correction is possible, an initialized IMU retains its attitude with <code>StatusFlag::orientation_held</code>, <code>valid = false</code>, <code>quality = invalid</code>, and zero confidence. Its estimate timestamp stays at the last actual state update, and forward prediction is disabled. The processed-sample clock still advances, so recovery integrates only the latest interval, not rejected gaps. Accel-only estimators retain the explicit held-confidence policy described below.</p>
-<h1><a class="anchor" id="autotoc_md230"></a>
+<h1><a class="anchor" id="autotoc_md315"></a>
 Scalar Outputs</h1>
 <p>The relative estimator always computes a relative quaternion and several derived angles. The user may select the primary scalar output at runtime through <code>compute_scalar(mode)</code> when the relative config allows it.</p>
 <p>Available primary scalar modes:</p>
@@ -232,7 +232,7 @@ Scalar Outputs</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md231"></a>
+<h1><a class="anchor" id="autotoc_md316"></a>
 Observability Model</h1>
 <p>The API distinguishes between what is mathematically observable and what is merely being propagated.</p>
 <ul>
@@ -263,7 +263,7 @@ Observability Model</h1>
 <li><code>StatusFlag::drift_exceeds_nominal</code> when applicable</li>
 </ul>
 <p>Each entity also exposes <code>tilt_confidence</code>, based on accepted gravity information without the heading-drift penalty. Tilt-only scalar modes use that confidence and report zero primary drift; the entity estimates retain their heading drift metadata. A tilt result can therefore remain valid after an entity's full-orientation confidence expires. Rejected or held IMU samples do not acquire fresh tilt confidence. Neutral-reference capture predicts both entities to the latest pair timestamp, using the same alignment horizon as <code>compute()</code>.</p>
-<h1><a class="anchor" id="autotoc_md232"></a>
+<h1><a class="anchor" id="autotoc_md317"></a>
 High-Dynamics Configs</h1>
 <p>The default configs are tuned for stationary-to-slow-walking activity. Wider sensor-acceptance gates are available as drop-in replacements:</p>
 <table class="markdownTable">
@@ -282,7 +282,7 @@ High-Dynamics Configs</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>HighDynamicsImu9MahonyConfig&lt;T&gt;</code>   </td><td class="markdownTableBodyNone">2.0 m/s²   </td><td class="markdownTableBodyNone">40.0 m/s²   </td><td class="markdownTableBodyNone">150 rad/s   </td><td class="markdownTableBodyNone">0.05   </td><td class="markdownTableBodyNone">0.0   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md233"></a>
+<h2><a class="anchor" id="autotoc_md318"></a>
 &lt;tt&gt;held_orientation_confidence&lt;/tt&gt;</h2>
 <p>For accel-only estimators, when the accel reading is outside the valid norm window the orientation is frozen at the last known tilt. By default <code>held_orientation_confidence = 0.0</code>, making <code>quality = invalid</code> while the estimate is held — appropriate for safety-critical use.</p>
 <p>Setting it to a small positive value (e.g. <code>0.25</code>) emits <code>quality = degraded</code> instead:</p>
@@ -293,7 +293,7 @@ High-Dynamics Configs</h1>
 <div class="line">};</div>
 <div class="ttc" id="astructmicrola_1_1fusion_1_1HighDynamicsAccelOnlyConfig_html"><div class="ttname"><a href="structmicrola_1_1fusion_1_1HighDynamicsAccelOnlyConfig.html">microla::fusion::HighDynamicsAccelOnlyConfig</a></div><div class="ttdoc">Accelerometer-only configuration tuned for running, jumping, and moderate high-dynamics.</div><div class="ttdef"><b>Definition</b> <a href="sensor__fusion_8hpp_source.html#l00504">sensor_fusion.hpp:505</a></div></div>
 </div><!-- fragment --><p>Check <code>StatusFlag::freefall_detected</code> or <code>StatusFlag::high_linear_acceleration</code> to understand why the estimate is degraded regardless of the confidence setting. Held outputs also carry <code>StatusFlag::orientation_held</code> and retain the timestamp of the last accepted tilt update, even when positive held confidence is configured.</p>
-<h2><a class="anchor" id="autotoc_md234"></a>
+<h2><a class="anchor" id="autotoc_md319"></a>
 &lt;tt&gt;timestamp_needs_reset()&lt;/tt&gt;</h2>
 <p>A free function in the <code><a class="el" href="namespacemicrola_1_1fusion.html">microla::fusion</a></code> namespace that returns <code>true</code> when a <code>float</code> timestamp approaches the 2²⁴ ms ≈ 4.7-hour precision cliff where 1 ms increments can no longer be represented exactly. For <code>double</code> timestamps it always returns <code>false</code>.</p>
 <div class="fragment"><div class="line"><span class="keywordtype">float</span> timestamp_origin_s = 0.0F;</div>
@@ -307,7 +307,7 @@ High-Dynamics Configs</h1>
 <div class="ttc" id="aclassmicrola_1_1fusion_1_1OrientationEstimator_html_add3750f03a8bbdd907fcbf7b5a3d602c"><div class="ttname"><a href="classmicrola_1_1fusion_1_1OrientationEstimator.html#add3750f03a8bbdd907fcbf7b5a3d602c">microla::fusion::OrientationEstimator::rebase_timestamp</a></div><div class="ttdeci">auto rebase_timestamp(T timestamp_s) noexcept -&gt; bool</div><div class="ttdoc">Changes the timestamp origin without resetting orientation state.</div><div class="ttdef"><b>Definition</b> <a href="sensor__fusion_8hpp_source.html#l01452">sensor_fusion.hpp:1452</a></div></div>
 <div class="ttc" id="anamespacemicrola_1_1fusion_html_a26eaae9a20610b151486a26036230063"><div class="ttname"><a href="namespacemicrola_1_1fusion.html#a26eaae9a20610b151486a26036230063">microla::fusion::timestamp_needs_reset</a></div><div class="ttdeci">constexpr auto timestamp_needs_reset(T timestamp_s) noexcept -&gt; bool</div><div class="ttdoc">Returns true when a float timestamp is old enough to cause millisecond- precision loss (~4....</div><div class="ttdef"><b>Definition</b> <a href="sensor__fusion_8hpp_source.html#l00164">sensor_fusion.hpp:164</a></div></div>
 </div><!-- fragment --><p><code>rebase_timestamp()</code> preserves orientation, calibration, covariance, drift, and learned magnetic-field state. The argument is the new time of the last processed sample; the age of a held attitude is preserved rather than making it appear fresh. For a <code>RelativeAngleEstimator</code>, rebase both entities to the same timestamp origin with <code>rebase_left_timestamp()</code> and <code>rebase_right_timestamp()</code>.</p>
-<h1><a class="anchor" id="autotoc_md235"></a>
+<h1><a class="anchor" id="autotoc_md320"></a>
 Compile-Time Policy Model</h1>
 <p>The algorithm is configured with policy types rather than runtime option bags. This keeps invalid combinations out of the binary and lets the compiler remove unused code.</p>
 <p>Recommended starting points:</p>
@@ -354,10 +354,10 @@ Compile-Time Policy Model</h1>
 <div class="ttc" id="astructmicrola_1_1fusion_1_1DefaultImu9MahonyConfig_html"><div class="ttname"><a href="structmicrola_1_1fusion_1_1DefaultImu9MahonyConfig.html">microla::fusion::DefaultImu9MahonyConfig</a></div><div class="ttdoc">Default 9-axis IMU configuration using the Mahony backend.</div><div class="ttdef"><b>Definition</b> <a href="sensor__fusion_8hpp_source.html#l00556">sensor_fusion.hpp:557</a></div></div>
 <div class="ttc" id="astructmicrola_1_1fusion_1_1DefaultRelativeAngleConfig_html"><div class="ttname"><a href="structmicrola_1_1fusion_1_1DefaultRelativeAngleConfig.html">microla::fusion::DefaultRelativeAngleConfig</a></div><div class="ttdoc">Default relative-angle configuration.</div><div class="ttdef"><b>Definition</b> <a href="sensor__fusion_8hpp_source.html#l00675">sensor_fusion.hpp:676</a></div></div>
 <div class="ttc" id="astructmicrola_1_1fusion_1_1RelativeAngleConfigBase_html_a331d06e2765c4b985b817a242cd83a4e"><div class="ttname"><a href="structmicrola_1_1fusion_1_1RelativeAngleConfigBase.html#a331d06e2765c4b985b817a242cd83a4e">microla::fusion::RelativeAngleConfigBase::hinge_axis_left</a></div><div class="ttdeci">static auto hinge_axis_left() noexcept -&gt; Vec&lt; T, 3 &gt;</div><div class="ttdoc">Left-entity hinge axis used for twist and swing extraction.</div><div class="ttdef"><b>Definition</b> <a href="sensor__fusion_8hpp_source.html#l00665">sensor_fusion.hpp:665</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md236"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md321"></a>
 Tuning Knobs</h1>
 <p>The following knobs are implemented in the public policy types and affect runtime behavior.</p>
-<h2><a class="anchor" id="autotoc_md237"></a>
+<h2><a class="anchor" id="autotoc_md322"></a>
 Timing and freshness</h2>
 <ul>
 <li><code>min_dt_s</code><ul>
@@ -385,7 +385,7 @@ Timing and freshness</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md238"></a>
+<h2><a class="anchor" id="autotoc_md323"></a>
 Validity gates</h2>
 <ul>
 <li><code>accel_norm_min</code> and <code>accel_norm_max</code><ul>
@@ -426,7 +426,7 @@ Validity gates</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md239"></a>
+<h2><a class="anchor" id="autotoc_md324"></a>
 Mahony backend gains</h2>
 <p>Gravity and magnetic feedback use <code>measured_body.cross(expected_body)</code> to produce a corrective body rate under the library's body-to-world quaternion convention.</p>
 <ul>
@@ -459,7 +459,7 @@ Mahony backend gains</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md240"></a>
+<h2><a class="anchor" id="autotoc_md325"></a>
 MEKF backend noise model</h2>
 <ul>
 <li><code>q_attitude</code><ul>
@@ -489,7 +489,7 @@ MEKF backend noise model</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md241"></a>
+<h2><a class="anchor" id="autotoc_md326"></a>
 Frame conventions</h2>
 <ul>
 <li><code>body_down_axis()</code><ul>
@@ -509,7 +509,7 @@ Frame conventions</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md242"></a>
+<h2><a class="anchor" id="autotoc_md327"></a>
 Relative-output policy</h2>
 <ul>
 <li><code>default_output</code><ul>
@@ -542,7 +542,7 @@ Relative-output policy</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md243"></a>
+<h1><a class="anchor" id="autotoc_md328"></a>
 Runtime Calibration</h1>
 <p>Use <code>SensorCalibration&lt;T&gt;</code> for per-board calibration and mounting alignment:</p>
 <ul>
@@ -560,7 +560,7 @@ Runtime Calibration</h1>
 <li>Invalid calibration is surfaced through <code>StatusFlag::calibration_invalid</code></li>
 </ul>
 <p>The API also validates policy and frame consistency at runtime. Invalid or inconsistent world-frame conventions, degenerate axes, or malformed policy thresholds are surfaced through <code>StatusFlag::configuration_invalid</code>.</p>
-<h1><a class="anchor" id="autotoc_md244"></a>
+<h1><a class="anchor" id="autotoc_md329"></a>
 Typical Usage</h1>
 <div class="fragment"><div class="line"><span class="keyword">using </span>KneeEstimator = <a class="code hl_class" href="classmicrola_1_1fusion_1_1RelativeAngleEstimator.html">microla::fusion::RelativeAngleEstimator</a>&lt;</div>
 <div class="line">    float,</div>
@@ -588,10 +588,10 @@ Typical Usage</h1>
 <li><code>result.primary.quality</code></li>
 <li><code>result.primary.flags</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md245"></a>
+<h1><a class="anchor" id="autotoc_md330"></a>
 Filtering Strategies for Improved Performance</h1>
 <p>When sampling sensors at fixed, rapid intervals (typically 100-1000 Hz), additional filtering can significantly improve orientation estimates by rejecting noise, vibration, and transient disturbances.</p>
-<h2><a class="anchor" id="autotoc_md246"></a>
+<h2><a class="anchor" id="autotoc_md331"></a>
 Built-In Filtering</h2>
 <p>The fusion system already includes several filtering mechanisms:</p>
 <p><b>1. Gravity Low-Pass Filter</b></p><ul>
@@ -617,7 +617,7 @@ Built-In Filtering</h2>
 <li><code>mag_reference_learning_alpha = 0.05</code> slowly adapts to local field strength</li>
 <li>Provides robustness to gradual magnetic environment changes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md247"></a>
+<h2><a class="anchor" id="autotoc_md332"></a>
 Pre-Filtering Raw Sensor Data</h2>
 <p>For high-rate sampling with significant noise, consider filtering <b>before</b> feeding data to the fusion system:</p>
 <p><b>Moving Average Filter (Simple, Low Latency)</b> </p><div class="fragment"><div class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, std::<span class="keywordtype">size_t</span> WindowSize&gt;</div>
@@ -688,7 +688,7 @@ Pre-Filtering Raw Sensor Data</h2>
 <div class="line"><span class="comment">// Cutoff frequency calculation: alpha = dt / (dt + tau)</span></div>
 <div class="line"><span class="comment">// where tau = 1 / (2 * pi * fc), fc = desired cutoff frequency in Hz</span></div>
 <div class="line"><span class="comment">// Example: 100 Hz sampling, 10 Hz cutoff → tau = 0.0159, alpha ≈ 0.386</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md248"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md333"></a>
 Application-Specific Strategies</h2>
 <p><b>High-Vibration Environments (Drones, Power Tools, Vehicles)</b></p><ul>
 <li><b>Pre-filter accelerometer</b> with low-pass IIR (10-20 Hz cutoff for 100+ Hz sampling)</li>
@@ -715,7 +715,7 @@ Application-Specific Strategies</h2>
 <li><b>Increase <code>max_dt_s</code></b> to accommodate larger gaps (0.5-1.0 seconds)</li>
 <li>Accept that orientation quality will be lower</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md249"></a>
+<h2><a class="anchor" id="autotoc_md334"></a>
 Filtering Trade-Offs</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -735,14 +735,14 @@ Filtering Trade-Offs</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">MEKF backend   </td><td class="markdownTableBodyNone">0 ms   </td><td class="markdownTableBodyNone">Good (adaptive)   </td><td class="markdownTableBodyNone">Good (gating)   </td><td class="markdownTableBodyNone">High   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md250"></a>
+<h2><a class="anchor" id="autotoc_md335"></a>
 Post-Filtering Orientation Output</h2>
 <p>You can also smooth the <b>final orientation estimate</b>, though this adds latency:</p>
 <p><b>Quaternion SLERP Smoothing</b> </p><div class="fragment"><div class="line"><span class="comment">// Spherical linear interpolation between consecutive orientations</span></div>
 <div class="line"><span class="keyword">auto</span> smooth_quat = prev_orientation.slerp(current_orientation, alpha);</div>
 <div class="line"><span class="comment">// alpha = 0.3-0.5 typical for moderate smoothing</span></div>
 </div><!-- fragment --><p><b>⚠️ Warning:</b> Post-filtering orientation adds latency and can create lag during fast rotations. Only use when you need extremely smooth output for visualization or control systems with low bandwidth requirements.</p>
-<h2><a class="anchor" id="autotoc_md251"></a>
+<h2><a class="anchor" id="autotoc_md336"></a>
 Recommended Starting Point</h2>
 <p>For typical embedded IMU applications (100-200 Hz sampling):</p>
 <ol type="1">
@@ -754,13 +754,13 @@ Recommended Starting Point</h2>
 <li><b>Add moving average</b> (5-10 samples) only if previous steps insufficient</li>
 </ol>
 <p>Monitor <code>StatusFlag</code> rejection rates - if you're rejecting &gt;30% of samples due to norm violations, you likely need better pre-filtering rather than wider validity gates.</p>
-<h1><a class="anchor" id="autotoc_md252"></a>
+<h1><a class="anchor" id="autotoc_md337"></a>
 Known Limitations and Failure Modes</h1>
-<h2><a class="anchor" id="autotoc_md253"></a>
+<h2><a class="anchor" id="autotoc_md338"></a>
 Fundamental Assumptions</h2>
 <p>IMU-based orientation estimation relies on a <b>critical assumption</b>: the accelerometer measures gravity. In reality, accelerometers measure <b>net force</b> (gravity + linear acceleration + centripetal acceleration). The system assumes <b>quasi-static motion</b> where linear acceleration ≈ 0.</p>
 <p>This assumption breaks down in several common scenarios:</p>
-<h2><a class="anchor" id="autotoc_md254"></a>
+<h2><a class="anchor" id="autotoc_md339"></a>
 Freefall and Zero-G Environments</h2>
 <p><b>Problem:</b> During freefall, the accelerometer reads near zero.</p>
 <ul>
@@ -774,7 +774,7 @@ Freefall and Zero-G Environments</h2>
 </ul>
 <p><b>Applications affected:</b> Skydiving, parabolic flight, space applications, dropped objects</p>
 <p><b>Recovery:</b> When acceleration returns to ~1g (parachute deployment, landing), tilt reference recovers. Recovery speed depends on <code>kp_accel</code> and <code>gravity_filter_alpha</code>.</p>
-<h2><a class="anchor" id="autotoc_md255"></a>
+<h2><a class="anchor" id="autotoc_md340"></a>
 High-G Impacts and Extreme Acceleration</h2>
 <p><b>Problem:</b> The accelerometer reads gravity + linear acceleration.</p>
 <ul>
@@ -790,7 +790,7 @@ High-G Impacts and Extreme Acceleration</h2>
 </ul>
 <p><b>Applications affected:</b> Helmets during running/tumbling, racing vehicles, roller coasters, impact monitoring</p>
 <p><b>Tuning tradeoff:</b> Widening the gate (e.g., <code>accel_norm_max = 30.0</code>) accepts more contaminated samples, reducing rejection frequency but allowing corrupted gravity estimates that produce incorrect tilt.</p>
-<h2><a class="anchor" id="autotoc_md256"></a>
+<h2><a class="anchor" id="autotoc_md341"></a>
 Running and Rhythmic Motion</h2>
 <p><b>Moderate but periodic violation:</b></p>
 <ul>
@@ -800,7 +800,7 @@ Running and Rhythmic Motion</h2>
 <li>Some tilt corrections accepted, others rejected</li>
 <li>Result: usable but noisy orientation estimates</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md257"></a>
+<h2><a class="anchor" id="autotoc_md342"></a>
 High Angular Rates</h2>
 <p><b>Problem:</b> Extremely fast rotation exceeds sensor and validation limits.</p>
 <ul>
@@ -811,7 +811,7 @@ High Angular Rates</h2>
 </ul>
 <p><b>Typical IMU ranges:</b> ±250 to ±2000 deg/s depending on configuration. Choose hardware range to match expected angular rates and adjust <code>gyro_norm_max</code> accordingly.</p>
 <p><b>Applications affected:</b> Gymnastics, aggressive drone maneuvers, spinning tools</p>
-<h2><a class="anchor" id="autotoc_md258"></a>
+<h2><a class="anchor" id="autotoc_md343"></a>
 Magnetometer Disturbances</h2>
 <p><b>Problem:</b> Magnetometers measure the local magnetic field, which is easily distorted.</p>
 <p><b>Hard-iron distortion (static):</b></p><ul>
@@ -833,7 +833,7 @@ Magnetometer Disturbances</h2>
 </ul>
 <p><b>Applications affected:</b> Helmet-mounted IMUs (electronics, NVGs, cameras), indoor environments, near steel structures, vehicles with motors</p>
 <p><b>Mitigation:</b> For magnetically-polluted environments, disable magnetometer correction entirely (<code>enable_mag_correction = false</code>) and accept 6-axis behavior rather than risk bad heading corrections.</p>
-<h2><a class="anchor" id="autotoc_md259"></a>
+<h2><a class="anchor" id="autotoc_md344"></a>
 Summary Table</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -851,7 +851,7 @@ Summary Table</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Quasi-Static   </td><td class="markdownTableBodyNone">OK   </td><td class="markdownTableBodyNone">OK   </td><td class="markdownTableBodyNone">OK   </td><td class="markdownTableBodyNone">Yes   </td><td class="markdownTableBodyNone">Yes   </td><td class="markdownTableBodyNone"><code>nominal</code>   </td><td class="markdownTableBodyNone">—   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md260"></a>
+<h2><a class="anchor" id="autotoc_md345"></a>
 Design Response</h2>
 <p>Rather than pretending these scenarios produce valid output, microLA's sensor fusion explicitly reports degradation through:</p>
 <ul>
@@ -869,7 +869,7 @@ Design Response</h2>
 <li><b>Confidence scores</b> (0-1 scale)</li>
 </ul>
 <p>This allows safety-critical applications to detect unreliable estimates and respond appropriately (fallback modes, increased margins, operator warnings).</p>
-<h1><a class="anchor" id="autotoc_md261"></a>
+<h1><a class="anchor" id="autotoc_md346"></a>
 Current Scope Notes</h1>
 <ul>
 <li>Accelerometer-only entities support tilt observability, not absolute heading observability.</li>
@@ -882,7 +882,7 @@ Current Scope Notes</h1>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sat Oct 10 2026 21:25:21 for MicroLA by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+    <li class="footer">Generated on Sun Oct 11 2026 15:10:01 for MicroLA by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>
 </body>

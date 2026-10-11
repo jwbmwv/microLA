@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['safe_5fmath_2ehpp_0',['safe_math.hpp',['../safe__math_8hpp.html',1,'']]],
-  ['sensor_5ffusion_2ehpp_1',['sensor_fusion.hpp',['../sensor__fusion_8hpp.html',1,'']]],
-  ['sensor_5ffusion_2emd_2',['SENSOR_FUSION.md',['../SENSOR__FUSION_8md.html',1,'']]],
-  ['simd_5fhelpers_2ehpp_3',['simd_helpers.hpp',['../simd__helpers_8hpp.html',1,'']]],
-  ['simd_5foptimizations_2emd_4',['SIMD_Optimizations.md',['../SIMD__Optimizations_8md.html',1,'']]]
+  ['readme_2emd_0',['readme.md',['../docs_2README_8md.html',1,'(Global Namespace)'],['../README_8md.html',1,'(Global Namespace)']]],
+  ['release_5fcontract_2emd_1',['RELEASE_CONTRACT.md',['../RELEASE__CONTRACT_8md.html',1,'']]],
+  ['resource_5fchecks_2ehpp_2',['resource_checks.hpp',['../resource__checks_8hpp.html',1,'']]]
 ];

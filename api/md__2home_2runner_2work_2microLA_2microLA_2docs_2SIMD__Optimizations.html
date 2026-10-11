@@ -93,8 +93,8 @@ $(document).ready(function(){initNavTree('md__2home_2runner_2work_2microLA_2micr
   <div class="headertitle"><div class="title">SIMD Optimization Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md262"></a> MicroLA requires C++20. Optional backends select implementations at compile time; they do not guarantee a speedup or qualify a processor for production use. The <a class="el" href="md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html">release contract</a> defines the supported validation boundary.</p>
-<h1><a class="anchor" id="autotoc_md263"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md347"></a> MicroLA requires C++20. Optional backends select implementations at compile time; they do not guarantee a speedup or qualify a processor for production use. The <a class="el" href="md__2home_2runner_2work_2microLA_2microLA_2docs_2RELEASE__CONTRACT.html">release contract</a> defines the supported validation boundary.</p>
+<h1><a class="anchor" id="autotoc_md348"></a>
 Implemented Paths</h1>
 <ul>
 <li>Generic float matrix multiplication streams right-hand rows into an output row. The column loop is contiguous and can be vectorized by the compiler without gathers or horizontal reductions. Rectangular dimensions and scalar tails are covered by regression tests.</li>
@@ -106,14 +106,14 @@ Implemented Paths</h1>
 <li>RVV branches are experimental and require a compatible intrinsic API and vector target. Scalar RISC-V compile coverage is not RVV execution coverage.</li>
 <li>MVE, SVE, FP16, and fixed-point kernels are not established by these SIMD claims.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md264"></a>
+<h1><a class="anchor" id="autotoc_md349"></a>
 Configuration</h1>
 <p>Use the library's CMake options, not <code>CONFIG_*</code> CMake cache variables:</p>
 <div class="fragment"><div class="line">cmake --preset benchmark-ci -DMICROLA_ENABLE_NEON=ON</div>
 <div class="line">cmake --build --preset benchmark-ci --target bench_matrix_multiply</div>
 </div><!-- fragment --><p>Only enable NEON on an appropriate ARM toolchain/target. CMSIS also requires its headers and library in the consumer's build. Define backend preprocessor switches before including a MicroLA header; see <a href="../include/microla/compiler_features.hpp">compiler_features.hpp</a> for detection.</p>
 <p>Do not add <code>-mfpu=neon</code> to AArch64 compilation. Do not use <code>-ffast-math</code> when relying on finite-value validation or IEEE non-finite behavior.</p>
-<h1><a class="anchor" id="autotoc_md265"></a>
+<h1><a class="anchor" id="autotoc_md350"></a>
 Memory And Alignment</h1>
 <p>Owning types use <code>MICROLA_DATA_ALIGNMENT</code>, not a universal 16-byte alignment. Use <code>sizeof</code> and <code>alignof</code> for the actual compiler and macro configuration.</p>
 <table class="markdownTable">
@@ -133,7 +133,7 @@ Memory And Alignment</h1>
 <td class="markdownTableBodyNone">Mat&lt;float,4,4&gt;   </td><td class="markdownTableBodyNone">64   </td><td class="markdownTableBodyNone">64   </td><td class="markdownTableBodyNone">64   </td></tr>
 </table>
 <p>Larger configured alignment can add more padding. Alignment alone does not guarantee cache-line placement, DMA coherency, or permission to read past the declared data array. Use padding-aware helpers for three-element vectors.</p>
-<h1><a class="anchor" id="autotoc_md266"></a>
+<h1><a class="anchor" id="autotoc_md351"></a>
 Reproducible Benchmarks</h1>
 <div class="fragment"><div class="line">cmake --preset benchmark-ci</div>
 <div class="line">cmake --build --preset benchmark-ci --target bench_matrix_multiply</div>
@@ -155,11 +155,11 @@ Reproducible Benchmarks</h1>
 <td class="markdownTableBodyNone">64x64   </td><td class="markdownTableBodyNone">77429.8 ns   </td><td class="markdownTableBodyNone">9221.4 ns   </td><td class="markdownTableBodyNone">9534.4 ns   </td></tr>
 </table>
 <p>The updated product matched the reference exactly for that input set. These are host observations, not ARM/RVV timing guarantees or worst-case execution bounds. The repository benchmark uses a different harness and need not reproduce these absolute times. Previous illustrative Cortex-A/Cortex-M speedup tables have been removed because they did not carry reproducible target evidence.</p>
-<h1><a class="anchor" id="autotoc_md267"></a>
+<h1><a class="anchor" id="autotoc_md352"></a>
 Accuracy And Target Validation</h1>
 <p>FMA and different accumulation orders can change rounding. Compare against a trusted reference with tolerances suitable for the scalar type, conditioning, dimension, and application. A fast kernel is not necessarily a more accurate one.</p>
 <p>Before deploying an optional backend, compile its actual branches, execute its regressions on the target, and measure latency, stack, and persistent memory using the shipping compiler flags. No physical-board timing was performed for this update.</p>
-<h1><a class="anchor" id="autotoc_md268"></a>
+<h1><a class="anchor" id="autotoc_md353"></a>
 References</h1>
 <ul>
 <li><a href="https://developer.arm.com/architectures/instruction-sets/intrinsics/">NEON Intrinsics</a></li>
@@ -173,7 +173,7 @@ References</h1>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="footer">Generated on Sat Oct 10 2026 21:25:21 for MicroLA by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+    <li class="footer">Generated on Sun Oct 11 2026 15:10:01 for MicroLA by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>
 </body>
